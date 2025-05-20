@@ -208,6 +208,9 @@ class RuleEvaluator:
         formula_map = {result_column: rule_obj.formula}
 
         # Use context manager to ensure proper cleanup
+        current_thread_id = threading.current_thread().ident
+        logger.debug(f"Processing rule {rule_obj.rule_id} in thread {current_thread_id}")
+
         with ExcelFormulaProcessor(visible=self.excel_visible, track_errors=True) as processor:
             result_df = processor.process_formulas(data_df, formula_map)
 

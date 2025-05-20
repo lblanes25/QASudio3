@@ -85,11 +85,37 @@ class ExcelFormulaProcessor:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager exit point - ensures cleanup is called"""
+        """Context manager exit point - ensures cleanup is called with proper thread state"""
         try:
+            # First ensure COM is initialized in THIS thread before cleanup
+            # This is crucial for the thread that's doing the cleanup
+            if not hasattr(_thread_local, 'com_initialized') or not _thread_local.com_initialized:
+                try:
+                    pythoncom.CoInitialize()
+                    _thread_local.com_initialized = True
+                    logger.debug(
+                        f"[Session {self.session_id}] COM initialized for cleanup in thread {threading.current_thread().ident}")
+
+                    # Set a flag to indicate we initialized COM in this method
+                    self._exit_initialized_com = True
+                except Exception as e:
+                    logger.error(f"[Session {self.session_id}] Failed to initialize COM for cleanup: {str(e)}")
+
+            # Now perform the cleanup with proper COM state
             self.cleanup()
         except Exception as e:
             logger.error(f"[Session {self.session_id}] Error in __exit__: {str(e)}")
+
+        # Uninitialize COM only if we initialized it in this method
+        if hasattr(self, '_exit_initialized_com') and self._exit_initialized_com:
+            try:
+                pythoncom.CoUninitialize()
+                _thread_local.com_initialized = False
+                logger.debug(
+                    f"[Session {self.session_id}] COM uninitialized after cleanup in thread {threading.current_thread().ident}")
+            except Exception as e:
+                logger.warning(f"[Session {self.session_id}] Error uninitializing COM after cleanup: {str(e)}")
+
         return False  # Don't suppress exceptions
 
     def _ensure_com_initialized(self):
@@ -102,7 +128,8 @@ class ExcelFormulaProcessor:
             try:
                 pythoncom.CoInitialize()
                 _thread_local.com_initialized = True
-                self._is_com_initialized = True
+                # Track which thread ID initialized COM
+                _thread_local.initializing_thread_id = threading.current_thread().ident
                 logger.debug(
                     f"[Session {self.session_id}] COM initialized for thread {threading.current_thread().ident}")
             except Exception as e:

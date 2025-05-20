@@ -1,0 +1,14 @@
+{
+  "rule_id": "f2f1926e-d280-456f-9ddf-c29fea3f9dbb",
+  "name": "ManagerID_Format",
+  "formula": "=OR(LEFT([Manager],1)=\"M\", LEN([Manager])=4)",
+  "description": "Manager ID must be in the correct format (M followed by 3 digits)",
+  "threshold": 0.9,
+  "metadata": {
+    "severity": "low",
+    "category": "format",
+    "tags": [],
+    "title": "ManagerID_Format",
+    "created_at": "2025-05-20T08:47:24.525339"
+  }
+}

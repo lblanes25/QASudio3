@@ -729,50 +729,70 @@ class ValidationPipeline:
 
         # Use thread pool to evaluate rules in parallel
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # Submit tasks
-            future_to_rule = {
-                executor.submit(self._evaluate_single_rule, rule, data_df.copy(), responsible_party_column): rule
-                for rule in rules
-            }
+            # Submit tasks but keep track of future objects
+            futures = []
+            for rule in rules:
+                # Create a copy of the DataFrame for each rule to avoid threading issues
+                rule_df = data_df.copy()
+                futures.append(executor.submit(self._evaluate_single_rule, rule, rule_df, responsible_party_column))
 
-            # Process results as they complete
-            for future in concurrent.futures.as_completed(future_to_rule):
-                rule = future_to_rule[future]
+            # Process futures as they complete
+            for future in concurrent.futures.as_completed(futures):
                 try:
                     rule_id, result = future.result()
                     if result:
                         results[rule_id] = result
                 except Exception as e:
-                    logger.error(f"Exception processing rule {rule.rule_id}: {str(e)}")
+                    logger.error(f"Exception in thread pool task: {str(e)}")
+
+        # Force garbage collection after all threads complete
+        try:
+            import gc
+            gc.collect()
+        except:
+            pass
 
         return results
 
     def _evaluate_single_rule(self, rule, data_df, responsible_party_column):
         """
-        Worker function to evaluate a single rule with proper cleanup.
+        Worker function to evaluate a single rule with thread isolation.
 
-        This ensures each Excel instance is properly disposed of after use.
+        This isolates all COM operations to a single thread context.
         """
         try:
-            # Create a thread-specific evaluator
-            thread_evaluator = RuleEvaluator(
-                rule_manager=self.rule_manager,
-                compliance_determiner=ComplianceDeterminer(),
-                excel_visible=False
-            )
+            # Initialize COM for this thread
+            pythoncom.CoInitialize()
+            logger.debug(f"COM initialized in thread {threading.current_thread().ident} for rule {rule.rule_id}")
 
-            # Use context manager pattern to ensure cleanup
+            # Use with statement to ensure proper cleanup
             with ExcelFormulaProcessor(visible=False) as processor:
+                # Create a dedicated evaluator for this thread
+                thread_evaluator = RuleEvaluator(
+                    rule_manager=self.rule_manager,
+                    compliance_determiner=ComplianceDeterminer(),
+                    excel_visible=False
+                )
+
                 # Evaluate the rule
                 result = thread_evaluator.evaluate_rule(
                     rule, data_df, responsible_party_column
                 )
 
+                # Return the result
                 return rule.rule_id, result
 
         except Exception as e:
             logger.error(f"Error evaluating rule {rule.rule_id}: {str(e)}")
             return rule.rule_id, None
+
+        finally:
+            # Clean up COM in this thread
+            try:
+                pythoncom.CoUninitialize()
+                logger.debug(f"COM uninitialized in thread {threading.current_thread().ident} for rule {rule.rule_id}")
+            except Exception as e:
+                logger.error(f"Error uninitializing COM in thread {threading.current_thread().ident}: {str(e)}")
 
     def _process_evaluation_results(self,
                                     rule_results: Dict[str, RuleEvaluationResult],

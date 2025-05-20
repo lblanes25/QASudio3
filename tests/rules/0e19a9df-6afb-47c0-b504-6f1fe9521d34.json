@@ -1,0 +1,14 @@
+{
+  "rule_id": "0e19a9df-6afb-47c0-b504-6f1fe9521d34",
+  "name": "Salary_NotNull",
+  "formula": "=NOT(ISBLANK([Salary]))",
+  "description": "Salary values must not be null",
+  "threshold": 1.0,
+  "metadata": {
+    "severity": "high",
+    "category": "data_quality",
+    "tags": [],
+    "title": "Salary_NotNull",
+    "created_at": "2025-05-20T10:08:19.568572"
+  }
+}
