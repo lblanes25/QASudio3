@@ -1,0 +1,14 @@
+{
+  "rule_id": "89adbfee-6858-499c-95de-fc5f8f7d5bab",
+  "name": "ConfigDept_Valid",
+  "formula": "=OR([Department]=\"IT\", [Department]=\"HR\", [Department]=\"Finance\")",
+  "description": "Department must be one of: IT, HR, Finance",
+  "threshold": 1.0,
+  "metadata": {
+    "severity": "medium",
+    "category": "master_data",
+    "tags": [],
+    "title": "ConfigDept_Valid",
+    "created_at": "2025-05-19T17:21:14.115542"
+  }
+}

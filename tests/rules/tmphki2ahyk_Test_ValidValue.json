@@ -1,0 +1,16 @@
+{
+  "rule_id": "tmphki2ahyk_Test_ValidValue",
+  "name": "Test_ValidValue",
+  "formula": "=OR([Status]=\"Active\", [Status]=\"Inactive\")",
+  "description": "Status must be Active or Inactive",
+  "threshold": 0.95,
+  "metadata": {
+    "severity": "medium",
+    "category": "validity",
+    "tags": [
+      "status"
+    ],
+    "title": "Test_ValidValue",
+    "created_at": "2025-05-19T11:49:21.503355"
+  }
+}

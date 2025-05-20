@@ -1,0 +1,23 @@
+report_config:
+  test_weights:
+    rule1: 0.25
+    rule2: 0.2
+    rule3: 0.15
+  score_mapping:
+    0.95-1.00: 5
+    0.85-0.94: 4
+    0.70-0.84: 3
+    0.50-0.69: 2
+    0.00-0.49: 1
+  rating_labels:
+    5: "\u2705 Satisfactory"
+    4: "\u2713 Meets Expectations"
+    3: "\u26A0 Requires Attention"
+    2: "\u26A0 Needs Improvement"
+    1: "\u274C Unsatisfactory"
+  rule_explanations:
+    rule1: This rule validates that expense records have a positive amount and an
+      approver name.
+    rule2: This rule checks that reviews were completed within 5 days of submission.
+    rule3: This rule ensures that documentation notes are substantive (at least 25
+      characters long).

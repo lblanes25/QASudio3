@@ -1,0 +1,14 @@
+{
+  "rule_id": "676f8497-a598-4e68-9f24-64431d777a0d",
+  "name": "ReviewStatus_NotNull",
+  "formula": "=NOT(ISBLANK([ReviewStatus]))",
+  "description": "Review status must not be null",
+  "threshold": 1.0,
+  "metadata": {
+    "severity": "medium",
+    "category": "completeness",
+    "tags": [],
+    "title": "ReviewStatus_NotNull",
+    "created_at": "2025-05-19T16:25:03.239896"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "rule_id": "5d96694b-a057-408f-a5bc-b921def18efc",
+  "name": "ConfigSalary_Minimum",
+  "formula": "=[Salary]>=50000",
+  "description": "Salary must be at least 50,000",
+  "threshold": 1.0,
+  "metadata": {
+    "severity": "high",
+    "category": "financial",
+    "tags": [],
+    "title": "ConfigSalary_Minimum",
+    "created_at": "2025-05-19T16:24:49.905611"
+  }
+}
