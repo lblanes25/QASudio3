@@ -12,7 +12,7 @@ import re
 from datetime import datetime
 
 # Import the module to test
-from reporting.generation.report_generator_original import ReportGenerator
+from reporting.generation.report_generator import ReportGenerator
 
 
 class TestReportGenerator(unittest.TestCase):

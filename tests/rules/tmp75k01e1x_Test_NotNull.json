@@ -1,0 +1,17 @@
+{
+  "rule_id": "tmp75k01e1x_Test_NotNull",
+  "name": "Test_NotNull",
+  "formula": "=NOT(ISBLANK([TestColumn]))",
+  "description": "Test column must not be null",
+  "threshold": 1.0,
+  "metadata": {
+    "severity": "high",
+    "category": "data_quality",
+    "tags": [
+      "required",
+      "test"
+    ],
+    "title": "Test_NotNull",
+    "created_at": "2025-05-20T12:41:43.392698"
+  }
+}

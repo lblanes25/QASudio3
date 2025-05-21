@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QA Analytics Framework - Validation Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1, h2, h3 { color: #333366; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #dddddd; text-align: left; padding: 8px; }
+        th { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .status { font-weight: bold; }
+        .status.gc { color: #006100; background-color: #C6EFCE; }
+        .status.pc { color: #9C6500; background-color: #FFEB9C; }
+        .status.dnc { color: #9C0006; background-color: #FFC7CE; }
+        .rate { text-align: center; }
+        .summary-box { border: 1px solid #ddd; padding: 10px; margin-bottom: 15px; }
+        .rule-details { margin-bottom: 30px; }
+        .explanation { background-color: #f0f0f0; padding: 10px; border-left: 4px solid #333366; }
+        .formula { font-family: Consolas, monospace; background-color: #f8f8f8; padding: 10px; }
+        .rule-header { background-color: #e0e0e0; padding: 10px; margin-bottom: 10px; }
+        .failures { max-height: 400px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>QA Analytics Framework - Validation Report</h1>
+    <p>Report generated on 2025-05-20 14:37:33</p>
+    <h2>Summary</h2>
+    <div class="summary-box">
+        <h3>Overall Status: <span class="status gc">FULLY_COMPLIANT</span></h3>
+        <table>
+            <tr><th>Total Rules</th><th>Generally Conforms (GC)</th><th>Partially Conforms (PC)</th><th>Does Not Conform (DNC)</th></tr>
+            <tr><td>3</td><td class="status gc">3</td><td class="status pc">0</td><td class="status dnc">0</td></tr>
+        </table>
+    </div>
+    <h2>Rule Details</h2>
+    <div class="rule-details">
+        <div class="rule-header">
+            <h3>Salary_NotNull</h3>
+            <p>Status: <span class="status gc">GC</span></p>
+            <p>Compliance Rate: <span class="rate">100.0%</span> (5/5)</p>
+        </div>
+        <p>Salary values must not be null</p>
+        <div class="formula">
+            <p><strong>Formula:</strong> =NOT(ISBLANK([Salary]))</p>
+        </div>
+        <div class="explanation">
+            <p><strong>Explanation:</strong> This rule validates that data meets the validation criteria specified in the formula.
+
+Formula: =NOT(ISBLANK([Salary]))</p>
+        </div>
+    </div>
+    <div class="rule-details">
+        <div class="rule-header">
+            <h3>ReviewStatus_NotNull</h3>
+            <p>Status: <span class="status pc">PC</span></p>
+            <p>Compliance Rate: <span class="rate">80.0%</span> (4/5)</p>
+        </div>
+        <p>Review status must not be null</p>
+        <div class="formula">
+            <p><strong>Formula:</strong> =NOT(ISBLANK([ReviewStatus]))</p>
+        </div>
+        <h4>Failures: 1</h4>
+        <div class="failures">
+<table border="1" class="dataframe failures-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>EmployeeID</th>
+      <th>Name</th>
+      <th>ReviewStatus</th>
+      <th>Calc_Explanation</th>
+      <th>Reason_Failure</th>
+      <th>Result_ReviewStatus_NotNull</th>
+      <th>Result_ReviewStatus_NotNull_Error</th>
+      <th>Department</th>
+      <th>Manager</th>
+      <th>Salary</th>
+      <th>HireDate</th>
+      <th>PerformanceScore</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>E005</td>
+      <td>David Lee</td>
+      <td>None</td>
+      <td>Failed validation: =NOT(ISBLANK([ReviewStatus]))</td>
+      <td>N/A</td>
+      <td>False</td>
+      <td></td>
+      <td>HR</td>
+      <td>M002</td>
+      <td>68000</td>
+      <td>2022-03-01</td>
+      <td>3.2</td>
+    </tr>
+  </tbody>
+</table>
+        </div>
+        <div class="explanation">
+            <p><strong>Explanation:</strong> This rule validates that data meets the validation criteria specified in the formula.
+
+Formula: =NOT(ISBLANK([ReviewStatus]))</p>
+        </div>
+    </div>
+    <div class="rule-details">
+        <div class="rule-header">
+            <h3>PerformanceScore_Range</h3>
+            <p>Status: <span class="status gc">GC</span></p>
+            <p>Compliance Rate: <span class="rate">100.0%</span> (5/5)</p>
+        </div>
+        <p>Performance scores must be between 1 and 5 if present</p>
+        <div class="formula">
+            <p><strong>Formula:</strong> =OR(ISBLANK([PerformanceScore]), AND([PerformanceScore]>=1, [PerformanceScore]<=5))</p>
+        </div>
+        <div class="explanation">
+            <p><strong>Explanation:</strong> This rule validates that all of these conditions are true: 
+1. =OR(ISBLANK([PerformanceScore]), AND([PerformanceScore]>=1, [PerformanceScore]<=5))
+
+Formula: =OR(ISBLANK([PerformanceScore]), AND([PerformanceScore]>=1, [PerformanceScore]<=5))</p>
+        </div>
+    </div>
+</body>
+</html>

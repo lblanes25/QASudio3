@@ -1,0 +1,15 @@
+{
+  "rule_id": "521095a9-a786-44dc-ad41-7b974831e0a3",
+  "name": "PerformanceScore_Range",
+  "formula": "=OR(ISBLANK([PerformanceScore]), AND([PerformanceScore]>=1, [PerformanceScore]<=5))",
+  "description": "Performance scores must be between 1 and 5 if present",
+  "threshold": 1.0,
+  "metadata": {
+    "severity": "medium",
+    "category": "data_quality",
+    "tags": [],
+    "responsible_party_column": "Department",
+    "title": "PerformanceScore_Range",
+    "created_at": "2025-05-20T14:33:10.563470"
+  }
+}

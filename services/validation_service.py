@@ -1,6 +1,7 @@
 # services/validation_service.py
 
 import pandas as pd
+import threading
 import logging
 from typing import Dict, List, Any, Optional, Tuple, Union, Set
 import json
@@ -19,7 +20,7 @@ from core.rule_engine.rule_evaluator import RuleEvaluator, RuleEvaluationResult
 from core.rule_engine.compliance_determiner import ComplianceDeterminer
 from data_integration.io.importer import DataImporter
 from data_integration.io.data_validator import DataValidator
-from reporting.generation.report_generator_original import ReportGenerator  # Assuming this will be implemented
+from reporting.generation.report_generator import ReportGenerator  # Assuming this will be implemented
 
 logger = logging.getLogger(__name__)
 
@@ -1203,3 +1204,239 @@ class ValidationPipeline:
         except Exception as e:
             logger.error(f"Error exporting results to CSV: {str(e)}")
             raise
+
+    def aggregate_analytics(
+            self,
+            result_paths: List[str],
+            output_formats: Optional[List[str]] = None,
+            weights_config: Optional[str] = None,
+            output_dir: Optional[str] = None,
+            report_config: Optional[str] = None,
+            return_report: bool = False
+    ) -> Dict[str, Any]:
+        """
+        Aggregate results from multiple analytics runs.
+
+        Args:
+            result_paths: Paths to JSON result files from previous validation runs
+            output_formats: Output formats to generate ('json', 'excel', etc.)
+            weights_config: Path to weights configuration file
+            output_dir: Directory for output files (defaults to self.output_dir)
+            report_config: Path to report configuration YAML file
+            return_report: Whether to include the full report structure in the return value
+
+        Returns:
+            Dictionary with aggregation results and output file paths
+        """
+        from business_logic.aggregation.analytics_aggregator import (
+            aggregate_analytics_results,
+            load_weights_configuration,
+            create_summary_report
+        )
+        from datetime import datetime  # Fixed missing import
+
+        logger.info(f"Aggregating results from {len(result_paths)} analytics runs")
+
+        # Load result files
+        result_dicts = []
+        for path in result_paths:
+            try:
+                with open(path, 'r') as f:
+                    result = json.load(f)
+                    result_dicts.append(result)
+                    logger.debug(f"Successfully loaded results from {path}")
+            except Exception as e:
+                logger.error(f"Error loading results from {path}: {str(e)}")
+
+        if not result_dicts:
+            return {
+                'success': False,
+                'error': 'No valid result files loaded'
+            }
+
+        # Load weights configuration if specified
+        weights_config_dict = None
+        if weights_config:
+            weights_config_dict = load_weights_configuration(weights_config)
+
+        # Set output directory
+        if output_dir:
+            output_dir_path = Path(output_dir)
+        else:
+            output_dir_path = self.output_dir
+
+        output_dir_path.mkdir(parents=True, exist_ok=True)
+
+        # Perform aggregation
+        summary = aggregate_analytics_results(
+            result_dicts=result_dicts,
+            weights_config=weights_config_dict
+        )
+
+        # Add robust logging after aggregation
+        logger.info(f"Aggregation complete. Leaders: {len(summary.leader_summary)}, Rules: {len(summary.rule_details)}")
+
+        # Create summary report
+        report = create_summary_report(summary)
+
+        # Generate outputs in requested formats
+        output_paths = []
+        if output_formats:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+            for fmt in output_formats:
+                if fmt.lower() == 'json':
+                    # Export aggregated results to JSON
+                    json_path = output_dir_path / f"aggregated_results_{timestamp}.json"
+                    summary.export_to_file(str(json_path))
+                    output_paths.append(str(json_path))
+                    logger.info(f"Exported aggregated results to {json_path}")
+
+                elif fmt.lower() == 'excel':
+                    # Create Excel report
+                    excel_path = output_dir_path / f"aggregated_report_{timestamp}.xlsx"
+
+                    try:
+                        # Explicit exception handling for ReportGenerator
+                        if not hasattr(self, 'report_generator') or self.report_generator is None:
+                            if report_config:
+                                self.report_generator = ReportGenerator(report_config)
+                            else:
+                                self.report_generator = ReportGenerator()  # Default to empty config
+                        elif report_config:  # Update existing report generator with new config
+                            self.report_generator = ReportGenerator(report_config)
+
+                        # This would need to be implemented in ReportGenerator
+                        report_path = self.report_generator.generate_aggregate_excel(
+                            summary=summary,
+                            output_path=str(excel_path)
+                        )
+                        output_paths.append(report_path)
+                        logger.info(f"Generated Excel report at {report_path}")
+                    except Exception as e:
+                        logger.error(f"Error generating Excel report: {str(e)}")
+                        logger.debug(f"Excel error details: {e}", exc_info=True)
+                else:
+                    # Report format validation - log unsupported formats
+                    logger.warning(f"Unsupported output format: {fmt}")
+
+        # Return aggregation results with optional full report
+        result = {
+            'success': True,
+            'timestamp': datetime.now().isoformat(),
+            'leader_count': len(summary.leader_summary),
+            'rule_count': len(summary.rule_details),
+            'department_summary': summary.department_summary,
+            'output_files': output_paths
+        }
+
+        # Include full report if requested
+        if return_report:
+            result['report'] = report
+
+        return result
+
+    def generate_leader_packs(self,
+                              results: Dict[str, Any],
+                              rule_results: Dict[str, RuleEvaluationResult],
+                              responsible_party_column: Optional[str] = None,
+                              output_dir: Optional[str] = None,
+                              selected_leaders: Optional[List[str]] = None,
+                              include_only_failures: bool = False,
+                              generate_email_content: bool = False,
+                              zip_output: bool = True,
+                              export_csv_summary: bool = False,
+                              suppress_logs: bool = False) -> Dict[str, Any]:
+        """
+        Generate individual Excel reports for each audit leader containing only their relevant data.
+        This method produces per-leader Excel reports summarizing compliance results, for distribution
+        or documentation purposes.
+
+        Args:
+            results: Validation results dictionary (from validate_data_source)
+            rule_results: Dictionary of rule evaluation results
+            responsible_party_column: Column name for identifying responsible parties
+            output_dir: Directory to save the leader packs (defaults to self.output_dir)
+            selected_leaders: Optional list of specific leaders to generate packs for
+            include_only_failures: Whether to only include leaders with at least one failed rule
+            generate_email_content: Whether to generate email-ready summaries
+            zip_output: Whether to create a ZIP file containing all leader packs
+            export_csv_summary: Whether to export a CSV summary of leader metrics
+            suppress_logs: Whether to suppress detailed logging (for automated workflows)
+
+        Returns:
+            Dictionary with generation results including paths to all generated files
+        """
+        # Configure logging
+        log_level = logging.INFO
+        if suppress_logs:
+            log_level = logging.WARNING
+
+        # Use default output directory if not specified
+        if output_dir is None:
+            output_dir = self.output_dir
+
+        # Validate rule_results has content
+        if not rule_results:
+            error_msg = "No rule evaluation results provided"
+            if not suppress_logs:
+                logger.error(error_msg)
+            return {
+                "success": False,
+                "error": error_msg
+            }
+
+        # If responsible_party_column not specified, try to find it in results
+        inferred_column = False
+        if responsible_party_column is None:
+            # Look for responsible_party_column in rule metadata
+            for rule_id, result in rule_results.items():
+                if (hasattr(result, 'rule') and
+                        hasattr(result.rule, 'metadata') and
+                        'responsible_party_column' in result.rule.metadata):
+                    responsible_party_column = result.rule.metadata['responsible_party_column']
+                    inferred_column = True
+                    break
+
+        # If we still don't have responsible_party_column, use default
+        if responsible_party_column is None:
+            # Try a common default based on context
+            if 'grouped_summary' in results and results['grouped_summary']:
+                # Name the column "Audit Leader" as a default
+                responsible_party_column = "Audit Leader"
+                inferred_column = True
+
+                if not suppress_logs:
+                    logger.warning(f"No responsible_party_column specified, using default: {responsible_party_column}")
+            else:
+                error_msg = "No responsible_party_column specified and couldn't determine from context"
+                if not suppress_logs:
+                    logger.error(error_msg)
+                return {
+                    "success": False,
+                    "error": error_msg
+                }
+
+        # Log the responsible party column if it was inferred
+        if inferred_column and not suppress_logs:
+            logger.info(f"Using responsible party column: {responsible_party_column} (inferred from context)")
+
+        # Check if report_generator is available
+        if not hasattr(self, 'report_generator'):
+            # Initialize with default settings
+            self.report_generator = ReportGenerator()
+
+        # Call the report generator to create leader packs
+        return self.report_generator.generate_leader_packs(
+            results=results,
+            rule_results=rule_results,
+            output_dir=output_dir,
+            responsible_party_column=responsible_party_column,
+            selected_leaders=selected_leaders,
+            include_only_failures=include_only_failures,
+            generate_email_content=generate_email_content,
+            zip_output=zip_output,
+            export_csv_summary=export_csv_summary,
+            sort_leaders=True,  # Always sort leaders for consistency
+            suppress_logs=suppress_logs  # Pass through log suppression flag
+        )

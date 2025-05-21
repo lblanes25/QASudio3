@@ -7,7 +7,7 @@ from pathlib import Path
 import tempfile
 
 # Import modules to test
-from reporting.generation.report_generator_original import ReportGenerator
+from reporting.generation.report_generator import ReportGenerator
 from core.rule_engine.rule_manager import ValidationRule
 from core.rule_engine.rule_evaluator import RuleEvaluationResult
 
