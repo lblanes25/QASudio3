@@ -398,3 +398,339 @@ data_integration.errors.error_handler.DataIntegrationError: Error executing read
 2025-05-22 21:19:55,460 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
 2025-05-22 21:20:00,515 - error_handler - CRITICAL - TypeError: Object of type QByteArray is not JSON serializable
 2025-05-22 21:20:01,472 - __main__ - ERROR - ERROR: Object of type QByteArray is not JSON serializable
+2025-05-23 08:22:29,458 - error_handler - CRITICAL - TypeError: Object of type QByteArray is not JSON serializable
+2025-05-23 08:22:30,959 - __main__ - ERROR - ERROR: Object of type QByteArray is not JSON serializable
+2025-05-23 08:43:07,779 - data_integration.connectors.excel_connector - ERROR - Error loading Excel file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 08:43:07,779 - data_integration.errors.error_handler - ERROR - Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 328, in safe_dataframe_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_openpyxl.py", line 582, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'Loading...' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 195, in get_data
+    df = retry_operation(
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 379, in retry_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 183, in load_excel
+    return safe_dataframe_operation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 344, in safe_dataframe_operation
+    raise DataIntegrationError(error_msg, details)
+data_integration.errors.error_handler.DataIntegrationError: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 08:43:07,816 - data_integration.io.importer - ERROR - Error previewing file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 08:43:07,816 - data_source_panel - ERROR - Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 08:43:07,823 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 08:43:33,708 - error_handler - CRITICAL - TypeError: Object of type QByteArray is not JSON serializable
+2025-05-23 08:43:34,611 - __main__ - ERROR - ERROR: Object of type QByteArray is not JSON serializable
+2025-05-23 08:44:01,241 - data_integration.connectors.excel_connector - ERROR - Error loading Excel file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 08:44:01,241 - data_integration.errors.error_handler - ERROR - Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 328, in safe_dataframe_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_openpyxl.py", line 582, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'Loading...' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 195, in get_data
+    df = retry_operation(
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 379, in retry_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 183, in load_excel
+    return safe_dataframe_operation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 344, in safe_dataframe_operation
+    raise DataIntegrationError(error_msg, details)
+data_integration.errors.error_handler.DataIntegrationError: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 08:44:01,244 - data_integration.io.importer - ERROR - Error previewing file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 08:44:01,244 - data_source_panel - ERROR - Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 08:44:01,250 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 08:46:31,383 - error_handler - CRITICAL - TypeError: Object of type QByteArray is not JSON serializable
+2025-05-23 08:46:32,268 - __main__ - ERROR - ERROR: Object of type QByteArray is not JSON serializable
+2025-05-23 09:29:31,904 - data_integration.connectors.excel_connector - ERROR - Error loading Excel file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 09:29:31,904 - data_integration.errors.error_handler - ERROR - Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 328, in safe_dataframe_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_openpyxl.py", line 582, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'Loading...' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 195, in get_data
+    df = retry_operation(
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 379, in retry_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 183, in load_excel
+    return safe_dataframe_operation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 344, in safe_dataframe_operation
+    raise DataIntegrationError(error_msg, details)
+data_integration.errors.error_handler.DataIntegrationError: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 09:29:31,907 - data_integration.io.importer - ERROR - Error previewing file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 09:29:31,907 - data_source_panel - ERROR - Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 09:29:31,914 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 09:31:59,049 - error_handler - CRITICAL - TypeError: Object of type QByteArray is not JSON serializable
+2025-05-23 09:32:00,006 - __main__ - ERROR - ERROR: Object of type QByteArray is not JSON serializable
+2025-05-23 09:34:56,670 - error_handler - ERROR - AttributeError: 'PreValidationWidget' object has no attribute 'proceed_button'
+2025-05-23 09:35:05,352 - error_handler - CRITICAL - AttributeError: 'AnalyticsRunnerApp' object has no attribute 'log_view'
+2025-05-23 09:35:08,964 - error_handler - ERROR - AttributeError: 'PreValidationWidget' object has no attribute 'proceed_button'
+2025-05-23 09:35:28,821 - error_handler - CRITICAL - AttributeError: 'AnalyticsRunnerApp' object has no attribute 'log_view'
+2025-05-23 09:38:45,874 - error_handler - ERROR - AttributeError: 'PreValidationWidget' object has no attribute 'proceedRequested'
+2025-05-23 09:38:56,969 - error_handler - CRITICAL - AttributeError: 'AnalyticsRunnerApp' object has no attribute 'log_view'
+2025-05-23 09:39:02,106 - error_handler - ERROR - AttributeError: 'PreValidationWidget' object has no attribute 'proceedRequested'
+2025-05-23 09:39:19,281 - error_handler - CRITICAL - AttributeError: 'AnalyticsRunnerApp' object has no attribute 'log_view'
+2025-05-23 09:41:39,896 - data_integration.connectors.excel_connector - ERROR - Error loading Excel file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 09:41:39,896 - data_integration.errors.error_handler - ERROR - Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 328, in safe_dataframe_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_openpyxl.py", line 582, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'Loading...' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 195, in get_data
+    df = retry_operation(
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 379, in retry_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 183, in load_excel
+    return safe_dataframe_operation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 344, in safe_dataframe_operation
+    raise DataIntegrationError(error_msg, details)
+data_integration.errors.error_handler.DataIntegrationError: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 09:41:39,898 - data_integration.io.importer - ERROR - Error previewing file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 09:41:39,898 - data_source_panel - ERROR - Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 09:41:39,902 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 09:42:11,621 - error_handler - CRITICAL - TypeError: Object of type QByteArray is not JSON serializable
+2025-05-23 09:42:13,210 - __main__ - ERROR - ERROR: Object of type QByteArray is not JSON serializable
+2025-05-23 09:48:38,954 - data_integration.connectors.excel_connector - ERROR - Error loading Excel file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 09:48:38,954 - data_integration.errors.error_handler - ERROR - Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 328, in safe_dataframe_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_openpyxl.py", line 582, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'Loading...' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 195, in get_data
+    df = retry_operation(
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 379, in retry_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 183, in load_excel
+    return safe_dataframe_operation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 344, in safe_dataframe_operation
+    raise DataIntegrationError(error_msg, details)
+data_integration.errors.error_handler.DataIntegrationError: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 09:48:38,956 - data_integration.io.importer - ERROR - Error previewing file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 09:48:38,956 - data_source_panel - ERROR - Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 09:48:38,963 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 09:50:24,005 - error_handler - CRITICAL - TypeError: Object of type QByteArray is not JSON serializable
+2025-05-23 09:50:25,136 - __main__ - ERROR - ERROR: Object of type QByteArray is not JSON serializable
+2025-05-23 09:57:58,900 - data_integration.connectors.excel_connector - ERROR - Error loading Excel file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 09:57:58,900 - data_integration.errors.error_handler - ERROR - Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 328, in safe_dataframe_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_openpyxl.py", line 582, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'Loading...' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 195, in get_data
+    df = retry_operation(
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 379, in retry_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 183, in load_excel
+    return safe_dataframe_operation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 344, in safe_dataframe_operation
+    raise DataIntegrationError(error_msg, details)
+data_integration.errors.error_handler.DataIntegrationError: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 09:57:58,904 - data_integration.io.importer - ERROR - Error previewing file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 09:57:58,904 - data_source_panel - ERROR - Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 09:57:58,912 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 10:32:09,636 - error_handler - CRITICAL - TypeError: Object of type QByteArray is not JSON serializable
+2025-05-23 10:32:10,662 - __main__ - ERROR - ERROR: Object of type QByteArray is not JSON serializable
+2025-05-23 10:33:20,264 - data_integration.connectors.excel_connector - ERROR - Error loading Excel file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 10:33:20,264 - data_integration.errors.error_handler - ERROR - Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 328, in safe_dataframe_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_openpyxl.py", line 582, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'Loading...' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 195, in get_data
+    df = retry_operation(
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 379, in retry_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 183, in load_excel
+    return safe_dataframe_operation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 344, in safe_dataframe_operation
+    raise DataIntegrationError(error_msg, details)
+data_integration.errors.error_handler.DataIntegrationError: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 10:33:20,267 - data_integration.io.importer - ERROR - Error previewing file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 10:33:20,267 - data_source_panel - ERROR - Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 10:33:20,272 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 10:33:42,106 - data_integration.connectors.excel_connector - ERROR - Error loading Excel file C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 10:33:42,106 - data_integration.errors.error_handler - ERROR - Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 328, in safe_dataframe_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_openpyxl.py", line 582, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'Loading...' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 195, in get_data
+    df = retry_operation(
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 379, in retry_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 183, in load_excel
+    return safe_dataframe_operation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 344, in safe_dataframe_operation
+    raise DataIntegrationError(error_msg, details)
+data_integration.errors.error_handler.DataIntegrationError: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 10:33:42,107 - data_integration.io.importer - ERROR - Error previewing file C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 10:33:42,107 - data_source_panel - ERROR - Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 10:33:42,116 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 10:33:58,512 - error_handler - CRITICAL - TypeError: Object of type QByteArray is not JSON serializable
+2025-05-23 10:34:00,222 - __main__ - ERROR - ERROR: Object of type QByteArray is not JSON serializable

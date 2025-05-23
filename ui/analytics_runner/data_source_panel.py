@@ -10,13 +10,14 @@ from typing import Optional, Dict, Any, List
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QComboBox, QTableWidget, QTableWidgetItem, QGroupBox,
-    QFrame, QMessageBox, QFileDialog, QHeaderView,
+    QComboBox, QTableWidget, QTableWidgetItem, QFrame, QMessageBox, QFileDialog, QHeaderView,
 )
-from PySide6.QtCore import Qt, Signal, QThread, QTimer
-from PySide6.QtGui import QFont, QColor
+from PySide6.QtCore import Signal, QThread
 
 from analytics_runner_stylesheet import AnalyticsRunnerStylesheet
+from pre_validation_widget import PreValidationWidget
+from save_data_source_dialog import SaveDataSourceDialog
+from ui.analytics_runner.data_source_registry import DataSourceRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +125,9 @@ class DataSourcePanel(QWidget):
         self._file_metadata = {}
         self._is_excel_file = False
 
+        # Initialize data source registry
+        self.data_source_registry = DataSourceRegistry(session_manager=session_manager)
+
         # Worker threads
         self._preview_worker = None
         self._sheet_worker = None
@@ -154,6 +158,89 @@ class DataSourcePanel(QWidget):
         # Data preview section - expanded and cleaner
         self._create_preview_section()
 
+        # Pre-validation widget
+        self.pre_validation_widget = PreValidationWidget()
+        self.main_layout.addWidget(self.pre_validation_widget)
+
+    def _save_data_source(self):
+        """Open the save data source dialog."""
+        if not self._current_file or self._preview_df is None or self._preview_df.empty:
+            QMessageBox.warning(
+                self,
+                "No Data to Save",
+                "Please load a valid data source before saving."
+            )
+            return
+
+        try:
+            # Create and show the save dialog
+            dialog = SaveDataSourceDialog(
+                file_path=self._current_file,
+                sheet_name=self._current_sheet,
+                preview_df=self._preview_df,
+                registry=self.data_source_registry,
+                parent=self
+            )
+
+            # Connect to success signal
+            dialog.dataSourceSaved.connect(self._on_data_source_saved)
+
+            # Show dialog
+            dialog.exec()
+
+        except Exception as e:
+            error_msg = f"Error opening save dialog: {str(e)}"
+            logger.error(error_msg)
+            QMessageBox.critical(self, "Save Error", error_msg)
+
+    def _on_data_source_saved(self, source_id: str):
+        """Handle successful data source save."""
+        logger.info(f"Data source saved with ID: {source_id}")
+
+        # Update recent files or other UI elements as needed
+        # Could emit a signal here for other components to refresh their data source lists
+
+        # Show brief success message in status or log
+        if hasattr(self.parent(), 'log_message'):
+            self.parent().log_message(f"Data source saved successfully: {source_id}")
+
+    def _on_saved_source_sheets_loaded(self, sheet_names):
+        """Handle sheet loading completion for saved data sources."""
+        # Check if we have a pending sheet selection
+        if hasattr(self, '_pending_sheet_selection') and self._pending_sheet_selection:
+            target_sheet = self._pending_sheet_selection
+
+            # Find the target sheet in the loaded sheets
+            if target_sheet in sheet_names:
+                # Set the sheet combo to the saved sheet
+                sheet_index = sheet_names.index(target_sheet)
+                if hasattr(self.data_source_panel, 'sheet_combo'):
+                    self.data_source_panel.sheet_combo.setCurrentIndex(sheet_index)
+                    self.data_source_panel._current_sheet = target_sheet
+
+                self.log_message(f"Set Excel sheet to saved preference: {target_sheet}")
+            else:
+                self.log_message(f"Saved sheet '{target_sheet}' not found, using default", "WARNING")
+
+            # Clear the pending selection
+            self._pending_sheet_selection = None
+
+    def _apply_connection_parameters(self, connection_params):
+        """Apply saved connection parameters to the current data source."""
+        # Handle Excel sheet selection
+        sheet_name = connection_params.get('sheet_name')
+        if sheet_name and self._is_excel_file:
+            # Store the target sheet name for when sheets are loaded
+            self._target_sheet_name = sheet_name
+            logger.debug(f"Will set Excel sheet to: {sheet_name}")
+
+        # Handle other connection parameters (cell range, etc.)
+        cell_range = connection_params.get('range')
+        if cell_range:
+            # Store for later use in data loading
+            self._target_cell_range = cell_range
+            logger.debug(f"Will use cell range: {cell_range}")
+
     def _create_file_selection_section(self):
         """Create simplified file selection section."""
         # Container frame
@@ -163,15 +250,15 @@ class DataSourcePanel(QWidget):
                 background-color: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
                 border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
                 border-radius: 6px;
-                padding: 12px;
+                padding: {AnalyticsRunnerStylesheet.STANDARD_SPACING}px;
             }}
         """)
 
         file_layout = QVBoxLayout(file_frame)
-        file_layout.setSpacing(8)
+        file_layout.setSpacing(AnalyticsRunnerStylesheet.STANDARD_SPACING)
 
         # Title
-        title_label = QLabel("Data Source File")
+        title_label = QLabel("Data Source")
         title_label.setFont(AnalyticsRunnerStylesheet.get_fonts()['header'])
         title_label.setStyleSheet(f"""
             QLabel {{
@@ -185,7 +272,7 @@ class DataSourcePanel(QWidget):
 
         # File selection row
         selection_layout = QHBoxLayout()
-        selection_layout.setSpacing(12)
+        selection_layout.setSpacing(AnalyticsRunnerStylesheet.STANDARD_SPACING)
 
         # Current file display
         self.file_display = QLabel("No file selected")
@@ -224,6 +311,23 @@ class DataSourcePanel(QWidget):
 
         file_layout.addLayout(selection_layout)
 
+        # Save source button row (NEW)
+        save_layout = QHBoxLayout()
+        save_layout.setSpacing(AnalyticsRunnerStylesheet.STANDARD_SPACING)
+
+        save_layout.addStretch()  # Push button to the right
+
+        # Save source button
+        self.save_source_button = QPushButton("Save Source")
+        self.save_source_button.setProperty("buttonStyle", "secondary")
+        self.save_source_button.setFont(AnalyticsRunnerStylesheet.get_fonts()['regular'])
+        self.save_source_button.setToolTip("Save this data source configuration for future use")
+        self.save_source_button.clicked.connect(self._save_data_source)
+        self.save_source_button.setEnabled(False)  # Disabled until valid data is loaded
+        save_layout.addWidget(self.save_source_button)
+
+        file_layout.addLayout(save_layout)
+
         # Drag and drop support
         self._setup_drag_drop(file_frame)
 
@@ -232,32 +336,31 @@ class DataSourcePanel(QWidget):
     def _create_sheet_selection_section(self):
         """Create Excel sheet selection section."""
         self.sheet_frame = QFrame()
-        self.sheet_frame.setVisible(False)  # Hidden by default
+        self.sheet_frame.setVisible(False)
         self.sheet_frame.setStyleSheet(f"""
             QFrame {{
                 background-color: {AnalyticsRunnerStylesheet.ACCENT_COLOR};
                 border: 1px solid {AnalyticsRunnerStylesheet.PRIMARY_COLOR}40;
                 border-radius: 6px;
-                padding: 12px;
+                padding: {AnalyticsRunnerStylesheet.STANDARD_SPACING}px;
             }}
         """)
 
         sheet_layout = QHBoxLayout(self.sheet_frame)
-        sheet_layout.setSpacing(12)
+        sheet_layout.setSpacing(AnalyticsRunnerStylesheet.STANDARD_SPACING)
 
         # Sheet label
         sheet_label = QLabel("Excel Sheet:")
         sheet_label.setFont(AnalyticsRunnerStylesheet.get_fonts()['regular'])
         sheet_layout.addWidget(sheet_label)
 
-        # Sheet dropdown with proper arrow
+        # Sheet dropdown
         self.sheet_combo = QComboBox()
         self.sheet_combo.setFont(AnalyticsRunnerStylesheet.get_fonts()['regular'])
         self.sheet_combo.setMinimumWidth(150)
         sheet_layout.addWidget(self.sheet_combo)
 
         sheet_layout.addStretch()
-
         self.main_layout.addWidget(self.sheet_frame)
 
     def _create_preview_section(self):
@@ -345,12 +448,47 @@ class DataSourcePanel(QWidget):
         # Sheet selection
         self.sheet_combo.currentTextChanged.connect(self._on_sheet_changed)
 
+        # Pre-validation connections (FIXED - removed proceedRequested connection)
+        self.pre_validation_widget.validationStatusChanged.connect(self._on_prevalidation_status_changed)
+
     def _load_recent_files(self):
         """Load recent files from session manager."""
         if self.session_manager:
             self.recent_files = self.session_manager.get('recent_files', [])[:5]
         else:
             self.recent_files = []
+
+    def _detect_data_type(self, df) -> str:
+        """
+        Detect the likely data type based on column names.
+
+        Args:
+            df: DataFrame to analyze
+
+        Returns:
+            Detected data type string
+        """
+        if df is None or df.empty:
+            return "generic"
+
+        columns = [col.lower().strip() for col in df.columns]
+
+        # Financial data indicators
+        financial_indicators = ['amount', 'value', 'price', 'cost', 'revenue', 'expense', 'balance', 'transaction']
+        if any(indicator in ' '.join(columns) for indicator in financial_indicators):
+            return "financial"
+
+        # Employee data indicators
+        employee_indicators = ['employee', 'staff', 'worker', 'hire', 'department', 'salary', 'position']
+        if any(indicator in ' '.join(columns) for indicator in employee_indicators):
+            return "employee"
+
+        # Sales data indicators
+        sales_indicators = ['sales', 'product', 'customer', 'order', 'purchase', 'quantity', 'item']
+        if any(indicator in ' '.join(columns) for indicator in sales_indicators):
+            return "sales"
+
+        return "generic"
 
     def _validate_data_file(self, file_path: str) -> tuple[bool, str]:
         """Validate a data file for basic compatibility."""
@@ -489,17 +627,38 @@ class DataSourcePanel(QWidget):
         self._sheet_worker.start()
 
     def _on_sheets_loaded(self, sheet_names: List[str]):
-        """Handle successful sheet names loading."""
+        """Handle successful sheet names loading - Enhanced for saved sources."""
         self.sheet_combo.clear()
 
         if sheet_names:
             self.sheet_combo.addItems(sheet_names)
-            self.sheet_combo.setCurrentIndex(0)
-            self._current_sheet = sheet_names[0]
+
+            # Check if we have a target sheet from saved source
+            if hasattr(self, '_target_sheet_name') and self._target_sheet_name:
+                target_sheet = self._target_sheet_name
+
+                if target_sheet in sheet_names:
+                    # Set to the saved sheet
+                    sheet_index = sheet_names.index(target_sheet)
+                    self.sheet_combo.setCurrentIndex(sheet_index)
+                    self._current_sheet = target_sheet
+                    logger.info(f"Set Excel sheet to saved preference: {target_sheet}")
+                else:
+                    # Saved sheet not found, use first sheet but warn
+                    self.sheet_combo.setCurrentIndex(0)
+                    self._current_sheet = sheet_names[0]
+                    logger.warning(f"Saved sheet '{target_sheet}' not found, using '{sheet_names[0]}'")
+
+                # Clear the target sheet name
+                delattr(self, '_target_sheet_name')
+            else:
+                # No saved preference, use first sheet
+                self.sheet_combo.setCurrentIndex(0)
+                self._current_sheet = sheet_names[0]
 
         self.sheet_combo.setEnabled(len(sheet_names) > 0)
 
-        # Auto-load preview for first sheet
+        # Auto-load preview for the selected sheet
         if sheet_names:
             self._load_file_preview()
 
@@ -509,6 +668,10 @@ class DataSourcePanel(QWidget):
         self.sheet_combo.addItem("Error loading sheets")
         self.sheet_combo.setEnabled(False)
         logger.error(f"Sheet loading error: {error_msg}")
+
+    def get_current_source_metadata(self):
+        """Get the metadata for the currently loaded saved source, if any."""
+        return getattr(self, '_current_source_metadata', None)
 
     def _load_file_preview(self):
         """Load file preview."""
@@ -547,6 +710,19 @@ class DataSourcePanel(QWidget):
         self.refresh_button.setEnabled(True)
         self.refresh_button.setText("Refresh")
 
+        # Enable save source button when valid data is loaded
+        if preview_df is not None and not preview_df.empty and self._current_file:
+            self.save_source_button.setEnabled(True)
+            logger.debug("Save Source button enabled - valid data loaded")
+        else:
+            self.save_source_button.setEnabled(False)
+            logger.debug("Save Source button disabled - no valid data")
+
+        # Auto-run pre-validation when preview loads
+        if preview_df is not None and not preview_df.empty:
+            # Always use generic validation for fast structural checks
+            self.pre_validation_widget.validate_data(preview_df, "generic")
+
         # Emit signal
         self.previewUpdated.emit(preview_df)
 
@@ -562,7 +738,20 @@ class DataSourcePanel(QWidget):
         self.preview_table.setRowCount(0)
         self.preview_table.setColumnCount(0)
 
+        # Disable save source button on error
+        self.save_source_button.setEnabled(False)
+
         logger.error(f"Preview error: {error_msg}")
+    def _on_prevalidation_status_changed(self, is_valid: bool, message: str):
+        """Handle pre-validation status change."""
+        logger.info(f"Pre-validation status: {'Valid' if is_valid else 'Invalid'} - {message}")
+
+        # Update the main data source validation status
+        # This combines file validation with pre-validation results
+        file_valid, _ = self._validate_data_file(self._current_file) if self._current_file else (False, "No file")
+        overall_valid = file_valid and is_valid
+
+        self.dataSourceValidated.emit(overall_valid, f"Pre-validation: {message}")
 
     def _update_preview_table(self):
         """Update the preview table with data - Using centralized stylesheet."""
@@ -693,11 +882,21 @@ class DataSourcePanel(QWidget):
         return is_valid
 
     def clear_selection(self):
-        """Clear the current data source selection."""
+        """Clear the current data source selection - Enhanced to clear saved source metadata."""
         self._current_file = ""
         self._current_sheet = None
         self._preview_df = None
         self._file_metadata = {}
+
+        # Clear saved source metadata
+        if hasattr(self, '_current_source_metadata'):
+            delattr(self, '_current_source_metadata')
+
+        # Clear any pending connection parameters
+        if hasattr(self, '_target_sheet_name'):
+            delattr(self, '_target_sheet_name')
+        if hasattr(self, '_target_cell_range'):
+            delattr(self, '_target_cell_range')
 
         # Reset UI
         self.file_display.setText("No file selected")
@@ -718,10 +917,16 @@ class DataSourcePanel(QWidget):
         self.sheet_frame.setVisible(False)
         self.refresh_button.setEnabled(False)
 
+        # Disable save source button
+        self.save_source_button.setEnabled(False)
+
         # Clear preview
         self.preview_table.clear()
         self.preview_table.setRowCount(0)
         self.preview_table.setColumnCount(0)
+
+        # Clear pre-validation
+        self.pre_validation_widget.clear_results()
 
         # Emit signals
         self.dataSourceChanged.emit("")
@@ -736,3 +941,6 @@ class DataSourcePanel(QWidget):
         if self._sheet_worker and self._sheet_worker.isRunning():
             self._sheet_worker.quit()
             self._sheet_worker.wait()
+
+        # Cleanup pre-validation widget
+        self.pre_validation_widget.cleanup()

@@ -7,6 +7,7 @@ QA Analytics Framework GUI Application
 import sys
 import os
 import logging
+import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -14,9 +15,9 @@ from PySide6.QtWidgets import (
     QApplication, QMainWindow, QVBoxLayout, QHBoxLayout,
     QWidget, QSplitter, QTabWidget, QStatusBar, QMenuBar,
     QToolBar, QTextEdit, QLabel, QPushButton, QProgressBar,
-    QMessageBox, QFileDialog, QCheckBox
+    QMessageBox, QFileDialog, QCheckBox, QScrollArea
 )
-from PySide6.QtCore import Qt, QSettings, QTimer, QThreadPool
+from PySide6.QtCore import Qt, QTimer, QThreadPool, QObject, QRunnable, Signal
 from PySide6.QtGui import QAction, QIcon, QFont
 
 # Import our components
@@ -25,6 +26,8 @@ from analytics_runner_stylesheet import AnalyticsRunnerStylesheet
 from error_handler import initialize_error_handler, get_error_handler, set_debug_mode
 from debug_panel import DebugPanel
 from data_source_panel import DataSourcePanel
+from data_source_registry import DataSourceRegistry
+from save_data_source_dialog import SaveDataSourceDialog
 
 # Configure basic logging (will be enhanced by error handler)
 logging.basicConfig(
@@ -32,6 +35,66 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+
+class ValidationWorkerSignals(QObject):
+    """Signals for ValidationWorker"""
+    started = Signal()
+    finished = Signal()
+    error = Signal(str)
+    result = Signal(dict)
+    progress = Signal(int, str)
+
+
+class ValidationWorker(QRunnable):
+    """Worker thread for running validation operations"""
+
+    def __init__(self, pipeline, data_source: str, sheet_name: str = None, analytic_id: str = None):
+        super().__init__()
+        self.pipeline = pipeline
+        self.data_source = data_source
+        self.sheet_name = sheet_name
+        self.analytic_id = analytic_id or "Simple_Validation"
+        self.signals = ValidationWorkerSignals()
+
+    def run(self):
+        """Run the validation process."""
+        try:
+            self.signals.started.emit()
+
+            # Prepare validation parameters
+            validation_params = {
+                'data_source': self.data_source,
+                'analytic_id': self.analytic_id,
+                'output_formats': ['json', 'excel'],
+                'use_parallel': False
+            }
+
+            # Add sheet name for Excel files
+            if self.sheet_name:
+                validation_params['data_source_params'] = {'sheet_name': self.sheet_name}
+
+            self.signals.progress.emit(25, "Preparing validation...")
+
+            # Import here to avoid circular imports
+            from services.validation_service import ValidationPipeline
+
+            # Create pipeline if not provided
+            if not self.pipeline:
+                self.pipeline = ValidationPipeline(output_dir='./output')
+
+            # Run validation
+            results = self.pipeline.validate_data_source(**validation_params)
+
+            self.signals.progress.emit(90, "Processing results...")
+            self.signals.result.emit(results)
+
+        except Exception as e:
+            import traceback
+            error_msg = f"Validation error: {str(e)}\n{traceback.format_exc()}"
+            self.signals.error.emit(error_msg)
+        finally:
+            self.signals.finished.emit()
 
 
 class AnalyticsRunnerApp(QMainWindow):
@@ -45,6 +108,7 @@ class AnalyticsRunnerApp(QMainWindow):
     - Status bar with progress indication
     - Session state management
     - Centralized error handling and debug support
+    - Scrollable content areas for better screen compatibility
     """
 
     def __init__(self):
@@ -57,6 +121,9 @@ class AnalyticsRunnerApp(QMainWindow):
         self.session = SessionManager()
         self.threadpool = QThreadPool()
 
+        # Initialize data source registry
+        self.data_source_registry = DataSourceRegistry(session_manager=self.session)
+
         # Set maximum thread count to prevent resource exhaustion
         self.threadpool.setMaxThreadCount(4)
 
@@ -68,7 +135,7 @@ class AnalyticsRunnerApp(QMainWindow):
             self.init_ui()
             self.restore_state()
 
-            # Initialize backend connections (placeholder for now)
+            # Initialize backend connections
             self.init_backend()
 
             # Setup error handler connections
@@ -77,7 +144,6 @@ class AnalyticsRunnerApp(QMainWindow):
             logger.info("Analytics Runner application initialized successfully")
 
         except Exception as e:
-            # Use error handler if available, otherwise fall back
             if self.error_handler:
                 self.error_handler.report_error(e, "Application initialization")
             else:
@@ -104,7 +170,7 @@ class AnalyticsRunnerApp(QMainWindow):
         self.main_splitter = QSplitter(Qt.Horizontal)
         main_layout.addWidget(self.main_splitter)
 
-        # Left panel - Main workflow area
+        # Left panel - Main workflow area (now scrollable)
         self.create_main_panel()
 
         # Right panel - Results and logs
@@ -123,88 +189,84 @@ class AnalyticsRunnerApp(QMainWindow):
         self.create_status_bar()
 
     def create_main_panel(self):
-        """Create the main workflow panel with tabs."""
+        """Create the main workflow panel with tabs and scrolling support."""
+        # Create scroll area for main content
+        self.main_scroll_area = QScrollArea()
+        self.main_scroll_area.setWidgetResizable(True)
+        self.main_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.main_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
+        # Set scroll area styling to minimize visual clutter
+        self.main_scroll_area.setStyleSheet(f"""
+            QScrollArea {{
+                border: none;
+                background-color: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
+            }}
+            QScrollArea > QWidget > QWidget {{
+                background-color: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
+            }}
+        """)
+
+        # Create the main content widget
         self.main_widget = QWidget()
         self.main_layout = QVBoxLayout(self.main_widget)
+        self.main_layout.setContentsMargins(8, 8, 8, 8)  # Reduced margins
+        self.main_layout.setSpacing(12)  # Consistent spacing
 
         # Create tab widget for different modes
         self.mode_tabs = QTabWidget()
         self.main_layout.addWidget(self.mode_tabs)
 
-        # Simple Mode tab (updated)
+        # Simple Mode tab (updated with better spacing)
         self.create_simple_mode_tab()
 
         # Advanced Mode tab (unchanged)
         self.create_advanced_mode_tab()
 
-        # Add main widget to splitter
-        self.main_splitter.addWidget(self.main_widget)
+        # Add stretch to push content to top and allow natural expansion
+        self.main_layout.addStretch()
+
+        # Set the content widget in the scroll area
+        self.main_scroll_area.setWidget(self.main_widget)
+
+        # Add scroll area to splitter
+        self.main_splitter.addWidget(self.main_scroll_area)
 
     def create_simple_mode_tab(self):
-        """Create the simple mode tab with DataSourcePanel integration."""
+        """Create the simple mode tab with save data source integration."""
         self.simple_mode_widget = QWidget()
         simple_layout = QVBoxLayout(self.simple_mode_widget)
-        simple_layout.setSpacing(AnalyticsRunnerStylesheet.SECTION_SPACING)
-        simple_layout.setContentsMargins(24, 24, 24, 24)
 
-        # Title section
-        title_container = QWidget()
-        title_layout = QVBoxLayout(title_container)
-        title_layout.setSpacing(8)
+        # Reduced spacing and margins for tighter, more efficient layout
+        simple_layout.setSpacing(16)  # Increased spacing between major sections
+        simple_layout.setContentsMargins(16, 16, 16, 16)  # Balanced padding
 
-        # Main title
-        simple_label = QLabel("Simple Validation Mode")
-        simple_label.setFont(AnalyticsRunnerStylesheet.get_fonts()['title'])
-        simple_label.setStyleSheet(f"""
-            QLabel {{
-                color: {AnalyticsRunnerStylesheet.DARK_TEXT};
-                padding: 0px;
-                border: none;
-                margin-bottom: 8px;
-            }}
-        """)
-        simple_label.setAlignment(Qt.AlignCenter)
-        title_layout.addWidget(simple_label)
-
-        # Subtitle
-        subtitle_label = QLabel("Quick validation with default settings")
-        subtitle_label.setFont(AnalyticsRunnerStylesheet.get_fonts()['regular'])
-        subtitle_label.setStyleSheet(f"""
-            QLabel {{
-                color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};
-                padding: 0px;
-                border: none;
-            }}
-        """)
-        subtitle_label.setAlignment(Qt.AlignCenter)
-        title_layout.addWidget(subtitle_label)
-
-        simple_layout.addWidget(title_container)
-
-        # REPLACE: Enhanced data source section with DataSourcePanel
+        # Data source panel (with registry integration)
         self.data_source_panel = DataSourcePanel(session_manager=self.session)
-
-        # Connect data source panel signals to main application methods
         self.data_source_panel.dataSourceChanged.connect(self._on_data_source_changed)
         self.data_source_panel.dataSourceValidated.connect(self._on_data_source_validated)
         self.data_source_panel.previewUpdated.connect(self._on_data_preview_updated)
 
+        # Connect to data source registry for integration
+        self.data_source_panel.data_source_registry = self.data_source_registry
+
         simple_layout.addWidget(self.data_source_panel)
 
-        # Start validation section
+        # Validation section with cleaner layout
         validation_section = QWidget()
         validation_layout = QVBoxLayout(validation_section)
+        validation_layout.setContentsMargins(0, 8, 0, 0)  # Minimal top margin only
 
-        # Add some basic controls
-        self.start_button = QPushButton("Start Validation")
-        self.start_button.setFont(AnalyticsRunnerStylesheet.get_fonts()['header'])
-        self.start_button.setEnabled(False)  # Disabled until data source selected
+        self.start_button = QPushButton("Select Data Source First")
+        self.start_button.setFont(AnalyticsRunnerStylesheet.get_fonts()['regular'])
+        self.start_button.setEnabled(False)
         self.start_button.clicked.connect(self.start_validation)
-        self.start_button.setMinimumHeight(48)
+        self.start_button.setMinimumHeight(AnalyticsRunnerStylesheet.BUTTON_HEIGHT)
         validation_layout.addWidget(self.start_button)
 
         simple_layout.addWidget(validation_section)
-        simple_layout.addStretch()
+
+        # Let content naturally size without forcing stretch
         self.mode_tabs.addTab(self.simple_mode_widget, "Simple Mode")
 
     def create_advanced_mode_tab(self):
@@ -303,7 +365,7 @@ class AnalyticsRunnerApp(QMainWindow):
         self.main_splitter.addWidget(self.results_widget)
 
     def create_menu_bar(self):
-        """Create the application menu bar."""
+        """Create the application menu bar with data source menu."""
         menubar = self.menuBar()
 
         # File menu
@@ -323,9 +385,22 @@ class AnalyticsRunnerApp(QMainWindow):
 
         file_menu.addSeparator()
 
+        # Save data source (NEW)
+        self.save_source_action = QAction("&Save Current Data Source", self)
+        self.save_source_action.setShortcut("Ctrl+S")
+        self.save_source_action.setEnabled(False)  # Disabled until data is loaded
+        self.save_source_action.triggered.connect(self.save_current_data_source)
+        file_menu.addAction(self.save_source_action)
+
+        file_menu.addSeparator()
+
         # Recent files submenu
         self.recent_menu = file_menu.addMenu("Recent Files")
         self.update_recent_files_menu()
+
+        # Data sources submenu (NEW)
+        self.data_sources_menu = file_menu.addMenu("Saved Data Sources")
+        self.update_data_sources_menu()
 
         file_menu.addSeparator()
 
@@ -497,6 +572,48 @@ class AnalyticsRunnerApp(QMainWindow):
                     action.triggered.connect(self.load_recent_file)
                     self.recent_menu.addAction(action)
 
+    def update_data_sources_menu(self):
+        """Update the saved data sources menu."""
+        self.data_sources_menu.clear()
+
+        # Get saved data sources
+        saved_sources = self.data_source_registry.list_data_sources(
+            active_only=True,
+            sort_by="last_used"
+        )
+
+        if not saved_sources:
+            no_sources_action = QAction("No saved data sources", self)
+            no_sources_action.setEnabled(False)
+            self.data_sources_menu.addAction(no_sources_action)
+        else:
+            # Add favorites first
+            favorites = [s for s in saved_sources if s.is_favorite]
+            if favorites:
+                for source in favorites[:5]:  # Limit to 5 favorites
+                    action = QAction(f"★ {source.name}", self)
+                    action.setData(source.source_id)
+                    action.setToolTip(f"{source.description}\nFile: {source.file_path}")
+                    action.triggered.connect(self.load_saved_data_source)
+                    self.data_sources_menu.addAction(action)
+
+                self.data_sources_menu.addSeparator()
+
+            # Add recent sources
+            for source in saved_sources[:10]:  # Limit to 10 recent
+                if not source.is_favorite:  # Don't duplicate favorites
+                    action = QAction(source.name, self)
+                    action.setData(source.source_id)
+                    action.setToolTip(f"{source.description}\nFile: {source.file_path}")
+                    action.triggered.connect(self.load_saved_data_source)
+                    self.data_sources_menu.addAction(action)
+
+            if len(saved_sources) > 10:
+                self.data_sources_menu.addSeparator()
+                view_all_action = QAction("View All Saved Sources...", self)
+                view_all_action.triggered.connect(self.show_data_source_manager)
+                self.data_sources_menu.addAction(view_all_action)
+
     def update_thread_count(self):
         """Update the thread count display."""
         active_threads = self.threadpool.activeThreadCount()
@@ -531,41 +648,277 @@ class AnalyticsRunnerApp(QMainWindow):
         if message:
             self.status_label.setText(message)
 
-    # Add new signal handler methods for DataSourcePanel
+    def save_current_data_source(self):
+        """Save the current data source configuration."""
+        # Get current data from the data source panel
+        current_file = self.data_source_panel.get_current_file()
+        current_sheet = self.data_source_panel.get_current_sheet()
+        preview_data = self.data_source_panel.get_preview_data()
+
+        if not current_file or preview_data is None or preview_data.empty:
+            QMessageBox.warning(
+                self,
+                "No Data to Save",
+                "Please load a valid data source before saving."
+            )
+            return
+
+        try:
+            # Open save dialog
+            dialog = SaveDataSourceDialog(
+                file_path=current_file,
+                sheet_name=current_sheet,
+                preview_df=preview_data,
+                registry=self.data_source_registry,
+                parent=self
+            )
+
+            # Connect to success signal
+            dialog.dataSourceSaved.connect(self._on_data_source_saved)
+
+            # Show dialog
+            dialog.exec()
+
+        except Exception as e:
+            error_msg = f"Error saving data source: {str(e)}"
+            self.log_message(error_msg, "ERROR")
+            QMessageBox.critical(self, "Save Error", error_msg)
+
+    def load_saved_data_source(self):
+        """Load a saved data source and update the main panel."""
+        action = self.sender()
+        if not action:
+            return
+
+        source_id = action.data()
+        if not source_id:
+            return
+
+        try:
+            # Get source metadata from registry
+            source = self.data_source_registry.get_data_source(source_id)
+            if not source:
+                QMessageBox.warning(self, "Source Not Found", f"Data source not found: {source_id}")
+                return
+
+            # Check if file still exists
+            if not os.path.exists(source.file_path):
+                reply = QMessageBox.question(
+                    self,
+                    "File Not Found",
+                    f"The file for data source '{source.name}' no longer exists:\n{source.file_path}\n\n"
+                    f"Would you like to remove this source from the registry?",
+                    QMessageBox.Yes | QMessageBox.No,
+                    QMessageBox.No
+                )
+
+                if reply == QMessageBox.Yes:
+                    self.data_source_registry.delete_data_source(source_id)
+                    self.update_data_sources_menu()
+                    self.log_message(f"Removed invalid data source: {source.name}")
+                return
+
+            # Check if file has changed since registration
+            if source.is_file_changed():
+                reply = QMessageBox.question(
+                    self,
+                    "File Changed",
+                    f"The file for data source '{source.name}' has been modified since registration.\n\n"
+                    f"Do you want to continue loading it?",
+                    QMessageBox.Yes | QMessageBox.No,
+                    QMessageBox.Yes
+                )
+                if reply == QMessageBox.No:
+                    return
+
+                # Update the file info in the registry
+                source.update_file_info()
+
+            self.log_message(f"Loading saved data source: {source.name}")
+
+            # Use the enhanced data source panel method to load the saved source
+            if hasattr(self, 'data_source_panel'):
+                try:
+                    self.data_source_panel.load_saved_data_source(source)
+                except Exception as e:
+                    # Fallback to basic file loading if enhanced method fails
+                    self.log_message(f"Enhanced loading failed, using basic method: {str(e)}", "WARNING")
+                    self.data_source_panel._set_file(source.file_path)
+
+            # Update session with this file
+            self.session.add_recent_file(source.file_path)
+            self.session.set('last_data_directory', os.path.dirname(source.file_path))
+            self.update_recent_files_menu()
+
+            # Mark source as used in registry
+            self.data_source_registry.mark_source_used(source_id)
+
+            # Update data sources menu to reflect usage
+            self.update_data_sources_menu()
+
+            # Display source metadata in results area
+            self._display_source_metadata(source)
+
+            # Update status
+            self.status_label.setText(f"Loaded saved source: {source.name}")
+
+            self.log_message(f"Successfully loaded saved data source: {source.name}")
+
+        except Exception as e:
+            error_msg = f"Error loading saved data source: {str(e)}"
+            self.log_message(error_msg, "ERROR")
+            QMessageBox.critical(self, "Load Error", error_msg)
+
+    def show_data_source_manager(self):
+        """Show the data source manager dialog (placeholder for future implementation)."""
+        QMessageBox.information(
+            self,
+            "Data Source Manager",
+            "Data Source Manager will be implemented in a future update.\n\n"
+            "For now, you can access saved data sources through the File menu."
+        )
+
+    def _display_source_metadata(self, source):
+        """Display source metadata in the results area."""
+        metadata_text = [
+            f"=== LOADED DATA SOURCE ===",
+            f"Name: {source.name}",
+            f"Description: {source.description or '(none)'}",
+            f"File: {os.path.basename(source.file_path)}",
+            f"Full Path: {source.file_path}",
+            f"Type: {source.source_type.value.upper()}",
+            f"Data Type Hint: {source.data_type_hint}",
+            ""
+        ]
+
+        # Add tags if present
+        if source.tags:
+            metadata_text.append(f"Tags: {', '.join(source.tags)}")
+            metadata_text.append("")
+
+        # Add connection parameters if present
+        if source.connection_params:
+            metadata_text.append("Connection Parameters:")
+            for key, value in source.connection_params.items():
+                metadata_text.append(f"  {key}: {value}")
+            metadata_text.append("")
+
+        # Add usage statistics
+        metadata_text.extend([
+            f"Use Count: {source.use_count}",
+            f"Last Used: {source.last_used or 'Never'}",
+            f"Registered: {source.created_date[:10] if source.created_date else 'Unknown'}",  # Just date part
+        ])
+
+        # Add file statistics if available
+        if source.file_size:
+            if source.file_size < 1024 * 1024:
+                size_str = f"{source.file_size / 1024:.1f} KB"
+            else:
+                size_str = f"{source.file_size / (1024 * 1024):.1f} MB"
+            metadata_text.append(f"File Size: {size_str}")
+
+        if source.last_modified:
+            # Format the timestamp nicely
+            try:
+                from datetime import datetime
+                mod_time = datetime.fromisoformat(source.last_modified.replace('Z', '+00:00'))
+                metadata_text.append(f"Last Modified: {mod_time.strftime('%Y-%m-%d %H:%M')}")
+            except:
+                metadata_text.append(f"Last Modified: {source.last_modified}")
+
+        # Add validation rules info if present
+        if source.validation_rules:
+            metadata_text.append("")
+            metadata_text.append(f"Custom Validation Rules: {len(source.validation_rules)} defined")
+
+        # Display in results view
+        self.results_view.setPlainText('\n'.join(metadata_text))
+
+        # Switch to results tab to show the metadata
+        if hasattr(self, 'results_tabs'):
+            self.results_tabs.setCurrentIndex(0)
+
+    def _on_data_source_saved(self, source_id: str):
+        """Handle successful data source save."""
+        self.log_message(f"Data source saved successfully: {source_id}")
+
+        # Update data sources menu
+        self.update_data_sources_menu()
+
+        # Enable save action if it was disabled
+        self.save_source_action.setEnabled(True)
+
+    def _on_saved_source_sheets_loaded(self, sheet_names):
+        """Handle sheet loading completion for saved data sources."""
+        # Check if we have a pending sheet selection
+        if hasattr(self, '_pending_sheet_selection') and self._pending_sheet_selection:
+            target_sheet = self._pending_sheet_selection
+
+            # Find the target sheet in the loaded sheets
+            if target_sheet in sheet_names:
+                # Set the sheet combo to the saved sheet
+                sheet_index = sheet_names.index(target_sheet)
+                if hasattr(self.data_source_panel, 'sheet_combo'):
+                    self.data_source_panel.sheet_combo.setCurrentIndex(sheet_index)
+                    self.data_source_panel._current_sheet = target_sheet
+
+                self.log_message(f"Set Excel sheet to saved preference: {target_sheet}")
+            else:
+                self.log_message(f"Saved sheet '{target_sheet}' not found, using default", "WARNING")
+
+            # Clear the pending selection
+            self._pending_sheet_selection = None
+
     def _on_data_source_changed(self, file_path: str):
-        """Handle data source file change."""
-        self.log_message(f"Data source changed: {os.path.basename(file_path)}")
-
-        # Update the data_source_path attribute
-        self.data_source_path = file_path
-
-        # Update UI state
-        is_valid = self.data_source_panel.is_valid()
-        self.start_button.setEnabled(is_valid)
-        self.start_validation_action.setEnabled(is_valid)
-
-        # Update status bar
+        """Handle data source file change - Enhanced to detect saved sources."""
         if file_path:
-            self.status_label.setText(f"Data source: {os.path.basename(file_path)}")
+            file_name = os.path.basename(file_path)
+            self.log_message(f"Data source changed: {file_name}")
+
+            # Check if this is a saved data source
+            saved_source = None
+            if hasattr(self, 'data_source_panel'):
+                saved_source = self.data_source_panel.get_current_source_metadata()
+
+            if saved_source:
+                self.log_message(f"Loaded from saved source: {saved_source.name}")
+
+            self.data_source_path = file_path
+
+            self.start_button.setText("Loading...")
+            self.start_button.setEnabled(False)
+            self.status_label.setText(f"Data source: {file_name}")
+
+            # Enable save action when file is selected (but will be enabled when preview loads)
+            self.save_source_action.setEnabled(False)
         else:
+            self.start_button.setText("Select Data Source First")
+            self.start_button.setEnabled(False)
             self.status_label.setText("No data source selected")
+            self.save_source_action.setEnabled(False)
 
     def _on_data_source_validated(self, is_valid: bool, message: str):
         """Handle data source validation status change."""
         if is_valid:
             self.log_message(f"Data source validation: {message}")
+            self.start_button.setText("Start Validation")
+            self.start_button.setEnabled(True)
+            self.start_validation_action.setEnabled(True)
         else:
             self.log_message(f"Data source validation failed: {message}", "WARNING")
-
-        # Update UI state
-        self.start_button.setEnabled(is_valid)
-        self.start_validation_action.setEnabled(is_valid)
+            self.start_button.setText("Fix Data Issues First")
+            self.start_button.setEnabled(False)
+            self.start_validation_action.setEnabled(False)
 
     def _on_data_preview_updated(self, preview_df):
         """Handle data preview update."""
         if preview_df is not None and not preview_df.empty:
             rows, cols = preview_df.shape
             self.log_message(f"Data preview loaded: {rows} rows, {cols} columns")
+
+            # Enable save action when valid preview is available
+            self.save_source_action.setEnabled(True)
 
             # Show preview summary in results view
             summary_text = f"Data Preview Summary:\n"
@@ -578,6 +931,9 @@ class AnalyticsRunnerApp(QMainWindow):
             self.results_view.setPlainText(summary_text)
         else:
             self.log_message("Data preview cleared", "INFO")
+
+            # Disable save action when no valid preview
+            self.save_source_action.setEnabled(False)
 
     # Slot methods for menu actions
     def new_session(self):
@@ -655,9 +1011,79 @@ class AnalyticsRunnerApp(QMainWindow):
         self.show_progress(True)
         self.update_progress(0, "Initializing validation...")
 
-        # TODO: In Phase 4, we'll implement the actual validation worker here
-        # For now, just simulate a process
-        QTimer.singleShot(2000, self.validation_complete)
+        # Create and start validation worker
+        self.validation_worker = ValidationWorker(
+            pipeline=None,  # Will be created in worker
+            data_source=data_source_file,
+            sheet_name=sheet_name,
+            analytic_id=f"Simple_Validation_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        )
+
+        # Connect worker signals
+        self.validation_worker.signals.started.connect(self._on_validation_started)
+        self.validation_worker.signals.progress.connect(self.update_progress)
+        self.validation_worker.signals.result.connect(self._on_validation_complete)
+        self.validation_worker.signals.error.connect(self._on_validation_error)
+        self.validation_worker.signals.finished.connect(self._on_validation_finished)
+
+        # Start worker
+        self.threadpool.start(self.validation_worker)
+
+    # ADD these new methods to the AnalyticsRunnerApp class:
+    def _on_validation_started(self):
+        """Handle validation start."""
+        self.log_message("Validation started")
+
+    def _on_validation_complete(self, results: dict):
+        """Handle validation completion with results."""
+        self.log_message("Validation completed successfully")
+
+        # Format and display results
+        result_text = self._format_validation_results(results)
+        self.results_view.setPlainText(result_text)
+
+        # Switch to results tab
+        if hasattr(self, 'results_tabs'):
+            self.results_tabs.setCurrentIndex(0)
+
+    def _on_validation_error(self, error_message: str):
+        """Handle validation error."""
+        self.log_message(f"Validation failed: {error_message}", "ERROR")
+        QMessageBox.critical(self, "Validation Error", f"Validation failed:\n\n{error_message}")
+        self.results_view.setPlainText(f"Validation Error:\n{error_message}")
+
+    def _on_validation_finished(self):
+        """Handle validation worker finished (cleanup)."""
+        self.start_button.setEnabled(True)
+        self.start_validation_action.setEnabled(True)
+        self.stop_validation_action.setEnabled(False)
+        self.show_progress(False)
+        self.status_label.setText("Validation completed")
+
+    def _format_validation_results(self, results: dict) -> str:
+        """Format validation results for text display."""
+        lines = ["=== VALIDATION RESULTS ===", ""]
+
+        status = results.get('status', 'UNKNOWN')
+        lines.append(f"Overall Status: {status}")
+        lines.append(f"Timestamp: {results.get('timestamp', 'N/A')}")
+        lines.append("")
+
+        summary = results.get('summary', {})
+        if summary:
+            lines.append("=== SUMMARY ===")
+            lines.append(f"Total Rules: {summary.get('total_rules', 0)}")
+            compliance_counts = summary.get('compliance_counts', {})
+            lines.append(f"GC: {compliance_counts.get('GC', 0)}")
+            lines.append(f"PC: {compliance_counts.get('PC', 0)}")
+            lines.append(f"DNC: {compliance_counts.get('DNC', 0)}")
+            lines.append(f"Compliance: {summary.get('compliance_rate', 0):.1%}")
+            lines.append("")
+
+        exec_time = results.get('execution_time', 0)
+        lines.append(f"Execution Time: {exec_time:.2f} seconds")
+
+        return "\n".join(lines)
 
     def stop_validation(self):
         """Stop the validation process."""

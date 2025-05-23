@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "created": "2025-05-23T11:33:04.042693",
+  "sources": {
+    "6eb7188a-6e90-40d9-9efe-34c68db4f27b": {
+      "source_id": "6eb7188a-6e90-40d9-9efe-34c68db4f27b",
+      "name": "audit_workpapers_2025Q2_Workpapers",
+      "source_type": "excel",
+      "file_path": "C:\\Users\\luria\\PycharmProjects\\AuditQAStudio2\\test_data\\audit_workpapers_2025Q2.xlsx",
+      "description": "",
+      "tags": [],
+      "file_size": 10761,
+      "last_modified": "2025-05-22T15:24:16.742775",
+      "checksum": "b33fefb826a0686425b73074fd628983",
+      "connection_params": {
+        "sheet_name": "Workpapers"
+      },
+      "validation_rules": {},
+      "pre_validation_enabled": true,
+      "data_type_hint": "generic",
+      "created_date": "2025-05-23T11:18:25.621603",
+      "last_used": "2025-05-23T11:33:04.042693",
+      "use_count": 3,
+      "is_favorite": false,
+      "is_active": true
+    }
+  }
+}

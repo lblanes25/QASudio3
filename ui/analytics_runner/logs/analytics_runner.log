@@ -338,3 +338,184 @@ data_integration.errors.error_handler.DataIntegrationError: Error executing read
 2025-05-22 20:55:36,489 - __main__ - INFO - Application closing
 2025-05-22 20:55:36,493 - error_handler - CRITICAL - TypeError: Object of type QByteArray is not JSON serializable
 2025-05-22 20:55:37,379 - __main__ - ERROR - ERROR: Object of type QByteArray is not JSON serializable
+2025-05-23 11:17:46,786 - error_handler - INFO - Error handler initialized
+2025-05-23 11:17:46,787 - session_manager - WARNING - Error loading configuration: Expecting value: line 2 column 22 (char 23)
+2025-05-23 11:17:46,787 - session_manager - INFO - Attempting to restore from backup...
+2025-05-23 11:17:46,787 - session_manager - WARNING - Using default configuration
+2025-05-23 11:17:46,788 - session_manager - INFO - Session manager initialized with config: session.json
+2025-05-23 11:17:46,788 - data_source_registry - INFO - No existing registry found, starting with empty registry
+2025-05-23 11:17:46,789 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 11:17:46,797 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 11:17:46,797 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 11:17:46,854 - __main__ - INFO - Application state restored
+2025-05-23 11:17:46,855 - __main__ - INFO - Backend systems initialized
+2025-05-23 11:17:46,855 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 11:18:00,876 - __main__ - INFO - Data source changed: audit_workpapers_2025Q2.xlsx
+2025-05-23 11:18:00,877 - __main__ - INFO - Data source validation: File appears valid
+2025-05-23 11:18:01,730 - data_integration.connectors.excel_connector - ERROR - Error loading Excel file C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 11:18:01,731 - data_integration.errors.error_handler - ERROR - Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 328, in safe_dataframe_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_openpyxl.py", line 582, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'Loading...' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 195, in get_data
+    df = retry_operation(
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 379, in retry_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 183, in load_excel
+    return safe_dataframe_operation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 344, in safe_dataframe_operation
+    raise DataIntegrationError(error_msg, details)
+data_integration.errors.error_handler.DataIntegrationError: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 11:18:01,736 - data_integration.io.importer - ERROR - Error previewing file C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 11:18:01,736 - data_source_panel - ERROR - Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 11:18:01,758 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 11:18:02,263 - pre_validation_widget - INFO - Started pre-validation for generic data
+2025-05-23 11:18:02,264 - __main__ - INFO - Data preview loaded: 30 rows, 11 columns
+2025-05-23 11:18:02,264 - data_source_panel - INFO - Preview loaded: 30 rows, 11 columns
+2025-05-23 11:18:02,298 - data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-05-23 11:18:02,298 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-05-23 11:18:02,298 - pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-05-23 11:18:25,623 - data_source_registry - INFO - Registered data source: audit_workpapers_2025Q2_Workpapers (6eb7188a-6e90-40d9-9efe-34c68db4f27b)
+2025-05-23 11:18:26,841 - data_source_panel - INFO - Data source saved with ID: 6eb7188a-6e90-40d9-9efe-34c68db4f27b
+2025-05-23 11:18:26,846 - save_data_source_dialog - INFO - Data source saved successfully: audit_workpapers_2025Q2_Workpapers (6eb7188a-6e90-40d9-9efe-34c68db4f27b)
+2025-05-23 11:18:28,468 - __main__ - INFO - Data source changed: 
+2025-05-23 11:18:58,207 - __main__ - INFO - Application closing
+2025-05-23 11:18:58,209 - error_handler - CRITICAL - TypeError: Object of type QByteArray is not JSON serializable
+2025-05-23 11:18:59,233 - __main__ - ERROR - ERROR: Object of type QByteArray is not JSON serializable
+2025-05-23 11:20:38,192 - error_handler - INFO - Error handler initialized
+2025-05-23 11:20:38,193 - session_manager - WARNING - Error loading configuration: Expecting value: line 2 column 22 (char 23)
+2025-05-23 11:20:38,193 - session_manager - INFO - Attempting to restore from backup...
+2025-05-23 11:20:38,193 - session_manager - INFO - Configuration restored from backup: session.backup1
+2025-05-23 11:20:38,193 - session_manager - INFO - Session manager initialized with config: session.json
+2025-05-23 11:20:38,193 - data_source_registry - INFO - Loaded 1 data sources from registry
+2025-05-23 11:20:38,193 - data_source_registry - INFO - Data source registry initialized with 1 sources
+2025-05-23 11:20:38,195 - ui.analytics_runner.data_source_registry - INFO - Loaded 1 data sources from registry
+2025-05-23 11:20:38,195 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 1 sources
+2025-05-23 11:20:38,280 - __main__ - INFO - Application state restored
+2025-05-23 11:20:38,280 - __main__ - INFO - Backend systems initialized
+2025-05-23 11:20:38,280 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 11:20:44,051 - __main__ - INFO - Loading data source: audit_workpapers_2025Q2.xlsx
+2025-05-23 11:20:44,055 - __main__ - INFO - Loaded saved data source: audit_workpapers_2025Q2_Workpapers
+2025-05-23 11:20:50,100 - __main__ - INFO - Loading data source: audit_workpapers_2025Q2.xlsx
+2025-05-23 11:20:50,103 - __main__ - INFO - Loaded saved data source: audit_workpapers_2025Q2_Workpapers
+2025-05-23 11:25:33,125 - __main__ - INFO - Application closing
+2025-05-23 11:25:33,129 - error_handler - CRITICAL - TypeError: Object of type QByteArray is not JSON serializable
+2025-05-23 11:25:35,009 - __main__ - ERROR - ERROR: Object of type QByteArray is not JSON serializable
+2025-05-23 11:33:00,424 - error_handler - INFO - Error handler initialized
+2025-05-23 11:33:00,425 - session_manager - WARNING - Error loading configuration: Expecting value: line 2 column 22 (char 23)
+2025-05-23 11:33:00,425 - session_manager - INFO - Attempting to restore from backup...
+2025-05-23 11:33:00,425 - session_manager - INFO - Configuration restored from backup: session.backup1
+2025-05-23 11:33:00,425 - session_manager - INFO - Session manager initialized with config: session.json
+2025-05-23 11:33:00,425 - data_source_registry - INFO - Loaded 1 data sources from registry
+2025-05-23 11:33:00,426 - data_source_registry - INFO - Data source registry initialized with 1 sources
+2025-05-23 11:33:00,427 - ui.analytics_runner.data_source_registry - INFO - Loaded 1 data sources from registry
+2025-05-23 11:33:00,427 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 1 sources
+2025-05-23 11:33:00,472 - __main__ - INFO - Application state restored
+2025-05-23 11:33:00,472 - __main__ - INFO - Backend systems initialized
+2025-05-23 11:33:00,472 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 11:33:04,027 - __main__ - INFO - Loading saved data source: audit_workpapers_2025Q2_Workpapers
+2025-05-23 11:33:04,027 - __main__ - WARNING - Enhanced loading failed, using basic method: 'DataSourcePanel' object has no attribute 'load_saved_data_source'
+2025-05-23 11:33:04,034 - __main__ - INFO - Data source changed: audit_workpapers_2025Q2.xlsx
+2025-05-23 11:33:04,036 - __main__ - INFO - Data source validation: File appears valid
+2025-05-23 11:33:04,045 - __main__ - INFO - Successfully loaded saved data source: audit_workpapers_2025Q2_Workpapers
+2025-05-23 11:33:04,752 - data_integration.connectors.excel_connector - ERROR - Error loading Excel file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 11:33:04,753 - data_integration.errors.error_handler - ERROR - Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 328, in safe_dataframe_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_openpyxl.py", line 582, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'Loading...' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 195, in get_data
+    df = retry_operation(
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 379, in retry_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 183, in load_excel
+    return safe_dataframe_operation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 344, in safe_dataframe_operation
+    raise DataIntegrationError(error_msg, details)
+data_integration.errors.error_handler.DataIntegrationError: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 11:33:04,757 - data_integration.io.importer - ERROR - Error previewing file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 11:33:04,757 - data_source_panel - ERROR - Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 11:33:04,778 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 11:33:05,284 - pre_validation_widget - INFO - Started pre-validation for generic data
+2025-05-23 11:33:05,285 - __main__ - INFO - Data preview loaded: 30 rows, 11 columns
+2025-05-23 11:33:05,285 - data_source_panel - INFO - Preview loaded: 30 rows, 11 columns
+2025-05-23 11:33:05,307 - data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-05-23 11:33:05,307 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-05-23 11:33:05,307 - pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-05-23 11:33:32,964 - __main__ - INFO - Application closing
+2025-05-23 11:33:32,967 - error_handler - CRITICAL - TypeError: Object of type QByteArray is not JSON serializable
+2025-05-23 11:33:34,156 - __main__ - ERROR - ERROR: Object of type QByteArray is not JSON serializable
+2025-05-23 11:35:19,370 - error_handler - INFO - Error handler initialized
+2025-05-23 11:35:19,370 - session_manager - WARNING - Error loading configuration: Expecting value: line 2 column 22 (char 23)
+2025-05-23 11:35:19,370 - session_manager - INFO - Attempting to restore from backup...
+2025-05-23 11:35:19,371 - session_manager - INFO - Configuration restored from backup: session.backup1
+2025-05-23 11:35:19,371 - session_manager - INFO - Session manager initialized with config: session.json
+2025-05-23 11:35:19,371 - data_source_registry - INFO - Loaded 1 data sources from registry
+2025-05-23 11:35:19,371 - data_source_registry - INFO - Data source registry initialized with 1 sources
+2025-05-23 11:35:19,374 - ui.analytics_runner.data_source_registry - INFO - Loaded 1 data sources from registry
+2025-05-23 11:35:19,374 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 1 sources
+2025-05-23 11:35:19,454 - __main__ - INFO - Application state restored
+2025-05-23 11:35:19,454 - __main__ - INFO - Backend systems initialized
+2025-05-23 11:35:19,455 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 11:35:21,387 - __main__ - INFO - Application closing
+2025-05-23 11:35:21,389 - error_handler - CRITICAL - TypeError: Object of type QByteArray is not JSON serializable
+2025-05-23 11:35:34,868 - __main__ - ERROR - ERROR: Object of type QByteArray is not JSON serializable
+2025-05-23 11:35:42,436 - error_handler - INFO - Error handler initialized
+2025-05-23 11:35:42,436 - session_manager - WARNING - Error loading configuration: Expecting value: line 2 column 22 (char 23)
+2025-05-23 11:35:42,436 - session_manager - INFO - Attempting to restore from backup...
+2025-05-23 11:35:42,436 - session_manager - WARNING - Backup file session.backup1 is corrupted: Expecting value: line 2 column 22 (char 23)
+2025-05-23 11:35:42,436 - session_manager - INFO - Configuration restored from backup: session.backup2
+2025-05-23 11:35:42,437 - session_manager - INFO - Session manager initialized with config: session.json
+2025-05-23 11:35:42,437 - data_source_registry - INFO - Loaded 1 data sources from registry
+2025-05-23 11:35:42,437 - data_source_registry - INFO - Data source registry initialized with 1 sources
+2025-05-23 11:35:42,438 - ui.analytics_runner.data_source_registry - INFO - Loaded 1 data sources from registry
+2025-05-23 11:35:42,438 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 1 sources
+2025-05-23 11:35:42,477 - __main__ - INFO - Application state restored
+2025-05-23 11:35:42,477 - __main__ - INFO - Backend systems initialized
+2025-05-23 11:35:42,477 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 11:35:44,860 - __main__ - INFO - Application closing
+2025-05-23 11:35:44,863 - error_handler - CRITICAL - TypeError: Object of type QByteArray is not JSON serializable
+2025-05-23 11:36:22,243 - __main__ - ERROR - ERROR: Object of type QByteArray is not JSON serializable

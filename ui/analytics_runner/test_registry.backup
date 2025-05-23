@@ -1,0 +1,56 @@
+{
+  "version": "1.0",
+  "created": "2025-05-23T11:31:18.455124",
+  "sources": {
+    "ca56aefc-de5f-4eae-a06c-0ccdb74e5af6": {
+      "source_id": "ca56aefc-de5f-4eae-a06c-0ccdb74e5af6",
+      "name": "Test Employee Data",
+      "source_type": "csv",
+      "file_path": "C:\\Users\\luria\\AppData\\Local\\Temp\\analytics_runner_test\\test_employees.csv",
+      "description": "Test employee data for validation testing",
+      "tags": [
+        "employee",
+        "test",
+        "hr"
+      ],
+      "file_size": 118,
+      "last_modified": "2025-05-23T11:31:18.332612",
+      "checksum": "44ec319ea086800f731b8766f2ae7bc4",
+      "connection_params": {},
+      "validation_rules": {},
+      "pre_validation_enabled": true,
+      "data_type_hint": "employee",
+      "created_date": "2025-05-23T11:31:18.430125",
+      "last_used": null,
+      "use_count": 0,
+      "is_favorite": false,
+      "is_active": true
+    },
+    "d9af40d9-e019-49b5-9279-aabfa8775199": {
+      "source_id": "d9af40d9-e019-49b5-9279-aabfa8775199",
+      "name": "Financial Revenue Data",
+      "source_type": "excel",
+      "file_path": "C:\\Users\\luria\\AppData\\Local\\Temp\\analytics_runner_test\\test_financial.xlsx",
+      "description": "Financial revenue and expense data",
+      "tags": [
+        "financial",
+        "revenue",
+        "test"
+      ],
+      "file_size": 6129,
+      "last_modified": "2025-05-23T11:31:18.429126",
+      "checksum": "3330677e50cc8fe4f9a949af995857b9",
+      "connection_params": {
+        "sheet_name": "Revenue"
+      },
+      "validation_rules": {},
+      "pre_validation_enabled": true,
+      "data_type_hint": "financial",
+      "created_date": "2025-05-23T11:31:18.442125",
+      "last_used": null,
+      "use_count": 0,
+      "is_favorite": false,
+      "is_active": true
+    }
+  }
+}

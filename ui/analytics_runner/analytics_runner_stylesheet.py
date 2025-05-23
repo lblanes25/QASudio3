@@ -1,6 +1,6 @@
 """
 Analytics Runner Stylesheet
-Extends the base stylesheet for Analytics Runner specific styling
+Enhanced with improved table styling and scrollbar fixes
 """
 
 from PySide6.QtGui import QFont, QColor
@@ -35,15 +35,15 @@ class AnalyticsRunnerStylesheet:
     SMALL_FONT_SIZE = 12
 
     # Spacing
-    STANDARD_SPACING = 12
-    FORM_SPACING = 16
-    SECTION_SPACING = 24
+    STANDARD_SPACING = 8
+    FORM_SPACING = 12
+    SECTION_SPACING = 16
 
     # Widget dimensions
-    BUTTON_HEIGHT = 36
-    INPUT_HEIGHT = 32
-    HEADER_HEIGHT = 48
-    TOOLBAR_HEIGHT = 44
+    BUTTON_HEIGHT = 32
+    INPUT_HEIGHT = 28
+    HEADER_HEIGHT = 40
+    TOOLBAR_HEIGHT = 40
 
     @staticmethod
     def get_fonts():
@@ -251,7 +251,7 @@ class AnalyticsRunnerStylesheet:
             background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
         }}
         
-        /* Scroll Areas and Scroll Bars */
+        /* Enhanced Scroll Areas and Scroll Bars - Fixed overlap issues */
         QScrollArea {{
             border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
             border-radius: 6px;
@@ -260,14 +260,14 @@ class AnalyticsRunnerStylesheet:
         
         QScrollBar:vertical {{
             background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
-            width: 14px;
-            border-radius: 7px;
-            margin: 0px;
+            width: 16px;  /* Increased width for better visibility */
+            border-radius: 8px;
+            margin: 2px;  /* Margin to prevent overlap */
         }}
         
         QScrollBar::handle:vertical {{
             background-color: {AnalyticsRunnerStylesheet.BORDER_COLOR};
-            border-radius: 7px;
+            border-radius: 6px;
             min-height: 20px;
             margin: 2px;
         }}
@@ -279,6 +279,31 @@ class AnalyticsRunnerStylesheet:
         QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
             border: none;
             background: none;
+            height: 0px;  /* Remove arrow buttons */
+        }}
+        
+        QScrollBar:horizontal {{
+            background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
+            height: 16px;
+            border-radius: 8px;
+            margin: 2px;
+        }}
+        
+        QScrollBar::handle:horizontal {{
+            background-color: {AnalyticsRunnerStylesheet.BORDER_COLOR};
+            border-radius: 6px;
+            min-width: 20px;
+            margin: 2px;
+        }}
+        
+        QScrollBar::handle:horizontal:hover {{
+            background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+        }}
+        
+        QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{
+            border: none;
+            background: none;
+            width: 0px;
         }}
         
         /* Group Boxes */
@@ -499,9 +524,9 @@ class AnalyticsRunnerStylesheet:
 
     @staticmethod
     def get_table_stylesheet():
-        """Stylesheet specifically for QTableWidget with proper headers and sizing"""
+        """Enhanced table stylesheet with fixed scrollbar overlap and better spacing"""
         return f"""
-        /* Table Widget */
+        /* Table Widget - Enhanced with proper spacing and scrollbar fixes */
         QTableWidget {{
             gridline-color: {AnalyticsRunnerStylesheet.BORDER_COLOR};
             background-color: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
@@ -509,12 +534,14 @@ class AnalyticsRunnerStylesheet:
             selection-background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR}30;
             border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
             border-radius: 6px;
+            margin-right: 20px;  /* Critical: Space for scrollbar */
         }}
 
-        /* Table Items */
+        /* Table Items with better spacing */
         QTableWidget::item {{
-            padding: 6px 8px;
+            padding: 8px 12px;  /* Increased padding for better readability */
             border: none;
+            min-height: 24px;  /* Ensure minimum row height */
         }}
 
         QTableWidget::item:selected {{
@@ -522,25 +549,26 @@ class AnalyticsRunnerStylesheet:
             color: {AnalyticsRunnerStylesheet.TEXT_COLOR};
         }}
 
-        /* Table Headers - Enhanced for better visibility and sizing */
+        /* Enhanced Table Headers - Maximum visibility and proper spacing */
         QTableWidget QHeaderView::section {{
             background-color: #E3F2FD;  /* Light blue background */
-            color: #000000;  /* Force black text for maximum contrast */
+            color: #000000 !important;  /* Force black text for maximum contrast */
             border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
             border-radius: 0px;
-            padding: 10px 16px;  /* Increased padding for better spacing */
+            padding: 12px 16px;  /* Generous padding for readability */
             font-weight: bold;
             font-size: {AnalyticsRunnerStylesheet.REGULAR_FONT_SIZE}px;
-            min-height: 40px;  /* Increased minimum height */
-            max-height: 60px;  /* Increased maximum height */
+            min-height: 45px;  /* Increased minimum height */
+            max-height: 65px;  /* Increased maximum height */
             text-align: center;
         }}
 
         /* Specific styling for horizontal headers */
         QTableWidget QHeaderView::section:horizontal {{
             color: #000000 !important;  /* Force black text with !important */
-            background-color: #E3F2FD !important;  /* Light blue background with !important */
+            background-color: #E3F2FD !important;  /* Light blue background */
             border-bottom: 2px solid {AnalyticsRunnerStylesheet.PRIMARY_COLOR};  /* Accent border */
+            border-right: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
         }}
 
         /* Hover effect for headers */
@@ -553,14 +581,50 @@ class AnalyticsRunnerStylesheet:
         QTableWidget QHeaderView {{
             font-weight: bold;
             background-color: transparent;
+            margin-right: 20px;  /* Space for scrollbar */
         }}
 
-        /* Override any conflicting styles */
+        /* Table viewport to prevent scrollbar overlap */
+        QTableWidget QAbstractScrollArea {{
+            margin-right: 20px;  /* Additional margin for scrollbar clearance */
+        }}
+
+        /* Override any conflicting border styles */
         QTableWidget QHeaderView::section:first {{
             border-left: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
         }}
 
         QTableWidget QHeaderView::section:last {{
             border-right: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+            margin-right: 20px;  /* Extra space for last column */
+        }}
+
+        /* Tree Widget Styles (for validation results) */
+        QTreeWidget {{
+            background-color: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
+            alternate-background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
+            border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+            border-radius: 6px;
+            selection-background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR}30;
+            margin-right: 20px;  /* Space for scrollbar */
+        }}
+
+        QTreeWidget::item {{
+            padding: 6px 8px;
+            min-height: 28px;  /* Adequate row height */
+        }}
+
+        QTreeWidget::item:selected {{
+            background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR}40;
+            color: {AnalyticsRunnerStylesheet.TEXT_COLOR};
+        }}
+
+        QTreeWidget QHeaderView::section {{
+            background-color: #E3F2FD;
+            color: #000000 !important;
+            border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+            padding: 10px 12px;
+            font-weight: bold;
+            min-height: 40px;
         }}
         """
