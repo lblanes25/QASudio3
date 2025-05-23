@@ -1,0 +1,39 @@
+2025-05-22 15:37:42,162 - session_manager - INFO - Configuration loaded successfully from session.json
+2025-05-22 15:37:42,162 - session_manager - INFO - Session manager initialized with config: session.json
+2025-05-22 15:37:42,172 - __main__ - INFO - Application state restored
+2025-05-22 15:37:42,172 - __main__ - INFO - Backend systems initialized
+2025-05-22 15:37:42,172 - __main__ - INFO - Analytics Runner application initialized
+2025-05-22 15:41:43,037 - __main__ - INFO - Application closing
+2025-05-22 15:41:46,420 - session_manager - WARNING - Error loading configuration: Expecting value: line 2 column 22 (char 23)
+2025-05-22 15:41:46,420 - session_manager - INFO - Attempting to restore from backup...
+2025-05-22 15:41:46,421 - session_manager - INFO - Configuration restored from backup: session.backup1
+2025-05-22 15:41:46,421 - session_manager - INFO - Session manager initialized with config: session.json
+2025-05-22 15:41:46,446 - __main__ - INFO - Application state restored
+2025-05-22 15:41:46,446 - __main__ - INFO - Backend systems initialized
+2025-05-22 15:41:46,446 - __main__ - INFO - Analytics Runner application initialized
+2025-05-22 15:41:58,944 - __main__ - INFO - Application closing
+2025-05-22 15:42:10,255 - session_manager - WARNING - Error loading configuration: Expecting value: line 2 column 22 (char 23)
+2025-05-22 15:42:10,255 - session_manager - INFO - Attempting to restore from backup...
+2025-05-22 15:42:10,255 - session_manager - WARNING - Backup file session.backup1 is corrupted: Expecting value: line 2 column 22 (char 23)
+2025-05-22 15:42:10,256 - session_manager - INFO - Configuration restored from backup: session.backup2
+2025-05-22 15:42:10,256 - session_manager - INFO - Session manager initialized with config: session.json
+2025-05-22 15:42:10,272 - __main__ - INFO - Application state restored
+2025-05-22 15:42:10,273 - __main__ - INFO - Backend systems initialized
+2025-05-22 15:42:10,273 - __main__ - INFO - Analytics Runner application initialized
+2025-05-22 15:43:06,470 - __main__ - INFO - Loading data source: audit_workpapers_2025Q2.xlsx
+2025-05-22 15:43:10,079 - __main__ - INFO - Starting validation process
+2025-05-22 15:43:12,091 - __main__ - INFO - Validation process completed
+2025-05-22 15:43:31,030 - __main__ - INFO - Application closing
+2025-05-22 15:49:08,334 - session_manager - WARNING - Error loading configuration: Expecting value: line 2 column 22 (char 23)
+2025-05-22 15:49:08,334 - session_manager - INFO - Attempting to restore from backup...
+2025-05-22 15:49:08,334 - session_manager - WARNING - Using default configuration
+2025-05-22 15:49:08,335 - session_manager - INFO - Session manager initialized with config: session.json
+2025-05-22 15:49:08,335 - session_manager - INFO - Backup directory: session_backups
+2025-05-22 15:49:08,369 - __main__ - INFO - Application state restored
+2025-05-22 15:49:08,369 - __main__ - INFO - Backend systems initialized
+2025-05-22 15:49:08,369 - __main__ - INFO - Analytics Runner application initialized
+2025-05-22 15:49:28,370 - __main__ - INFO - Loading data source: audit_workpapers_2025Q2.xlsx
+2025-05-22 15:49:29,984 - __main__ - INFO - Starting validation process
+2025-05-22 15:49:31,989 - __main__ - INFO - Validation process completed
+2025-05-22 15:49:52,959 - __main__ - INFO - Starting new session
+2025-05-22 15:50:06,144 - __main__ - INFO - Application closing

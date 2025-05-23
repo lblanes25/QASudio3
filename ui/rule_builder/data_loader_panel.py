@@ -2,6 +2,8 @@ from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import Signal
 import pandas as pd
 import traceback
+from stylesheet import Stylesheet
+
 
 class DataLoaderPanel(QWidget):
     """Panel for loading and previewing data."""
@@ -22,58 +24,112 @@ class DataLoaderPanel(QWidget):
     def init_ui(self):
         """Initialize the UI components."""
         from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-                                       QLineEdit, QTableView, QFileDialog, QComboBox, QWidget)
-        from PySide6.QtCore import Qt, QAbstractTableModel, QModelIndex
+                                       QLineEdit, QTableView, QFileDialog, QComboBox,
+                                       QWidget, QFrame, QToolButton)
+        from PySide6.QtCore import Qt, QAbstractTableModel, QModelIndex, QSize
+        from PySide6.QtGui import QFont, QIcon, QPalette, QColor
 
-        # Main layout
+        # Set default font using stylesheet
+        self.setFont(Stylesheet.get_regular_font())
+
+        # Main layout with consistent spacing
         main_layout = QVBoxLayout(self)
+        main_layout.setSpacing(Stylesheet.STANDARD_SPACING)
+        main_layout.setContentsMargins(Stylesheet.STANDARD_SPACING, Stylesheet.STANDARD_SPACING,
+                                       Stylesheet.STANDARD_SPACING, Stylesheet.STANDARD_SPACING)
 
-        # Data source selection
+        # Data source header
+        source_header = QLabel("Data Source")
+        source_header.setFont(Stylesheet.get_header_font())
+        source_header.setStyleSheet(Stylesheet.get_section_header_style())
+        main_layout.addWidget(source_header)
+
+        # Compact file selection layout
         source_layout = QHBoxLayout()
-        source_layout.addWidget(QLabel("Data Source:"))
+        source_layout.setSpacing(Stylesheet.STANDARD_SPACING)
 
+        # File path with integrated browse button
         self.file_path_edit = QLineEdit()
         self.file_path_edit.setReadOnly(True)
-        source_layout.addWidget(self.file_path_edit)
+        self.file_path_edit.setPlaceholderText("No file selected")
+        source_layout.addWidget(self.file_path_edit, 1)
 
-        browse_btn = QPushButton("Browse...")
+        browse_btn = QPushButton("Browse")
+        browse_btn.setMaximumWidth(80)
+        browse_btn.setMinimumHeight(Stylesheet.INPUT_HEIGHT)
         browse_btn.clicked.connect(self.browse_data_file)
         source_layout.addWidget(browse_btn)
 
         main_layout.addLayout(source_layout)
 
-        # Excel sheet selector (shown only for Excel files)
+        # Excel sheet selector in compact layout
         self.sheet_widget = QWidget()
         self.sheet_layout = QHBoxLayout(self.sheet_widget)
-        self.sheet_layout.addWidget(QLabel("Sheet:"))
+        self.sheet_layout.setContentsMargins(0, 0, 0, 0)
+        self.sheet_layout.setSpacing(8)
 
+        self.sheet_layout.addWidget(QLabel("Sheet:"))
         self.sheet_combo = QComboBox()
         self.sheet_layout.addWidget(self.sheet_combo)
+        self.sheet_layout.addStretch(1)  # Push to left
 
+        # FIX: Set visibility on widget, not layout
         self.sheet_widget.setVisible(False)  # Hide initially
         main_layout.addWidget(self.sheet_widget)
 
-        # Data preview
-        main_layout.addWidget(QLabel("Data Preview:"))
+        # Add a separator line
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        main_layout.addWidget(separator)
+
+        # Data preview with toggle
+        preview_header_layout = QHBoxLayout()
+
+        preview_header = QLabel("Data Preview")
+        preview_header.setFont(QFont("Segoe UI", 10, QFont.Bold))
+        preview_header_layout.addWidget(preview_header)
+
+        # Refresh button inline with header
+        refresh_btn = QPushButton("Refresh")
+        refresh_btn.setMaximumWidth(80)
+        refresh_btn.clicked.connect(self.reload_data)
+        preview_header_layout.addStretch(1)
+        preview_header_layout.addWidget(refresh_btn)
+
+        main_layout.addLayout(preview_header_layout)
 
         # Create table model for data preview
         class DataTableModel(QAbstractTableModel):
             def __init__(self, parent=None):
                 super().__init__(parent)
                 self.dataframe = pd.DataFrame()
+                self.max_preview_rows = 100  # Limit preview rows for performance
 
             def rowCount(self, parent=QModelIndex()):
+                if len(self.dataframe) > self.max_preview_rows:
+                    return self.max_preview_rows
                 return len(self.dataframe)
 
             def columnCount(self, parent=QModelIndex()):
                 return len(self.dataframe.columns)
 
             def data(self, index, role=Qt.DisplayRole):
-                if not index.isValid() or role != Qt.DisplayRole:
+                if not index.isValid():
                     return None
 
-                value = self.dataframe.iloc[index.row(), index.column()]
-                return str(value)
+                if role == Qt.DisplayRole:
+                    # Get value - limit to first max_preview_rows
+                    if index.row() < self.max_preview_rows:
+                        value = self.dataframe.iloc[index.row(), index.column()]
+                        return str(value)
+
+                # Add alternating row colors for better readability
+                if role == Qt.BackgroundRole:
+                    if index.row() % 2 == 0:
+                        return QColor(248, 248, 248)  # Light gray
+
+                return None
 
             def headerData(self, section, orientation, role=Qt.DisplayRole):
                 if role != Qt.DisplayRole:
@@ -94,15 +150,16 @@ class DataLoaderPanel(QWidget):
                 self.dataframe = dataframe
                 self.endResetModel()
 
+        # Create table view with styling
         self.table_model = DataTableModel()
         self.table_view = QTableView()
         self.table_view.setModel(self.table_model)
-        main_layout.addWidget(self.table_view)
+        self.table_view.setAlternatingRowColors(True)
+        self.table_view.setShowGrid(False)  # Remove gridlines for cleaner look
+        self.table_view.horizontalHeader().setHighlightSections(False)
+        self.table_view.verticalHeader().setDefaultSectionSize(24)  # Compact rows
 
-        # Refresh button
-        refresh_btn = QPushButton("Reload Data")
-        refresh_btn.clicked.connect(self.reload_data)
-        main_layout.addWidget(refresh_btn)
+        main_layout.addWidget(self.table_view)
 
         # Connect sheet selector
         self.sheet_combo.currentTextChanged.connect(self.load_selected_sheet)
@@ -133,10 +190,11 @@ class DataLoaderPanel(QWidget):
             if self.file_path.lower().endswith(('.xlsx', '.xls')):
                 # Excel file - show sheet selector
                 self.load_excel_sheets()
-                self.sheet_layout.setVisible(True)
+                # FIX: Set visibility on widget, not layout
+                self.sheet_widget.setVisible(True)
             else:
                 # CSV or other file - load directly
-                self.sheet_layout.setVisible(False)
+                self.sheet_widget.setVisible(False)
                 df = pd.read_csv(self.file_path)
                 self.set_data(df)
 

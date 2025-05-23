@@ -1,9 +1,11 @@
 from PySide6.QtWidgets import (QComboBox, QLineEdit, QWidget, QMessageBox)
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Qt
+from PySide6.QtGui import QKeyEvent
 
 import re
 
 from core.rule_engine.rule_manager import ValidationRule
+from stylesheet import Stylesheet
 
 
 class SimpleRuleEditor(QWidget):
@@ -15,6 +17,9 @@ class SimpleRuleEditor(QWidget):
     def __init__(self, rule_model):
         super().__init__()
         self.rule_model = rule_model
+        self._updating_model = False
+        self._updating_from_model = False
+        self._updating_live_preview = False
 
         # Set up UI
         self.init_ui()
@@ -26,267 +31,505 @@ class SimpleRuleEditor(QWidget):
         self.update_from_model()
 
     def init_ui(self):
-        """Initialize the UI components."""
+        """Initialize the UI components with a cleaner design."""
         from PySide6.QtWidgets import (QFormLayout, QLineEdit, QTextEdit, QComboBox,
-                                       QDoubleSpinBox, QPushButton, QGroupBox,
-                                       QVBoxLayout, QHBoxLayout, QCheckBox,
-                                       QScrollArea, QFrame)
+                                       QDoubleSpinBox, QPushButton,
+                                       QVBoxLayout, QHBoxLayout, QRadioButton,
+                                       QScrollArea, QFrame, QLabel, QSizePolicy)
+        from PySide6.QtGui import QFont, QPalette, QColor
+        from PySide6.QtCore import Qt
 
-        # Main layout
+        # Set default font using stylesheet
+        self.setFont(Stylesheet.get_regular_font())
+        label_font = Stylesheet.get_header_font()
+
+        # Main layout - removed extra nesting and scroll areas
         main_layout = QVBoxLayout(self)
+        main_layout.setSpacing(Stylesheet.STANDARD_SPACING)
+        main_layout.setContentsMargins(Stylesheet.FORM_SPACING, Stylesheet.FORM_SPACING,
+                                       Stylesheet.FORM_SPACING, Stylesheet.FORM_SPACING)
 
-        # Create scrollable area
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        main_layout.addWidget(scroll)
+        # -- Basic Rule Information --
+        info_label = QLabel("Rule Information")
+        info_label.setFont(label_font)
+        info_label.setStyleSheet(Stylesheet.get_section_header_style())
+        main_layout.addWidget(info_label)
 
-        # Container widget for scroll area
-        scroll_content = QWidget()
-        scroll.setWidget(scroll_content)
-        form_layout = QVBoxLayout(scroll_content)
-
-        # Create form layout for rule properties
-        rule_group = QGroupBox("Rule Properties")
-        properties_layout = QFormLayout()
-        rule_group.setLayout(properties_layout)
-        form_layout.addWidget(rule_group)
+        # Clean form layout
+        form_layout = QFormLayout()
+        form_layout.setSpacing(Stylesheet.STANDARD_SPACING)
+        form_layout.setLabelAlignment(Qt.AlignLeft)
+        form_layout.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
+        form_layout.setVerticalSpacing(Stylesheet.STANDARD_SPACING)
 
         # Rule name
         self.name_edit = QLineEdit()
-        properties_layout.addRow("Rule Name:", self.name_edit)
+        self.name_edit.setMinimumHeight(Stylesheet.INPUT_HEIGHT)
+        self.name_edit.setPlaceholderText("Enter a descriptive name for this rule")
+        form_layout.addRow("Name:", self.name_edit)
 
-        # Rule description
+        # Description - create with explicit styling to prevent mirroring
         self.description_edit = QTextEdit()
-        self.description_edit.setMaximumHeight(80)
-        properties_layout.addRow("Description:", self.description_edit)
+        self.description_edit.setMinimumHeight(80)
+        self.description_edit.setMaximumHeight(120)
+        self.description_edit.setPlaceholderText("What does this rule verify?")
+        self.description_edit.setReadOnly(False)
+        self.description_edit.setEnabled(True)
+        self.description_edit.setFocusPolicy(Qt.StrongFocus)
 
-        # Category
+        # FIX: Multiple approaches to prevent text mirroring
+        self.description_edit.setLayoutDirection(Qt.LeftToRight)
+
+        # Set explicit CSS-style direction
+        self.description_edit.setStyleSheet(f"""
+            QTextEdit {{
+                direction: ltr;
+                text-align: left;
+                unicode-bidi: normal;
+                background-color: {Stylesheet.INPUT_BACKGROUND};
+                border: 1px solid {Stylesheet.BORDER_COLOR};
+                border-radius: 4px;
+                padding: 8px;
+                font-size: {Stylesheet.REGULAR_FONT_SIZE}px;
+            }}
+        """)
+
+        # Force alignment and direction at document level
+        from PySide6.QtGui import QTextOption
+        option = QTextOption()
+        option.setTextDirection(Qt.LeftToRight)
+        option.setAlignment(Qt.AlignLeft)
+        self.description_edit.document().setDefaultTextOption(option)
+
+
+
+        # Set cursor to start and ensure proper initial state
+        cursor = self.description_edit.textCursor()
+        cursor.movePosition(cursor.MoveOperation.Start)
+        cursor.setBlockFormat(cursor.blockFormat())  # Ensure current format is editable
+        block_format = cursor.blockFormat()
+        block_format.setLayoutDirection(Qt.LeftToRight)
+        cursor.setBlockFormat(block_format)
+        self.description_edit.setTextCursor(cursor)
+
+        form_layout.addRow("Description:", self.description_edit)
+
+        # Category - ensure persistence
         self.category_combo = QComboBox()
-        # Use ValidationRule's common categories
+        self.category_combo.setMinimumHeight(Stylesheet.INPUT_HEIGHT)
+        self.category_combo.addItem("")  # Add empty option
         for category in ValidationRule.COMMON_CATEGORIES:
             self.category_combo.addItem(category)
-        properties_layout.addRow("Category:", self.category_combo)
+        form_layout.addRow("Category:", self.category_combo)
 
-        # Severity
+        # Severity - ensure persistence
         self.severity_combo = QComboBox()
-        # Use ValidationRule's severity levels
+        self.severity_combo.setMinimumHeight(Stylesheet.INPUT_HEIGHT)
+        self.severity_combo.addItem("")  # Add empty option
         for severity in ValidationRule.SEVERITY_LEVELS:
             self.severity_combo.addItem(severity)
-        properties_layout.addRow("Severity:", self.severity_combo)
+        form_layout.addRow("Severity:", self.severity_combo)
 
-        # Threshold
-        self.threshold_spin = QDoubleSpinBox()
-        self.threshold_spin.setRange(0.0, 1.0)
-        self.threshold_spin.setSingleStep(0.05)
-        self.threshold_spin.setValue(1.0)
-        properties_layout.addRow("Threshold:", self.threshold_spin)
+        # Threshold - make fully editable with better handling
+        self.threshold_edit = QLineEdit()
+        self.threshold_edit.setMinimumHeight(Stylesheet.INPUT_HEIGHT)
+        self.threshold_edit.setPlaceholderText("Enter percentage (e.g., 95.0)")
+        self.threshold_edit.setText("100.0")
+        self.threshold_edit.setToolTip("Enter a percentage between 0 and 100")
+        self.threshold_edit.setReadOnly(False)
+        self.threshold_edit.setEnabled(True)
+        self.threshold_edit.setFocusPolicy(Qt.StrongFocus)
+        form_layout.addRow("Threshold (%):", self.threshold_edit)
 
-        # Tags
+        # Tags - create with explicit styling to prevent mirroring
         self.tags_edit = QLineEdit()
-        properties_layout.addRow("Tags (comma separated):", self.tags_edit)
+        self.tags_edit.setMinimumHeight(Stylesheet.INPUT_HEIGHT)
+        self.tags_edit.setPlaceholderText(
+            "Enter tags separated by commas (e.g., Audit, Financial Reporting, Compliance)")
+        self.tags_edit.setReadOnly(False)
+        self.tags_edit.setEnabled(True)
+        self.tags_edit.setFocusPolicy(Qt.StrongFocus)
 
-        # Formula preview - CREATE THIS BEFORE ADDING CONDITIONS
-        formula_group = QGroupBox("Formula Preview")
-        formula_layout = QVBoxLayout()
-        formula_group.setLayout(formula_layout)
+        # FIX: Multiple approaches to prevent text mirroring
+        self.tags_edit.setLayoutDirection(Qt.LeftToRight)
+        self.tags_edit.setInputMethodHints(Qt.ImhNone)
+
+        # Set explicit CSS-style direction and alignment
+        self.tags_edit.setStyleSheet(f"""
+            QLineEdit {{
+                direction: ltr;
+                text-align: left;
+                unicode-bidi: normal;
+                background-color: {Stylesheet.INPUT_BACKGROUND};
+                border: 1px solid {Stylesheet.BORDER_COLOR};
+                border-radius: 4px;
+                padding: 6px 8px;
+                font-size: {Stylesheet.REGULAR_FONT_SIZE}px;
+                min-height: {Stylesheet.INPUT_HEIGHT - 16}px;
+                max-height: {Stylesheet.INPUT_HEIGHT}px;
+            }}
+        """)
+
+        # Force alignment
+        self.tags_edit.setAlignment(Qt.AlignLeft)
+
+        form_layout.addRow("Tags:", self.tags_edit)
+
+        main_layout.addLayout(form_layout)
+
+        # -- Rule Conditions Section --
+        conditions_label = QLabel("Rule Conditions")
+        conditions_label.setFont(label_font)
+        conditions_label.setStyleSheet(Stylesheet.get_section_header_style())
+        main_layout.addWidget(conditions_label)
+
+        # Logic operator selection - simplified without extra containers
+        logic_layout = QHBoxLayout()
+        logic_layout.setSpacing(Stylesheet.STANDARD_SPACING)
+
+        logic_label = QLabel("Combine conditions with:")
+        self.and_radio = QRadioButton("AND")
+        self.and_radio.setChecked(True)
+        self.or_radio = QRadioButton("OR")
+
+        logic_layout.addWidget(logic_label)
+        logic_layout.addWidget(self.and_radio)
+        logic_layout.addWidget(self.or_radio)
+        logic_layout.addStretch(1)
+
+        main_layout.addLayout(logic_layout)
+
+        # Conditions container - no extra frames
+        self.conditions_layout = QVBoxLayout()
+        self.conditions_layout.setSpacing(Stylesheet.FORM_SPACING)
+        self.conditions_layout.setContentsMargins(0, 0, 0, 0)
+
+        main_layout.addLayout(self.conditions_layout)
+
+        # Add condition button
+        add_condition_btn = QPushButton("+ Add Condition")
+        add_condition_btn.setMinimumHeight(Stylesheet.BUTTON_HEIGHT)
+        add_condition_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {Stylesheet.INPUT_BACKGROUND};
+                color: {Stylesheet.PRIMARY_COLOR};
+                border: 1px dashed {Stylesheet.PRIMARY_COLOR};
+                border-radius: 4px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {Stylesheet.PRIMARY_COLOR};
+                color: white;
+                border: 1px solid {Stylesheet.PRIMARY_COLOR};
+            }}
+        """)
+        add_condition_btn.clicked.connect(self.add_condition_row)
+        main_layout.addWidget(add_condition_btn)
+
+        # Add initial condition
+        self.add_condition_row()
+
+        # -- Formula Preview Section --
+        formula_label = QLabel("Formula Preview")
+        formula_label.setFont(label_font)
+        main_layout.addWidget(formula_label)
 
         self.formula_preview = QLineEdit()
         self.formula_preview.setReadOnly(True)
-        formula_layout.addWidget(self.formula_preview)
+        self.formula_preview.setFont(Stylesheet.get_mono_font())
+        self.formula_preview.setMinimumHeight(Stylesheet.HEADER_HEIGHT)
+        self.formula_preview.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.formula_preview.setStyleSheet(f"""
+            QLineEdit {{
+                background-color: {Stylesheet.INPUT_BACKGROUND};
+                border: 1px solid {Stylesheet.BORDER_COLOR};
+                color: {Stylesheet.TEXT_COLOR};
+            }}
+        """)
+        main_layout.addWidget(self.formula_preview)
+
+        # Validation status (hidden initially)
+        self.validation_label = QLabel()
+        self.validation_label.setVisible(False)
+        main_layout.addWidget(self.validation_label)
 
         # Validate button
         validate_btn = QPushButton("Validate Formula")
+        validate_btn.setMinimumHeight(Stylesheet.BUTTON_HEIGHT)
         validate_btn.clicked.connect(self.validate_formula)
-        formula_layout.addWidget(validate_btn)
-
-        # Add button to switch to advanced editor
-        advanced_btn = QPushButton("Switch to Advanced Editor")
-        advanced_btn.clicked.connect(self.switch_to_advanced.emit)
-        formula_layout.addWidget(advanced_btn)
-
-        # Rule definition group
-        rule_def_group = QGroupBox("Rule Definition")
-        rule_def_layout = QVBoxLayout()
-        rule_def_group.setLayout(rule_def_layout)
-        form_layout.addWidget(rule_def_group)
-
-        # Conditions container
-        self.conditions_layout = QVBoxLayout()
-        rule_def_layout.addLayout(self.conditions_layout)
-
-        # Initial condition - NOW PLACED AFTER formula_preview is created
-        self.add_condition_row()
-
-        # Logic type (AND/OR)
-        logic_layout = QHBoxLayout()
-        self.and_radio = QCheckBox("AND (All conditions must be true)")
-        self.and_radio.setChecked(True)
-        self.or_radio = QCheckBox("OR (Any condition can be true)")
-        logic_layout.addWidget(self.and_radio)
-        logic_layout.addWidget(self.or_radio)
-        rule_def_layout.addLayout(logic_layout)
-
-        # Connect AND/OR radios
-        self.and_radio.stateChanged.connect(lambda state: self.or_radio.setChecked(not state))
-        self.or_radio.stateChanged.connect(lambda state: self.and_radio.setChecked(not state))
-
-        # Add condition button
-        add_condition_btn = QPushButton("Add Condition")
-        add_condition_btn.clicked.connect(self.add_condition_row)
-        rule_def_layout.addWidget(add_condition_btn)
-
-        form_layout.addWidget(formula_group)
+        main_layout.addWidget(validate_btn)
 
         # Add space at the bottom
-        form_layout.addStretch()
+        main_layout.addStretch()
+
+    def keyPressEvent(self, event):
+        """Handle key press events to enable proper tab navigation."""
+        if event.key() == Qt.Key_Tab:
+            # Check if we're in a text widget that normally consumes Tab
+            current_widget = self.focusWidget()
+
+            if isinstance(current_widget, QTextEdit):
+                # For QTextEdit (description field), move to next widget instead of inserting tab
+                self.focusNextChild()
+                event.accept()
+                return
+            elif isinstance(current_widget, QLineEdit):
+                # For QLineEdit widgets, check if Ctrl is held down
+                if event.modifiers() & Qt.ControlModifier:
+                    # Ctrl+Tab inserts a tab character (if you want this behavior)
+                    super().keyPressEvent(event)
+                else:
+                    # Regular Tab moves to next field
+                    self.focusNextChild()
+                    event.accept()
+                    return
+        elif event.key() == Qt.Key_Backtab:  # Shift+Tab
+            # Move to previous field
+            current_widget = self.focusWidget()
+            if isinstance(current_widget, (QTextEdit, QLineEdit)):
+                self.focusPreviousChild()
+                event.accept()
+                return
+
+        # For all other keys, use default behavior
+        super().keyPressEvent(event)
 
     def add_condition_row(self):
-        """Add a new condition row to the form."""
+        """Add a new condition row with improved design."""
         from PySide6.QtWidgets import (QHBoxLayout, QComboBox, QLineEdit,
-                                       QPushButton, QFrame)
+                                       QPushButton, QFrame, QWidget)
+        from PySide6.QtCore import Qt
 
-        # Create a frame to contain the condition
-        condition_frame = QFrame()
-        condition_frame.setFrameShape(QFrame.StyledPanel)
-        condition_frame.setFrameShadow(QFrame.Raised)
-        condition_layout = QHBoxLayout(condition_frame)
+        # Create condition container with minimal styling
+        condition_widget = QWidget()
+        condition_widget.setStyleSheet(f"""
+            QWidget {{
+                background-color: {Stylesheet.BACKGROUND_COLOR};
+                border: none;
+                border-bottom: 1px solid {Stylesheet.BORDER_COLOR};
+                padding: {Stylesheet.STANDARD_SPACING}px 0px;
+            }}
+        """)
 
-        # Column selector
+        # Horizontal layout for inline design
+        condition_layout = QHBoxLayout(condition_widget)
+        condition_layout.setSpacing(Stylesheet.STANDARD_SPACING)
+        condition_layout.setContentsMargins(0, Stylesheet.STANDARD_SPACING, 0, Stylesheet.STANDARD_SPACING)
+
+        # Column selector with placeholder
         column_combo = QComboBox()
         column_combo.setEditable(True)
+        column_combo.setMinimumHeight(Stylesheet.INPUT_HEIGHT)
         column_combo.setMinimumWidth(150)
+        column_combo.setPlaceholderText("Select column")
+        column_combo.lineEdit().setPlaceholderText("Select column")
+        column_combo.setCurrentText("")
+        column_combo.setToolTip("Choose a data column to check. Load data first to see available columns.")
         condition_layout.addWidget(column_combo)
 
-        # Operator selector
+        # Operator selector with placeholder
         operator_combo = QComboBox()
+        operator_combo.addItem("Choose operator")  # Placeholder item
         operators = ["=", "<>", ">", "<", ">=", "<=", "CONTAINS", "ISBLANK", "ISNOTBLANK"]
         operator_combo.addItems(operators)
+        operator_combo.setMinimumHeight(Stylesheet.INPUT_HEIGHT)
+        operator_combo.setMinimumWidth(120)
+        operator_combo.setCurrentIndex(0)
+        operator_combo.setToolTip("Choose how to compare the column value")
         condition_layout.addWidget(operator_combo)
 
-        # Value input
+        # Value input with contextual placeholder
         value_edit = QLineEdit()
-        value_edit.setPlaceholderText("Value")
-        value_edit.setMinimumWidth(150)
+        value_edit.setPlaceholderText("Enter expected value")
+        value_edit.setMinimumHeight(Stylesheet.INPUT_HEIGHT)
+        value_edit.setMinimumWidth(120)
+        value_edit.setToolTip("Enter the value to compare against")
         condition_layout.addWidget(value_edit)
 
+        # Spacer
+        condition_layout.addStretch(1)
+
         # Remove button
-        remove_btn = QPushButton("Remove")
-        remove_btn.clicked.connect(lambda: self.remove_condition_row(condition_frame))
+        remove_btn = QPushButton("×")
+        remove_btn.setMinimumHeight(Stylesheet.INPUT_HEIGHT)
+        remove_btn.setMaximumWidth(Stylesheet.INPUT_HEIGHT)
+        remove_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: transparent;
+                color: {Stylesheet.ERROR_COLOR};
+                border: 1px solid {Stylesheet.BORDER_COLOR};
+                border-radius: {Stylesheet.INPUT_HEIGHT // 2}px;
+                font-size: 16px;
+                font-weight: bold;
+            }}
+            QPushButton:hover {{
+                background-color: {Stylesheet.ERROR_COLOR};
+                color: white;
+                border: 1px solid {Stylesheet.ERROR_COLOR};
+            }}
+        """)
+        remove_btn.clicked.connect(lambda: self.remove_condition_row(condition_widget))
         condition_layout.addWidget(remove_btn)
 
-        # Add the frame to the conditions layout
-        self.conditions_layout.addWidget(condition_frame)
+        # Add widget to layout
+        self.conditions_layout.addWidget(condition_widget)
 
-        # Connect signals to update formula
+        # Connect signals
         column_combo.currentTextChanged.connect(self.update_formula)
+        operator_combo.currentTextChanged.connect(lambda: self._update_value_visibility(operator_combo, value_edit))
         operator_combo.currentTextChanged.connect(self.update_formula)
         value_edit.textChanged.connect(self.update_formula)
+
+        # Set initial visibility
+        self._update_value_visibility(operator_combo, value_edit)
 
         # Update formula preview
         self.update_formula()
 
+    def _update_value_visibility(self, operator_combo, value_edit):
+        """Show/hide value field based on operator selection."""
+        operator = operator_combo.currentText().strip()
+        needs_value = operator not in ["ISBLANK", "ISNOTBLANK", "Choose operator"]
+
+        if needs_value and operator != "Choose operator":
+            value_edit.setVisible(True)
+            # Update placeholder based on operator
+            if operator == "=":
+                value_edit.setPlaceholderText("Exact value to match")
+            elif operator == "<>":
+                value_edit.setPlaceholderText("Value to exclude")
+            elif operator in [">", ">="]:
+                value_edit.setPlaceholderText("Minimum number")
+            elif operator in ["<", "<="]:
+                value_edit.setPlaceholderText("Maximum number")
+            elif operator == "CONTAINS":
+                value_edit.setPlaceholderText("Text to find")
+            else:
+                value_edit.setPlaceholderText("Enter expected value")
+        else:
+            value_edit.setVisible(False)
+            value_edit.clear()
+
     def set_available_columns(self, columns):
         """Set available columns for dropdown selectors."""
-        # Update all column selectors with the available columns
         for i in range(self.conditions_layout.count()):
-            condition_frame = self.conditions_layout.itemAt(i).widget()
-            if condition_frame:
-                condition_layout = condition_frame.layout()
+            condition_widget = self.conditions_layout.itemAt(i).widget()
+            if condition_widget and hasattr(condition_widget, 'layout'):
+                condition_layout = condition_widget.layout()
 
-                # Find the column combo box (first combo box in the layout)
+                # Find the column combo box (first combo box)
                 for j in range(condition_layout.count()):
                     widget = condition_layout.itemAt(j).widget()
-                    if isinstance(widget, QComboBox):
+                    if isinstance(widget, QComboBox) and widget.isEditable():
                         # Save current text
                         current_text = widget.currentText()
 
-                        # Block signals to prevent formula updates during rebuild
+                        # Block signals
                         widget.blockSignals(True)
 
                         # Clear and add new items
                         widget.clear()
-                        widget.addItems(columns)
+                        if columns:
+                            widget.addItems(columns)
+                            widget.setPlaceholderText("Select column")
+                        else:
+                            widget.setPlaceholderText("Load data to see columns")
 
-                        # If previous value exists in new list, select it
+                        # Restore selection if it exists
                         index = widget.findText(current_text)
                         if index >= 0:
                             widget.setCurrentIndex(index)
+                        else:
+                            widget.setCurrentText("")
 
                         # Re-enable signals
                         widget.blockSignals(False)
-
-                        # Only update the first combo box (column selector)
                         break
 
-    def remove_condition_row(self, condition_frame):
-        """Remove a condition row from the form."""
-        # Only remove if there's more than one condition
+    def remove_condition_row(self, condition_widget):
+        """Remove a condition row."""
         if self.conditions_layout.count() > 1:
-            condition_frame.deleteLater()
+            condition_widget.deleteLater()
+            self.update_formula()
+        else:
+            # Clear the last condition instead of removing
+            if hasattr(condition_widget, 'layout'):
+                layout = condition_widget.layout()
+                for i in range(layout.count()):
+                    widget = layout.itemAt(i).widget()
+                    if isinstance(widget, QComboBox) and widget.isEditable():
+                        widget.setCurrentText("")
+                    elif isinstance(widget, QLineEdit):
+                        widget.clear()
             self.update_formula()
 
     def update_formula(self):
         """Update the formula preview based on condition inputs."""
-        from PySide6.QtWidgets import QHBoxLayout, QComboBox, QLineEdit
+        if self._updating_from_model:
+            return
+
+        from PySide6.QtWidgets import QComboBox, QLineEdit
 
         # Collect conditions
         conditions = []
         for i in range(self.conditions_layout.count()):
-            condition_frame = self.conditions_layout.itemAt(i).widget()
-            if condition_frame is None:
+            condition_widget = self.conditions_layout.itemAt(i).widget()
+            if condition_widget is None or not hasattr(condition_widget, 'layout'):
                 continue
 
-            condition_layout = condition_frame.layout()
+            condition_layout = condition_widget.layout()
 
             # Extract widgets
             column_combo = None
             operator_combo = None
             value_edit = None
 
+            combo_count = 0
             for j in range(condition_layout.count()):
                 widget = condition_layout.itemAt(j).widget()
                 if isinstance(widget, QComboBox):
-                    if column_combo is None:
+                    if combo_count == 0:  # First combo is column
                         column_combo = widget
-                    else:
+                    elif combo_count == 1:  # Second combo is operator
                         operator_combo = widget
+                    combo_count += 1
                 elif isinstance(widget, QLineEdit):
                     value_edit = widget
 
-            if column_combo and operator_combo and value_edit:
-                column = column_combo.currentText()
-                operator = operator_combo.currentText()
-                value = value_edit.text()
+            if not column_combo or not operator_combo:
+                continue
 
-                # Skip if column is empty
-                if not column:
-                    continue
+            column = column_combo.currentText().strip()
+            operator = operator_combo.currentText().strip()
+            value = value_edit.text().strip() if value_edit and value_edit.isVisible() else ""
 
-                # Skip if value is empty and operator requires a value
-                if not value and operator not in ["ISBLANK", "ISNOTBLANK"]:
-                    continue
+            # Skip invalid conditions
+            if not column or operator == "Choose operator":
+                continue
 
-                # Format condition based on operator
-                if operator == "ISBLANK":
-                    condition = f"ISBLANK([{column}])"
-                elif operator == "ISNOTBLANK":
-                    condition = f"NOT(ISBLANK([{column}]))"
-                elif operator == "CONTAINS":
-                    condition = f'ISNUMBER(SEARCH("{value}", [{column}]))'
-                else:
-                    # Check if value needs quotes (non-numeric)
-                    try:
-                        float(value)  # Test if value is numeric
-                        condition = f"[{column}]{operator}{value}"
-                    except ValueError:
-                        condition = f'[{column}]{operator}"{value}"'
+            if not value and operator not in ["ISBLANK", "ISNOTBLANK"]:
+                continue
 
-                conditions.append(condition)
+            # Format condition based on operator
+            if operator == "ISBLANK":
+                condition = f"ISBLANK([{column}])"
+            elif operator == "ISNOTBLANK":
+                condition = f"NOT(ISBLANK([{column}]))"
+            elif operator == "CONTAINS":
+                condition = f'ISNUMBER(SEARCH("{value}", [{column}]))'
+            else:
+                # Check if value needs quotes
+                try:
+                    float(value)
+                    condition = f"[{column}]{operator}{value}"
+                except ValueError:
+                    condition = f'[{column}]{operator}"{value}"'
 
-        # Combine conditions with AND or OR
+            conditions.append(condition)
+
+        # Combine conditions
         if conditions:
             logic_op = "AND" if self.and_radio.isChecked() else "OR"
-
             if len(conditions) == 1:
                 formula = f"={conditions[0]}"
             else:
@@ -294,98 +537,227 @@ class SimpleRuleEditor(QWidget):
         else:
             formula = ""
 
-        # Update formula preview
-        self.formula_preview.setText(formula)
+        # Update preview
+        if hasattr(self, 'formula_preview'):
+            self.formula_preview.setText(formula)
+
+            # Reset validation styling
+            if hasattr(self, 'validation_label'):
+                self.validation_label.setVisible(False)
+                self.formula_preview.setStyleSheet(f"""
+                    QLineEdit {{
+                        background-color: {Stylesheet.INPUT_BACKGROUND};
+                        border: 1px solid {Stylesheet.BORDER_COLOR};
+                        color: {Stylesheet.TEXT_COLOR};
+                    }}
+                """)
 
         # Update model
-        if formula:
+        if formula and not self._updating_model:
             self.rule_model.formula = formula
 
     def validate_formula(self):
         """Validate the current formula."""
         formula = self.formula_preview.text()
         if not formula:
-            QMessageBox.warning(self, "Validation", "Formula is empty")
+            self.validation_label.setText("Formula is empty. Add at least one condition.")
+            self.validation_label.setStyleSheet("color: #FFC107; font-size: 16px;")
+            self.validation_label.setVisible(True)
             return
 
-        # Use ValidationRuleParser to validate formula
         is_valid = self.rule_model.is_valid_formula(formula)
+        self.validation_label.setVisible(True)
 
         if is_valid:
-            QMessageBox.information(self, "Validation", "Formula syntax is valid")
+            self.validation_label.setText("✓ Formula syntax is valid")
+            self.validation_label.setStyleSheet("color: #28A745; font-size: 16px;")
+            self.formula_preview.setStyleSheet(f"""
+                QLineEdit {{
+                    background-color: {Stylesheet.INPUT_BACKGROUND};
+                    border: 2px solid {Stylesheet.SUCCESS_COLOR};
+                    color: {Stylesheet.TEXT_COLOR};
+                }}
+            """)
         else:
-            QMessageBox.warning(self, "Validation", "Invalid formula syntax")
+            self.validation_label.setText("✗ Invalid formula syntax")
+            self.validation_label.setStyleSheet("color: #DC3545; font-size: 16px;")
+            self.formula_preview.setStyleSheet(f"""
+                QLineEdit {{
+                    background-color: {Stylesheet.INPUT_BACKGROUND};
+                    border: 2px solid {Stylesheet.ERROR_COLOR};
+                    color: {Stylesheet.TEXT_COLOR};
+                }}
+            """)
 
     def connect_signals(self):
-        """Connect signals for UI updates."""
-        # Connect form fields to update rule model
+        """Connect signals for UI updates - with improved handling."""
+        # Connect form fields - use different signals to avoid recursion
         self.name_edit.textChanged.connect(self.update_model)
-        self.description_edit.textChanged.connect(self.update_model)
-        self.category_combo.currentTextChanged.connect(self.update_model)
-        self.severity_combo.currentTextChanged.connect(self.update_model)
-        self.threshold_spin.valueChanged.connect(self.update_model)
-        self.tags_edit.textChanged.connect(self.update_model)
 
-        # Connect rule model changes to update form
+        # For description, use textChanged signal but check for recursion
+        self.description_edit.textChanged.connect(self.on_description_changed)
+
+        # For dropdowns, use currentIndexChanged instead of currentTextChanged
+        self.category_combo.currentIndexChanged.connect(self.on_category_changed)
+        self.severity_combo.currentIndexChanged.connect(self.on_severity_changed)
+
+        self.threshold_edit.textChanged.connect(self.on_threshold_changed)
+
+        # For tags - use textChanged for real-time updates, editingFinished for cleanup
+        self.tags_edit.textChanged.connect(self.on_tags_changed)
+        self.tags_edit.editingFinished.connect(self.on_tags_editing_finished)
+
+        # Connect radio buttons
+        self.and_radio.toggled.connect(self.update_formula)
+        self.or_radio.toggled.connect(self.update_formula)
+
+        # Connect rule model changes
         self.rule_model.rule_changed.connect(self.update_from_model)
 
-    def update_model(self):
-        """Update the rule model from form values."""
-        # Update fields that don't come from condition rows
-        self.rule_model.name = self.name_edit.text()
+    def on_description_changed(self):
+        """Handle description changes."""
+        if self._updating_from_model:
+            return
         self.rule_model.description = self.description_edit.toPlainText()
-        self.rule_model.category = self.category_combo.currentText()
-        self.rule_model.severity = self.severity_combo.currentText()
-        self.rule_model.threshold = self.threshold_spin.value()
 
-        # Parse tags from comma-separated string
+    def on_category_changed(self, index):
+        """Handle category dropdown changes."""
+        if self._updating_from_model:
+            return
+
+        category = self.category_combo.currentText()
+        if category and category != "":
+            self.rule_model.category = category
+
+    def on_severity_changed(self, index):
+        """Handle severity dropdown changes."""
+        if self._updating_from_model:
+            return
+
+        severity = self.severity_combo.currentText()
+        if severity and severity != "":
+            self.rule_model.severity = severity
+
+    def on_tags_changed(self):
+        """Handle tags field changes - allow commas and spaces while typing."""
+        if self._updating_from_model:
+            return
+
         tag_text = self.tags_edit.text()
+
         if tag_text:
-            self.rule_model.tags = [tag.strip() for tag in tag_text.split(',')]
+            # Split by comma and clean up each tag
+            tags = [tag.strip() for tag in tag_text.split(',')]
+            # Only filter out completely empty tags (after stripping whitespace)
+            filtered_tags = [tag for tag in tags if tag]
+
+            # Store the tags in the model, but DON'T update the field
+            # This allows the user to continue typing
+            self.rule_model.tags = filtered_tags
         else:
             self.rule_model.tags = []
 
-        # Formula is updated by update_formula method
+    def on_tags_editing_finished(self):
+        """Called when user finishes editing tags (loses focus or presses Enter)."""
+        if self._updating_from_model:
+            return
+
+        # Now we clean up the display
+        tag_text = self.tags_edit.text()
+        if tag_text:
+            tags = [tag.strip() for tag in tag_text.split(',')]
+            filtered_tags = [tag for tag in tags if tag]
+
+            # Update both model and display
+            self.rule_model.tags = filtered_tags
+            clean_text = ', '.join(filtered_tags)
+
+            # Only update the field if it's actually different
+            if self.tags_edit.text() != clean_text:
+                self._updating_from_model = True
+                self.tags_edit.setText(clean_text)
+                self._updating_from_model = False
+
+    def update_model(self):
+        """Update the rule model from form values."""
+        if self._updating_from_model:
+            return
+
+        self._updating_model = True
+        try:
+            # Only update name from this method now
+            self.rule_model.name = self.name_edit.text()
+        finally:
+            self._updating_model = False
+
+    def on_threshold_changed(self):
+        """Handle threshold changes with better input handling."""
+        if self._updating_from_model:
+            return
+
+        text = self.threshold_edit.text().replace('%', '').strip()
+        if text:
+            try:
+                value = float(text)
+                value = max(0.0, min(100.0, value))  # Clamp between 0-100
+                # Store as percentage value (0-100), not decimal (0-1)
+                self.rule_model.threshold = value / 100.0  # Convert to decimal for storage
+            except ValueError:
+                pass  # Ignore invalid input
 
     def update_from_model(self):
         """Update form values from rule model."""
-        # Block signals to prevent recursion
-        self.name_edit.blockSignals(True)
-        self.description_edit.blockSignals(True)
-        self.category_combo.blockSignals(True)
-        self.severity_combo.blockSignals(True)
-        self.threshold_spin.blockSignals(True)
-        self.tags_edit.blockSignals(True)
+        self._updating_from_model = True
 
-        # Update form fields
-        self.name_edit.setText(self.rule_model.name)
-        self.description_edit.setPlainText(self.rule_model.description)
+        try:
+            # Update form fields without blocking signals - just set flag
+            self.name_edit.setText(self.rule_model.name)
 
-        # Find and select category
-        category_index = self.category_combo.findText(self.rule_model.category)
-        if category_index >= 0:
-            self.category_combo.setCurrentIndex(category_index)
+            # FIX: Only update description if it's actually different
+            current_description = self.description_edit.toPlainText()
+            if current_description != self.rule_model.description:
+                self.description_edit.setPlainText(self.rule_model.description)
 
-        # Find and select severity
-        severity_index = self.severity_combo.findText(self.rule_model.severity)
-        if severity_index >= 0:
-            self.severity_combo.setCurrentIndex(severity_index)
+            # Handle category - find exact match
+            category_index = self.category_combo.findText(self.rule_model.category)
+            if category_index >= 0:
+                self.category_combo.setCurrentIndex(category_index)
+            else:
+                self.category_combo.setCurrentIndex(0)  # Set to empty if not found
 
-        self.threshold_spin.setValue(self.rule_model.threshold)
+            # Handle severity - find exact match
+            severity_index = self.severity_combo.findText(self.rule_model.severity)
+            if severity_index >= 0:
+                self.severity_combo.setCurrentIndex(severity_index)
+            else:
+                self.severity_combo.setCurrentIndex(0)  # Set to empty if not found
 
-        # Format tags as comma-separated string
-        self.tags_edit.setText(', '.join(self.rule_model.tags))
+            # Update threshold - only if the displayed value is actually different
+            percentage_value = self.rule_model.threshold * 100.0
+            current_text = self.threshold_edit.text().replace('%', '').strip()
 
-        # Update formula preview
-        self.formula_preview.setText(self.rule_model.formula)
+            # Only update if the values are actually different (avoid circular updates)
+            try:
+                current_value = float(current_text) if current_text else 0.0
+                if abs(current_value - percentage_value) > 0.01:  # Small tolerance for float comparison
+                    self.threshold_edit.setText(f"{percentage_value:.1f}")
+            except ValueError:
+                # If current text is invalid, update it
+                self.threshold_edit.setText(f"{percentage_value:.1f}")
 
-        # Re-enable signals
-        self.name_edit.blockSignals(False)
-        self.description_edit.blockSignals(False)
-        self.category_combo.blockSignals(False)
-        self.severity_combo.blockSignals(False)
-        self.threshold_spin.blockSignals(False)
-        self.tags_edit.blockSignals(False)
+            # Update tags - only if not currently being edited
+            if not self.tags_edit.hasFocus():
+                expected_tags_text = ', '.join(self.rule_model.tags)
+                current_tags_text = self.tags_edit.text()
+                if current_tags_text != expected_tags_text:
+                    self.tags_edit.setText(expected_tags_text)
+
+            # Update formula preview
+            if hasattr(self, 'formula_preview'):
+                self.formula_preview.setText(self.rule_model.formula)
+
+        finally:
+            self._updating_from_model = False
 
     def reset_form(self):
         """Reset the form to default values."""
@@ -398,241 +770,5 @@ class SimpleRuleEditor(QWidget):
         # Add a single empty condition
         self.add_condition_row()
 
-        # Reset other fields (will happen through model update)
+        # Reset will happen through model update
         self.update_from_model()
-
-    def _parse_formula_to_conditions(self, formula):
-        """Parse a formula to populate condition fields (reverse of update_formula)."""
-        # This is a complex task that would require a proper parser.
-        # For now, we'll implement a simplified version that handles
-        # common cases but won't work for all formulas.
-
-        # Clear existing conditions
-        for i in reversed(range(self.conditions_layout.count())):
-            widget = self.conditions_layout.itemAt(i).widget()
-            if widget:
-                widget.deleteLater()
-
-        if not formula:
-            # Add a single empty condition
-            self.add_condition_row()
-            return
-
-        # Strip leading "=" if present
-        if formula.startswith("="):
-            formula = formula[1:]
-
-        # Determine if it's an AND/OR formula
-        if formula.startswith("AND(") and formula.endswith(")"):
-            # AND formula
-            self.and_radio.setChecked(True)
-            conditions_text = formula[4:-1]  # Strip "AND(" and ")"
-        elif formula.startswith("OR(") and formula.endswith(")"):
-            # OR formula
-            self.or_radio.setChecked(True)
-            conditions_text = formula[3:-1]  # Strip "OR(" and ")"
-        else:
-            # Single condition
-            self.and_radio.setChecked(True)
-            conditions_text = formula
-
-        # Split conditions by comma, but be careful not to split inside quotes or functions
-        # This is a simplified approach and won't handle all cases
-        conditions = []
-        current_condition = ""
-        quote_char = None
-        paren_level = 0
-
-        for c in conditions_text:
-            if c == '"' or c == "'":
-                if quote_char is None:
-                    quote_char = c
-                elif quote_char == c:
-                    quote_char = None
-                current_condition += c
-            elif c == '(':
-                paren_level += 1
-                current_condition += c
-            elif c == ')':
-                paren_level -= 1
-                current_condition += c
-            elif c == ',' and quote_char is None and paren_level == 0:
-                # End of condition
-                conditions.append(current_condition)
-                current_condition = ""
-            else:
-                current_condition += c
-
-        # Add the last condition if not empty
-        if current_condition:
-            conditions.append(current_condition)
-
-        # Process each condition
-        for condition in conditions:
-            self._add_condition_from_text(condition.strip())
-
-        # If no conditions were added, add an empty one
-        if self.conditions_layout.count() == 0:
-            self.add_condition_row()
-
-    def _add_condition_from_text(self, condition_text):
-        """Add a condition row and populate it from text."""
-        # Handle simple comparison operators
-        for op in [">=", "<=", "<>", ">", "<", "="]:
-            if op in condition_text:
-                parts = condition_text.split(op, 1)
-                if len(parts) == 2:
-                    # Extract column
-                    column_match = re.search(r'\[([^\]]+)\]', parts[0])
-                    if column_match:
-                        column_name = column_match.group(1)
-
-                        # Extract value
-                        value = parts[1].strip()
-                        # Remove quotes if present
-                        if value.startswith('"') and value.endswith('"'):
-                            value = value[1:-1]
-                        elif value.startswith("'") and value.endswith("'"):
-                            value = value[1:-1]
-
-                        # Add condition row
-                        self.add_condition_row()
-
-                        # Get the added row
-                        row_idx = self.conditions_layout.count() - 1
-                        condition_frame = self.conditions_layout.itemAt(row_idx).widget()
-                        condition_layout = condition_frame.layout()
-
-                        # Find and set widgets
-                        column_combo = None
-                        operator_combo = None
-                        value_edit = None
-
-                        for j in range(condition_layout.count()):
-                            widget = condition_layout.itemAt(j).widget()
-                            if isinstance(widget, QComboBox):
-                                if column_combo is None:
-                                    column_combo = widget
-                                else:
-                                    operator_combo = widget
-                            elif isinstance(widget, QLineEdit):
-                                value_edit = widget
-
-                        # Update widgets
-                        if column_combo:
-                            column_combo.setCurrentText(column_name)
-                        if operator_combo:
-                            operator_combo.setCurrentText(op)
-                        if value_edit:
-                            value_edit.setText(value)
-
-                        return
-
-        # Handle ISBLANK
-        isblank_match = re.search(r'ISBLANK\(\[([^\]]+)\]\)', condition_text)
-        if isblank_match:
-            column_name = isblank_match.group(1)
-
-            # Add condition row
-            self.add_condition_row()
-
-            # Get the added row
-            row_idx = self.conditions_layout.count() - 1
-            condition_frame = self.conditions_layout.itemAt(row_idx).widget()
-            condition_layout = condition_frame.layout()
-
-            # Find and set widgets
-            column_combo = None
-            operator_combo = None
-
-            for j in range(condition_layout.count()):
-                widget = condition_layout.itemAt(j).widget()
-                if isinstance(widget, QComboBox):
-                    if column_combo is None:
-                        column_combo = widget
-                    else:
-                        operator_combo = widget
-
-            # Update widgets
-            if column_combo:
-                column_combo.setCurrentText(column_name)
-            if operator_combo:
-                operator_combo.setCurrentText("ISBLANK")
-
-            return
-
-        # Handle NOT(ISBLANK(...))
-        not_isblank_match = re.search(r'NOT\(ISBLANK\(\[([^\]]+)\]\)\)', condition_text)
-        if not_isblank_match:
-            column_name = not_isblank_match.group(1)
-
-            # Add condition row
-            self.add_condition_row()
-
-            # Get the added row
-            row_idx = self.conditions_layout.count() - 1
-            condition_frame = self.conditions_layout.itemAt(row_idx).widget()
-            condition_layout = condition_frame.layout()
-
-            # Find and set widgets
-            column_combo = None
-            operator_combo = None
-
-            for j in range(condition_layout.count()):
-                widget = condition_layout.itemAt(j).widget()
-                if isinstance(widget, QComboBox):
-                    if column_combo is None:
-                        column_combo = widget
-                    else:
-                        operator_combo = widget
-
-            # Update widgets
-            if column_combo:
-                column_combo.setCurrentText(column_name)
-            if operator_combo:
-                operator_combo.setCurrentText("ISNOTBLANK")
-
-            return
-
-        # Handle CONTAINS via SEARCH
-        search_match = re.search(r'ISNUMBER\(SEARCH\("([^"]+)", \[([^\]]+)\]\)\)', condition_text)
-        if search_match:
-            search_text = search_match.group(1)
-            column_name = search_match.group(2)
-
-            # Add condition row
-            self.add_condition_row()
-
-            # Get the added row
-            row_idx = self.conditions_layout.count() - 1
-            condition_frame = self.conditions_layout.itemAt(row_idx).widget()
-            condition_layout = condition_frame.layout()
-
-            # Find and set widgets
-            column_combo = None
-            operator_combo = None
-            value_edit = None
-
-            for j in range(condition_layout.count()):
-                widget = condition_layout.itemAt(j).widget()
-                if isinstance(widget, QComboBox):
-                    if column_combo is None:
-                        column_combo = widget
-                    else:
-                        operator_combo = widget
-                elif isinstance(widget, QLineEdit):
-                    value_edit = widget
-
-            # Update widgets
-            if column_combo:
-                column_combo.setCurrentText(column_name)
-            if operator_combo:
-                operator_combo.setCurrentText("CONTAINS")
-            if value_edit:
-                value_edit.setText(search_text)
-
-            return
-
-        # If we get here, we couldn't parse the condition
-        # Add a dummy condition
-        self.add_condition_row()

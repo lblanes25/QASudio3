@@ -1,6 +1,8 @@
 from PySide6.QtWidgets import QWidget
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Qt
+from PySide6.QtGui import QTextOption
 import yaml
+from stylesheet import Stylesheet
 
 
 class AdvancedRuleEditor(QWidget):
@@ -12,6 +14,7 @@ class AdvancedRuleEditor(QWidget):
     def __init__(self, rule_model):
         super().__init__()
         self.rule_model = rule_model
+        self._updating_from_model = False  # Add flag to prevent signal recursion
 
         # Set up UI
         self.init_ui()
@@ -23,89 +26,151 @@ class AdvancedRuleEditor(QWidget):
         self.update_from_model()
 
     def init_ui(self):
-        """Initialize the UI components."""
+        """Initialize the UI components with minimalist design."""
         from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel,
-                                       QPlainTextEdit, QPushButton, QGroupBox,
-                                       QCheckBox, QSplitter, QTabWidget)
-        from PySide6.QtGui import QFont, QColor, QSyntaxHighlighter, QTextCharFormat
+                                       QPlainTextEdit, QPushButton,
+                                       QFrame, QWidget)
+        from PySide6.QtGui import QFont, QColor, QSyntaxHighlighter, QTextCharFormat, QPalette
         from PySide6.QtCore import QRegularExpression
 
-        # Main layout
+        # Set default font using stylesheet
+        self.setFont(Stylesheet.get_regular_font())
+
+        # Monospace font for code
+        mono_font = Stylesheet.get_mono_font()
+
+        # Label font with medium weight
+        label_font = Stylesheet.get_header_font()
+
+        # Main layout with optimized spacing
         main_layout = QVBoxLayout(self)
+        main_layout.setSpacing(Stylesheet.FORM_SPACING)
+        main_layout.setContentsMargins(Stylesheet.STANDARD_SPACING, Stylesheet.STANDARD_SPACING,
+                                       Stylesheet.STANDARD_SPACING, Stylesheet.STANDARD_SPACING)
 
-        # Create formula editor group
-        formula_group = QGroupBox("Excel Formula")
-        formula_layout = QVBoxLayout()
-        formula_group.setLayout(formula_layout)
+        # -- Formula Editor Section --
+        formula_label = QLabel("Excel Formula")
+        formula_label.setFont(label_font)
+        main_layout.addWidget(formula_label)
 
-        # Formula input with monospace font
+        # Formula input with monospace font and RTL prevention
         self.formula_edit = QPlainTextEdit()
-        font = QFont("Consolas", 10)
-        self.formula_edit.setFont(font)
-        self.formula_edit.setMinimumHeight(80)
-        formula_layout.addWidget(self.formula_edit)
+        self.formula_edit.setFont(mono_font)
+        self.formula_edit.setMinimumHeight(200)
+        self.formula_edit.setMaximumHeight(300)
+        self.formula_edit.setPlaceholderText("Enter Excel formula here")
 
-        # Formula helper buttons
+        # Prevent RTL text direction issues
+        self.formula_edit.setLayoutDirection(Qt.LeftToRight)
+        option = QTextOption()
+        option.setTextDirection(Qt.LeftToRight)
+        option.setAlignment(Qt.AlignLeft)
+        self.formula_edit.document().setDefaultTextOption(option)
+
+        # Force initial cursor and block formatting
+        cursor = self.formula_edit.textCursor()
+        block_format = cursor.blockFormat()
+        block_format.setLayoutDirection(Qt.LeftToRight)
+        block_format.setAlignment(Qt.AlignLeft)
+        cursor.setBlockFormat(block_format)
+
+        char_format = cursor.charFormat()
+        char_format.setLayoutDirection(Qt.LeftToRight)
+        cursor.setCharFormat(char_format)
+
+        self.formula_edit.setTextCursor(cursor)
+
+        main_layout.addWidget(self.formula_edit)
+
+        # Formula helper buttons - full width, stacked
+        helper_label = QLabel("Insert Functions")
+        helper_label.setFont(label_font)
+        main_layout.addWidget(helper_label)
+
         helper_layout = QHBoxLayout()
-        for op in ["AND", "OR", "NOT", "ISBLANK", "IF"]:
+        helper_layout.setSpacing(Stylesheet.STANDARD_SPACING)
+
+        functions = ["AND", "OR", "NOT", "ISBLANK", "IF"]
+        for op in functions:
             btn = QPushButton(op)
+            btn.setMinimumHeight(Stylesheet.BUTTON_HEIGHT)
             btn.clicked.connect(lambda checked, op=op: self.insert_formula_text(f"{op}()"))
             helper_layout.addWidget(btn)
 
-        formula_layout.addLayout(helper_layout)
+        main_layout.addLayout(helper_layout)
 
-        main_layout.addWidget(formula_group)
+        # Validation status (hidden initially)
+        self.validation_label = QLabel()
+        self.validation_label.setVisible(False)
+        main_layout.addWidget(self.validation_label)
 
-        # YAML Editor group using tabs to switch between views
-        editor_tabs = QTabWidget()
+        # Validate button (full width)
+        validate_btn = QPushButton("Validate Formula")
+        validate_btn.setMinimumHeight(Stylesheet.BUTTON_HEIGHT)
+        validate_btn.clicked.connect(self.validate_rule)
+        main_layout.addWidget(validate_btn)
 
-        # YAML Tab
-        yaml_widget = QWidget()
-        yaml_layout = QVBoxLayout(yaml_widget)
+        # Separator
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        main_layout.addWidget(separator)
 
-        yaml_label = QLabel("Edit rule as YAML:")
-        yaml_layout.addWidget(yaml_label)
+        # -- YAML Section --
+        yaml_label = QLabel("YAML Configuration (Optional)")
+        yaml_label.setFont(label_font)
+        main_layout.addWidget(yaml_label)
 
+        # YAML editor with RTL prevention
         self.yaml_edit = QPlainTextEdit()
-        self.yaml_edit.setFont(font)
-        self.yaml_edit.setMinimumHeight(300)
-        yaml_layout.addWidget(self.yaml_edit)
+        self.yaml_edit.setFont(mono_font)
+        self.yaml_edit.setMinimumHeight(200)
+        self.yaml_edit.setMaximumHeight(300)
 
-        editor_tabs.addTab(yaml_widget, "YAML")
+        # Prevent RTL text direction issues
+        self.yaml_edit.setLayoutDirection(Qt.LeftToRight)
+        yaml_option = QTextOption()
+        yaml_option.setTextDirection(Qt.LeftToRight)
+        yaml_option.setAlignment(Qt.AlignLeft)
+        self.yaml_edit.document().setDefaultTextOption(yaml_option)
 
-        # JSON Tab
-        json_widget = QWidget()
-        json_layout = QVBoxLayout(json_widget)
+        # Force initial cursor and block formatting for YAML
+        yaml_cursor = self.yaml_edit.textCursor()
+        yaml_block_format = yaml_cursor.blockFormat()
+        yaml_block_format.setLayoutDirection(Qt.LeftToRight)
+        yaml_block_format.setAlignment(Qt.AlignLeft)
+        yaml_cursor.setBlockFormat(yaml_block_format)
 
-        json_label = QLabel("Edit rule as JSON:")
-        json_layout.addWidget(json_label)
+        yaml_char_format = yaml_cursor.charFormat()
+        yaml_char_format.setLayoutDirection(Qt.LeftToRight)
+        yaml_cursor.setCharFormat(yaml_char_format)
 
-        self.json_edit = QPlainTextEdit()
-        self.json_edit.setFont(font)
-        self.json_edit.setMinimumHeight(300)
-        json_layout.addWidget(self.json_edit)
+        self.yaml_edit.setTextCursor(yaml_cursor)
 
-        editor_tabs.addTab(json_widget, "JSON")
+        main_layout.addWidget(self.yaml_edit)
 
-        main_layout.addWidget(editor_tabs)
-
-        # Buttons
-        button_layout = QHBoxLayout()
-
-        self.validate_btn = QPushButton("Validate")
-        self.validate_btn.clicked.connect(self.validate_rule)
-        button_layout.addWidget(self.validate_btn)
-
-        self.apply_btn = QPushButton("Apply Changes")
+        # Apply changes button (full width)
+        self.apply_btn = QPushButton("Apply Configuration")
+        self.apply_btn.setMinimumHeight(Stylesheet.BUTTON_HEIGHT)
         self.apply_btn.clicked.connect(self.apply_changes)
-        button_layout.addWidget(self.apply_btn)
+        main_layout.addWidget(self.apply_btn)
 
-        # Switch to simple editor button
-        switch_btn = QPushButton("Switch to Simple Editor")
-        switch_btn.clicked.connect(self.switch_to_simple.emit)
-        button_layout.addWidget(switch_btn)
+        # Spacer at the bottom
+        main_layout.addStretch(1)
 
-        main_layout.addLayout(button_layout)
+        # Create hidden JSON editor for compatibility with existing code
+        self.json_edit = QPlainTextEdit()
+        self.json_edit.setVisible(False)
+
+        # Prevent RTL text direction issues in JSON editor too
+        self.json_edit.setLayoutDirection(Qt.LeftToRight)
+        json_option = QTextOption()
+        json_option.setTextDirection(Qt.LeftToRight)
+        json_option.setAlignment(Qt.AlignLeft)
+        self.json_edit.document().setDefaultTextOption(json_option)
+
+        # Store validate button reference for compatibility
+        self.validate_btn = validate_btn
 
         # Add syntax highlighting (simplified version)
         class YamlHighlighter(QSyntaxHighlighter):
@@ -152,6 +217,8 @@ class AdvancedRuleEditor(QWidget):
 
         # Apply highlighters
         self.yaml_highlighter = YamlHighlighter(self.yaml_edit.document())
+
+        # Store the JSON editor for compatibility with existing code, but don't display it
         self.json_highlighter = YamlHighlighter(self.json_edit.document())
 
     def connect_signals(self):
@@ -173,115 +240,173 @@ class AdvancedRuleEditor(QWidget):
             self.formula_edit.setTextCursor(cursor)
 
     def update_formula(self):
-        """Update the formula in the model when edited."""
-        formula = self.formula_edit.toPlainText().strip()
+        """Update the formula in the model when edited - preserve all spaces during typing."""
+        # FIX: Prevent signal recursion
+        if self._updating_from_model:
+            return
+
+        # FIX: DON'T strip during live typing - preserve all spaces including trailing ones
+        # Users should be able to type spaces naturally without cursor jumping
+        formula = self.formula_edit.toPlainText()
         self.rule_model.formula = formula
 
     def update_from_model(self):
         """Update editor content from rule model."""
-        # Block signals
-        self.formula_edit.blockSignals(True)
-        self.yaml_edit.blockSignals(True)
-        self.json_edit.blockSignals(True)
-
-        # Update formula
-        self.formula_edit.setPlainText(self.rule_model.formula)
-
-        # Update YAML
-        yaml_text = self.rule_model.to_yaml()
-        self.yaml_edit.setPlainText(yaml_text)
-
-        # Update JSON
-        json_text = self.rule_model.to_json()
-        self.json_edit.setPlainText(json_text)
-
-        # Unblock signals
-        self.formula_edit.blockSignals(False)
-        self.yaml_edit.blockSignals(False)
-        self.json_edit.blockSignals(False)
-
-    def validate_rule(self):
-        """Validate the current rule."""
-        from PySide6.QtWidgets import QMessageBox
+        self._updating_from_model = True
 
         try:
-            # Get current formula
+            # FIX: Only update formula if it's actually different
+            current_formula = self.formula_edit.toPlainText()
+            if current_formula != self.rule_model.formula:
+                self.formula_edit.setPlainText(self.rule_model.formula)
+
+            # FIX: Only update YAML if it's actually different
+            yaml_text = self.rule_model.to_yaml()
+            current_yaml = self.yaml_edit.toPlainText()
+            if current_yaml != yaml_text:
+                self.yaml_edit.setPlainText(yaml_text)
+
+            # FIX: Only update JSON if it's actually different
+            json_text = self.rule_model.to_json()
+            current_json = self.json_edit.toPlainText()
+            if current_json != json_text:
+                self.json_edit.setPlainText(json_text)
+
+        finally:
+            self._updating_from_model = False
+
+    def validate_rule(self):
+        """Validate the current rule with inline feedback - strip only here for validation."""
+        from PySide6.QtGui import QColor
+
+        try:
+            # Get current formula - strip only for validation, not during live editing
             formula = self.formula_edit.toPlainText().strip()
+
+            # Show validation label
+            self.validation_label.setVisible(True)
 
             # Validate formula syntax using ValidationRuleParser
             is_valid = self.rule_model.is_valid_formula(formula)
 
             if not is_valid:
-                QMessageBox.warning(self, "Validation", "Invalid formula syntax")
+                self.validation_label.setText("✗ Invalid formula syntax")
+                self.validation_label.setStyleSheet("color: #E53935; font-size: 16px;")  # Error red
+                self.formula_edit.setStyleSheet("border: 1px solid #E53935;")
                 return
 
-            # Parse YAML to validate syntax and structure
-            yaml_text = self.yaml_edit.toPlainText()
-            try:
-                rule_dict = yaml.safe_load(yaml_text)
-            except yaml.YAMLError as e:
-                QMessageBox.warning(self, "Validation", f"Invalid YAML syntax: {str(e)}")
-                return
+            # If YAML section has content, validate it too
+            yaml_text = self.yaml_edit.toPlainText().strip()
+            if yaml_text:
+                try:
+                    rule_dict = yaml.safe_load(yaml_text)
 
-            # Check required fields
-            if not isinstance(rule_dict, dict) or 'rules' not in rule_dict:
-                QMessageBox.warning(self, "Validation", "Invalid YAML: Missing 'rules' key")
-                return
+                    # Check required fields
+                    if not isinstance(rule_dict, dict) or 'rules' not in rule_dict:
+                        self.validation_label.setText("✗ Invalid YAML: Missing 'rules' key")
+                        self.validation_label.setStyleSheet("color: #E53935; font-size: 16px;")
+                        self.yaml_edit.setStyleSheet("border: 1px solid #E53935;")
+                        return
 
-            if not rule_dict['rules'] or not isinstance(rule_dict['rules'], list):
-                QMessageBox.warning(self, "Validation", "Invalid YAML: 'rules' must be a non-empty list")
-                return
+                    if not rule_dict['rules'] or not isinstance(rule_dict['rules'], list):
+                        self.validation_label.setText("✗ Invalid YAML: 'rules' must be a non-empty list")
+                        self.validation_label.setStyleSheet("color: #E53935; font-size: 16px;")
+                        self.yaml_edit.setStyleSheet("border: 1px solid #E53935;")
+                        return
 
-            rule = rule_dict['rules'][0]
+                    rule = rule_dict['rules'][0]
 
-            # Check required fields
-            if 'name' not in rule:
-                QMessageBox.warning(self, "Validation", "Missing required field: 'name'")
-                return
+                    # Check required fields
+                    if 'name' not in rule:
+                        self.validation_label.setText("✗ Missing required field: 'name'")
+                        self.validation_label.setStyleSheet("color: #E53935; font-size: 16px;")
+                        self.yaml_edit.setStyleSheet("border: 1px solid #E53935;")
+                        return
 
-            if 'formula' not in rule:
-                QMessageBox.warning(self, "Validation", "Missing required field: 'formula'")
-                return
+                    if 'formula' not in rule:
+                        self.validation_label.setText("✗ Missing required field: 'formula'")
+                        self.validation_label.setStyleSheet("color: #E53935; font-size: 16px;")
+                        self.yaml_edit.setStyleSheet("border: 1px solid #E53935;")
+                        return
 
-            # Validate formula syntax (using ValidationRuleParser)
-            formula = rule['formula']
-            if not self.rule_model.is_valid_formula(formula):
-                QMessageBox.warning(self, "Validation", "Invalid formula syntax in YAML")
-                return
+                    # Validate formula syntax (using ValidationRuleParser)
+                    yaml_formula = rule['formula'].strip()  # Strip here for validation
+                    if not self.rule_model.is_valid_formula(yaml_formula):
+                        self.validation_label.setText("✗ Invalid formula syntax in YAML")
+                        self.validation_label.setStyleSheet("color: #E53935; font-size: 16px;")
+                        self.yaml_edit.setStyleSheet("border: 1px solid #E53935;")
+                        return
+
+                except yaml.YAMLError as e:
+                    self.validation_label.setText(f"✗ Invalid YAML syntax: {str(e)}")
+                    self.validation_label.setStyleSheet("color: #E53935; font-size: 16px;")
+                    self.yaml_edit.setStyleSheet("border: 1px solid #E53935;")
+                    return
 
             # All checks passed
-            QMessageBox.information(self, "Validation", "Rule configuration is valid")
+            self.validation_label.setText("✓ Rule configuration is valid")
+            self.validation_label.setStyleSheet("color: #43A047; font-size: 16px;")  # Success green
+            self.formula_edit.setStyleSheet("border: 1px solid #43A047;")
+            if yaml_text:
+                self.yaml_edit.setStyleSheet("border: 1px solid #43A047;")
 
         except Exception as e:
-            QMessageBox.warning(self, "Validation", f"Validation error: {str(e)}")
+            self.validation_label.setText(f"✗ Validation error: {str(e)}")
+            self.validation_label.setStyleSheet("color: #E53935; font-size: 16px;")
+            self.formula_edit.setStyleSheet("border: 1px solid #E53935;")
 
     def apply_changes(self):
-        """Apply changes from editor to rule model."""
-        from PySide6.QtWidgets import QMessageBox
-
+        """Apply changes from editor to rule model - strip only here when finalizing."""
         try:
-            # Parse YAML to get rule data
-            yaml_text = self.yaml_edit.toPlainText()
-            rule_dict = yaml.safe_load(yaml_text)
+            # First apply the formula directly - strip only when applying/saving
+            formula = self.formula_edit.toPlainText().strip()
+            if formula:
+                self.rule_model.formula = formula
 
-            if not isinstance(rule_dict, dict) or 'rules' not in rule_dict:
-                QMessageBox.warning(self, "Error", "Invalid YAML: Missing 'rules' key")
-                return
+            # Then check if there's YAML to apply
+            yaml_text = self.yaml_edit.toPlainText().strip()
+            if yaml_text:
+                try:
+                    rule_dict = yaml.safe_load(yaml_text)
 
-            if not rule_dict['rules'] or not isinstance(rule_dict['rules'], list):
-                QMessageBox.warning(self, "Error", "Invalid YAML: 'rules' must be a non-empty list")
-                return
+                    if not isinstance(rule_dict, dict) or 'rules' not in rule_dict:
+                        self.validation_label.setText("✗ Invalid YAML: Missing 'rules' key")
+                        self.validation_label.setStyleSheet("color: #E53935; font-size: 16px;")
+                        self.validation_label.setVisible(True)
+                        self.yaml_edit.setStyleSheet("border: 1px solid #E53935;")
+                        return
 
-            # Update model with first rule in list
-            rule = rule_dict['rules'][0]
-            self.rule_model.update_from_dict(rule)
+                    if not rule_dict['rules'] or not isinstance(rule_dict['rules'], list):
+                        self.validation_label.setText("✗ Invalid YAML: 'rules' must be a non-empty list")
+                        self.validation_label.setStyleSheet("color: #E53935; font-size: 16px;")
+                        self.validation_label.setVisible(True)
+                        self.yaml_edit.setStyleSheet("border: 1px solid #E53935;")
+                        return
 
-            QMessageBox.information(self, "Success", "Changes applied successfully")
+                    # Update model with first rule in list
+                    rule = rule_dict['rules'][0]
+                    self.rule_model.update_from_dict(rule)
 
-        except yaml.YAMLError as e:
-            QMessageBox.warning(self, "Error", f"Invalid YAML syntax: {str(e)}")
+                except yaml.YAMLError as e:
+                    self.validation_label.setText(f"✗ Invalid YAML syntax: {str(e)}")
+                    self.validation_label.setStyleSheet("color: #E53935; font-size: 16px;")
+                    self.validation_label.setVisible(True)
+                    self.yaml_edit.setStyleSheet("border: 1px solid #E53935;")
+                    return
+
+            # Success feedback
+            self.validation_label.setText("✓ Changes applied successfully")
+            self.validation_label.setStyleSheet("color: #43A047; font-size: 16px;")  # Success green
+            self.validation_label.setVisible(True)
+
+            # Reset any error styling
+            self.formula_edit.setStyleSheet("")
+            self.yaml_edit.setStyleSheet("")
+
         except Exception as e:
-            QMessageBox.warning(self, "Error", f"Error applying changes: {str(e)}")
+            self.validation_label.setText(f"✗ Error applying changes: {str(e)}")
+            self.validation_label.setStyleSheet("color: #E53935; font-size: 16px;")
+            self.validation_label.setVisible(True)
 
     def reset_editor(self):
         """Reset the editor to match a new empty rule."""

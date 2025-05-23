@@ -3,6 +3,7 @@ import pandas as pd
 import traceback
 
 from core.rule_engine.rule_evaluator import RuleEvaluator
+from stylesheet import Stylesheet
 
 
 class RuleTestPanel(QWidget):
@@ -23,33 +24,56 @@ class RuleTestPanel(QWidget):
     def init_ui(self):
         """Initialize the UI components."""
         from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-                                       QTableView, QTextEdit, QGroupBox, QSplitter)
+                                       QTableView, QTextEdit, QGroupBox, QSplitter,
+                                       QFrame, QWidget)
         from PySide6.QtCore import Qt, QAbstractTableModel, QModelIndex
+        from PySide6.QtGui import QFont, QColor, QPalette
 
-        # Main layout
+        # Set default font using stylesheet
+        self.setFont(Stylesheet.get_regular_font())
+
+        # Main layout with consistent spacing
         main_layout = QVBoxLayout(self)
+        main_layout.setSpacing(Stylesheet.STANDARD_SPACING)
+        main_layout.setContentsMargins(Stylesheet.STANDARD_SPACING, Stylesheet.STANDARD_SPACING,
+                                      Stylesheet.STANDARD_SPACING, Stylesheet.STANDARD_SPACING)
 
-        # Test button
+        # Header with test button inline
+        header_layout = QHBoxLayout()
+        
+        test_header = QLabel("Rule Test Results")
+        test_header.setFont(Stylesheet.get_header_font())
+        test_header.setStyleSheet(Stylesheet.get_section_header_style())
+        header_layout.addWidget(test_header)
+        
+        # Test button aligned right
         test_btn = QPushButton("Run Test")
+        test_btn.setMaximumWidth(100)
+        test_btn.setMinimumHeight(Stylesheet.BUTTON_HEIGHT)
         test_btn.clicked.connect(self.run_test)
-        main_layout.addWidget(test_btn)
+        header_layout.addStretch(1)
+        header_layout.addWidget(test_btn)
+        
+        main_layout.addLayout(header_layout)
 
-        # Create splitter for results
-        splitter = QSplitter(Qt.Vertical)
-
-        # Results summary group
-        summary_group = QGroupBox("Test Results Summary")
-        summary_layout = QVBoxLayout(summary_group)
-
-        self.summary_text = QTextEdit()
-        self.summary_text.setReadOnly(True)
-        summary_layout.addWidget(self.summary_text)
-
-        splitter.addWidget(summary_group)
-
-        # Failing items group
-        failing_group = QGroupBox("Failing Items")
-        failing_layout = QVBoxLayout(failing_group)
+        # Summary Cards Layout (horizontal row of cards)
+        self.summary_cards = QHBoxLayout()
+        self.summary_cards.setSpacing(Stylesheet.STANDARD_SPACING)
+        
+        # Create card-like compliance summary widgets
+        self.create_summary_cards()
+        main_layout.addLayout(self.summary_cards)
+        
+        # Add a separator
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        main_layout.addWidget(separator)
+        
+        # Results details section
+        failing_header = QLabel("Non-Conforming Items")
+        failing_header.setFont(QFont("Segoe UI", 10, QFont.Bold))
+        main_layout.addWidget(failing_header)
 
         # Create table model for failing items
         class FailingItemsModel(QAbstractTableModel):
@@ -64,11 +88,19 @@ class RuleTestPanel(QWidget):
                 return len(self.dataframe.columns)
 
             def data(self, index, role=Qt.DisplayRole):
-                if not index.isValid() or role != Qt.DisplayRole:
+                if not index.isValid():
                     return None
-
-                value = self.dataframe.iloc[index.row(), index.column()]
-                return str(value)
+                
+                if role == Qt.DisplayRole:
+                    value = self.dataframe.iloc[index.row(), index.column()]
+                    return str(value)
+                
+                # Add alternating row colors for better readability
+                if role == Qt.BackgroundRole:
+                    if index.row() % 2 == 0:
+                        return QColor(248, 248, 248)  # Light gray
+                
+                return None
 
             def headerData(self, section, orientation, role=Qt.DisplayRole):
                 if role != Qt.DisplayRole:
@@ -89,17 +121,74 @@ class RuleTestPanel(QWidget):
                 self.dataframe = dataframe
                 self.endResetModel()
 
+        # Create table view with styling
         self.failing_model = FailingItemsModel()
         self.failing_view = QTableView()
         self.failing_view.setModel(self.failing_model)
-        failing_layout.addWidget(self.failing_view)
-
-        splitter.addWidget(failing_group)
-
-        # Set initial splitter sizes
-        splitter.setSizes([200, 400])
-
-        main_layout.addWidget(splitter)
+        self.failing_view.setAlternatingRowColors(True)
+        self.failing_view.setShowGrid(False)  # Remove gridlines for cleaner look
+        self.failing_view.horizontalHeader().setHighlightSections(False)
+        self.failing_view.verticalHeader().setDefaultSectionSize(24)  # Compact rows
+        
+        main_layout.addWidget(self.failing_view, 1)  # Give table more space
+        
+        # Hidden summary text for compatibility
+        self.summary_text = QTextEdit()
+        self.summary_text.setVisible(False)
+    
+    def create_summary_cards(self):
+        """Create card-like widgets for compliance summary statistics."""
+        from PySide6.QtWidgets import QLabel, QFrame, QVBoxLayout
+        from PySide6.QtGui import QFont, QColor, QPalette
+        from PySide6.QtCore import Qt
+        
+        # Function to create a summary card
+        def create_card(title, value="—", color="#FFFFFF"):
+            card = QFrame()
+            card.setFrameShape(QFrame.StyledPanel)
+            card.setAutoFillBackground(True)
+            
+            # Set background color
+            palette = card.palette()
+            palette.setColor(QPalette.Window, QColor(color))
+            card.setPalette(palette)
+            
+            layout = QVBoxLayout(card)
+            layout.setSpacing(4)
+            
+            # Title with smaller font
+            title_label = QLabel(title)
+            title_label.setFont(QFont("Segoe UI", 9))
+            title_label.setAlignment(Qt.AlignCenter)
+            layout.addWidget(title_label)
+            
+            # Value with larger font
+            value_label = QLabel(value)
+            value_label.setFont(QFont("Segoe UI", 16, QFont.Bold))
+            value_label.setAlignment(Qt.AlignCenter)
+            layout.addWidget(value_label)
+            
+            return card, value_label
+        
+        # Total Items card
+        self.total_card, self.total_value = create_card("Total Items", "—", "#F0F0F0")
+        self.summary_cards.addWidget(self.total_card)
+        
+        # Passing Items card
+        self.passing_card, self.passing_value = create_card("Passing", "—", "#E3F2FD")  # Light blue
+        self.summary_cards.addWidget(self.passing_card)
+        
+        # Partially Conforming card
+        self.partial_card, self.partial_value = create_card("Partially Conforming", "—", "#FFF9C4")  # Light yellow
+        self.summary_cards.addWidget(self.partial_card)
+        
+        # Non-Conforming card
+        self.nonconf_card, self.nonconf_value = create_card("Non-Conforming", "—", "#FFEBEE")  # Light red
+        self.summary_cards.addWidget(self.nonconf_card)
+        
+        # Compliance Rate card
+        self.rate_card, self.rate_value = create_card("Compliance Rate", "—", "#E8F5E9")  # Light green
+        self.summary_cards.addWidget(self.rate_card)
 
     def set_data(self, df):
         """Set the DataFrame for testing."""
@@ -179,8 +268,27 @@ class RuleTestPanel(QWidget):
 
         # Calculate compliance rate
         compliance_rate = gc_count / total_count if total_count > 0 else 0
+        
+        # Update the summary cards with values
+        self.total_value.setText(str(total_count))
+        self.passing_value.setText(str(gc_count))
+        self.partial_value.setText(str(pc_count))
+        self.nonconf_value.setText(str(dnc_count))
+        self.rate_value.setText(f"{compliance_rate:.1%}")
+        
+        # Apply visual indicator on compliance rate card based on threshold
+        from PySide6.QtGui import QColor, QPalette
+        
+        rate_color = "#E8F5E9"  # Default light green
+        if compliance_rate < rule.threshold:
+            # Below threshold - use light red
+            rate_color = "#FFEBEE"
+        
+        palette = self.rate_card.palette()
+        palette.setColor(QPalette.Window, QColor(rate_color))
+        self.rate_card.setPalette(palette)
 
-        # Format summary text
+        # Format summary text (for compatibility - now hidden)
         summary = f"Rule: {rule.name}\n"
         summary += f"Formula: {rule.formula}\n\n"
         summary += f"Status: {compliance_status}\n"
@@ -197,7 +305,7 @@ class RuleTestPanel(QWidget):
 
         self.summary_text.setText(summary)
 
-        # Show failing items
+        # Show failing items in the table
         failing_df = self.test_results.get_failing_items()
         self.failing_model.setDataFrame(failing_df)
 

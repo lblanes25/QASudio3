@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (QMainWindow, QTabWidget, QVBoxLayout,
-                             QWidget, QMessageBox, QSplitter, QLabel)
+                               QWidget, QMessageBox, QSplitter, QLabel, QScrollArea)
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 
@@ -11,6 +11,7 @@ from rule_test_panel import RuleTestPanel
 from data_loader_panel import DataLoaderPanel
 
 from core.rule_engine.rule_manager import ValidationRuleManager
+from stylesheet import Stylesheet
 
 
 class RuleBuilderMainWindow(QMainWindow):
@@ -25,202 +26,221 @@ class RuleBuilderMainWindow(QMainWindow):
         # Initialize rule model with our rule manager
         self.rule_model = RuleModel(self.rule_manager)
 
-        # Set up UI
-        self.setWindowTitle("Audit QA Rule Builder")
-        self.resize(1200, 800)
+        # Set up UI with improved layout and resizing
+        self.setWindowTitle("Audit Rule Builder")
 
-        # Create main layout
+        # FIX: Enable window resizing and set reasonable defaults
+        self.resize(1400, 900)  # Larger initial size
+        self.setMinimumSize(1000, 700)  # Reasonable minimum
+        # Remove maximum size constraints to allow full screen
+
+        # Apply global stylesheet
+        self.setStyleSheet(Stylesheet.get_global_stylesheet())
+
+        # Set application font
+        self.setFont(Stylesheet.get_regular_font())
+
+        # Create main layout with reduced nesting
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.main_layout = QVBoxLayout(self.central_widget)
+        self.main_layout.setContentsMargins(Stylesheet.FORM_SPACING, Stylesheet.FORM_SPACING,
+                                            Stylesheet.FORM_SPACING, Stylesheet.FORM_SPACING)
+        self.main_layout.setSpacing(Stylesheet.STANDARD_SPACING)
 
-        # Create tab widget for main sections
-        self.tabs = QTabWidget()
-        self.main_layout.addWidget(self.tabs)
+        # Create header
+        self.setup_header()
 
-        # Initialize UI components
-        self.setup_rule_builder_tab()
-        self.setup_advanced_editor_tab()
-        self.setup_preview_tab()
-        self.setup_test_tab()
+        # FIX: Simplified layout without nested scroll areas
+        # Create main content splitter (vertical)
+        self.main_splitter = QSplitter(Qt.Vertical)
+
+        # Top section: Editor area
+        self.editor_container = QWidget()
+        editor_layout = QVBoxLayout(self.editor_container)
+        editor_layout.setContentsMargins(0, 0, 0, 0)
+        editor_layout.setSpacing(0)
+
+        # Create stack widget for simple/advanced toggle
+        from PySide6.QtWidgets import QStackedWidget
+        self.stack = QStackedWidget()
+
+        # Create editors
+        self.simple_editor = SimpleRuleEditor(self.rule_model)
+        self.advanced_editor = AdvancedRuleEditor(self.rule_model)
+
+        self.stack.addWidget(self.simple_editor)
+        self.stack.addWidget(self.advanced_editor)
+
+        editor_layout.addWidget(self.stack)
+        self.main_splitter.addWidget(self.editor_container)
+
+        # Middle section: Data loader (collapsible)
+        self.data_loader = DataLoaderPanel()
+        self.data_loader.setVisible(False)
+        self.main_splitter.addWidget(self.data_loader)
+
+        # Bottom section: Test results (collapsible)
+        self.test_panel = RuleTestPanel(self.rule_model, self.data_loader)
+        self.test_panel.setVisible(False)
+        self.main_splitter.addWidget(self.test_panel)
+
+        # Set splitter sizes - give most space to editor
+        self.main_splitter.setSizes([600, 150, 150])
+        self.main_splitter.setCollapsible(0, False)  # Editor can't be collapsed
+        self.main_splitter.setCollapsible(1, True)  # Data loader can be collapsed
+        self.main_splitter.setCollapsible(2, True)  # Test panel can be collapsed
+
+        self.main_layout.addWidget(self.main_splitter)
 
         # Connect signals
         self.connect_signals()
 
-        # Set up menu and toolbar
-        self.setup_menu()
+        # Footer
+        self.setup_footer()
 
-        # Status bar for messages
+        # Status bar
         self.statusBar().showMessage("Ready")
 
-        # Load rules for selection
+        # Start with simple editor
+        self.stack.setCurrentIndex(0)
+
+        # Load rules
         self.load_rule_list()
 
-    def setup_rule_builder_tab(self):
-        """Set up the simple rule builder tab."""
-        rule_builder_widget = QWidget()
-        layout = QVBoxLayout(rule_builder_widget)
+    def setup_header(self):
+        """Create header with title and mode toggle."""
+        from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QButtonGroup
 
-        # Create splitter for rule editor and data preview
-        splitter = QSplitter(Qt.Horizontal)
-        layout.addWidget(splitter)
+        header_layout = QHBoxLayout()
+        header_layout.setSpacing(Stylesheet.SECTION_SPACING)
 
-        # Add simple rule editor to left side
-        self.simple_editor = SimpleRuleEditor(self.rule_model)
-        splitter.addWidget(self.simple_editor)
+        # Title
+        title = QLabel("Audit Rule Builder")
+        title.setFont(Stylesheet.get_title_font())
+        title.setAlignment(Qt.AlignCenter)
+        header_layout.addWidget(title, 1)
 
-        # Add data loader/preview to right side
-        self.data_loader = DataLoaderPanel()
-        splitter.addWidget(self.data_loader)
+        # Mode toggle buttons
+        toggle_layout = QHBoxLayout()
+        toggle_layout.setSpacing(0)
 
-        # Set initial splitter sizes (60% editor, 40% data preview)
-        splitter.setSizes([600, 400])
+        self.simple_button = QPushButton("Simple")
+        self.simple_button.setCheckable(True)
+        self.simple_button.setChecked(True)
+        self.simple_button.setMinimumWidth(80)
+        self.simple_button.setMinimumHeight(Stylesheet.BUTTON_HEIGHT)
 
-        self.tabs.addTab(rule_builder_widget, "Rule Builder")
+        self.advanced_button = QPushButton("Advanced")
+        self.advanced_button.setCheckable(True)
+        self.advanced_button.setMinimumWidth(80)
+        self.advanced_button.setMinimumHeight(Stylesheet.BUTTON_HEIGHT)
 
-    def setup_advanced_editor_tab(self):
-        """Set up the advanced rule editor tab."""
-        advanced_editor_widget = QWidget()
-        layout = QVBoxLayout(advanced_editor_widget)
+        # Apply toggle styling
+        toggle_style = Stylesheet.get_toggle_button_style()
+        self.simple_button.setStyleSheet(toggle_style)
+        self.advanced_button.setStyleSheet(toggle_style)
 
-        # Create splitter for advanced editor and logic tree
-        splitter = QSplitter(Qt.Horizontal)
-        layout.addWidget(splitter)
+        toggle_layout.addWidget(self.simple_button)
+        toggle_layout.addWidget(self.advanced_button)
 
-        # Add advanced rule editor to left side
-        self.advanced_editor = AdvancedRuleEditor(self.rule_model)
-        splitter.addWidget(self.advanced_editor)
+        # Button group for mutual exclusion
+        self.mode_group = QButtonGroup(self)
+        self.mode_group.addButton(self.simple_button, 0)
+        self.mode_group.addButton(self.advanced_button, 1)
+        self.mode_group.buttonToggled.connect(self.toggle_editor_mode)
 
-        # Add rule preview panel to right side
-        self.rule_preview = RulePreviewPanel(self.rule_model)
-        splitter.addWidget(self.rule_preview)
+        header_layout.addLayout(toggle_layout)
 
-        # Set initial splitter sizes
-        splitter.setSizes([600, 400])
+        self.main_layout.addLayout(header_layout)
+        self.main_layout.addSpacing(Stylesheet.STANDARD_SPACING)
 
-        self.tabs.addTab(advanced_editor_widget, "Advanced Editor")
+    def setup_footer(self):
+        """Create footer with action buttons."""
+        from PySide6.QtWidgets import QHBoxLayout, QPushButton, QFrame
 
-    def setup_preview_tab(self):
-        """Set up the rule preview tab."""
-        preview_widget = QWidget()
-        layout = QVBoxLayout(preview_widget)
+        # Separator
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        self.main_layout.addWidget(separator)
 
-        # Add YAML preview
-        title = QLabel("Rule Configuration Preview")
-        title.setFont(QFont("Arial", 12, QFont.Bold))
-        layout.addWidget(title)
+        # Footer layout
+        footer_layout = QHBoxLayout()
+        footer_layout.setSpacing(Stylesheet.STANDARD_SPACING)
 
-        self.yaml_preview = RulePreviewPanel(self.rule_model)
-        layout.addWidget(self.yaml_preview)
+        # Save button
+        save_button = QPushButton("Save Rule")
+        save_button.setMinimumHeight(Stylesheet.HEADER_HEIGHT)
+        save_button.setFont(Stylesheet.get_regular_font())
+        save_button.clicked.connect(self.save_rule)
+        footer_layout.addWidget(save_button)
 
-        self.tabs.addTab(preview_widget, "Preview")
+        # Data toggle button
+        self.show_data_button = QPushButton("Show Test Data")
+        self.show_data_button.setMinimumHeight(Stylesheet.HEADER_HEIGHT)
+        self.show_data_button.setCheckable(True)
+        self.show_data_button.clicked.connect(self.toggle_data_loader)
+        footer_layout.addWidget(self.show_data_button)
 
-    def setup_test_tab(self):
-        """Set up the rule testing tab."""
-        test_widget = QWidget()
-        layout = QVBoxLayout(test_widget)
+        # Test button
+        test_button = QPushButton("Test Rule")
+        test_button.setMinimumHeight(Stylesheet.HEADER_HEIGHT)
+        test_button.clicked.connect(self.run_test)
+        footer_layout.addWidget(test_button)
 
-        # Add rule test panel
-        self.test_panel = RuleTestPanel(self.rule_model, self.data_loader)
-        layout.addWidget(self.test_panel)
+        self.main_layout.addLayout(footer_layout)
 
-        self.tabs.addTab(test_widget, "Test Results")
+    def toggle_editor_mode(self, button, checked):
+        """Toggle between simple and advanced editor modes."""
+        if checked:
+            if button == self.simple_button:
+                self.stack.setCurrentIndex(0)
+            else:
+                self.stack.setCurrentIndex(1)
+
+    def toggle_data_loader(self, checked):
+        """Toggle the data loader panel visibility."""
+        self.data_loader.setVisible(checked)
+
+        # Update button text
+        if checked:
+            self.show_data_button.setText("Hide Test Data")
+        else:
+            self.show_data_button.setText("Show Test Data")
+
+        # Adjust splitter sizes when showing/hiding
+        if checked:
+            self.main_splitter.setSizes([500, 200, 200])
+        else:
+            self.main_splitter.setSizes([700, 0, 100])
+
+    def run_test(self):
+        """Run the rule test and show results."""
+        # Show test panel if hidden
+        if not self.test_panel.isVisible():
+            self.test_panel.setVisible(True)
+            # Adjust splitter sizes
+            self.main_splitter.setSizes([400, 200, 300])
+
+        # Run the test
+        self.test_panel.run_test()
 
     def connect_signals(self):
         """Connect signals between components."""
-        # Connect rule model changes to update previews
-        self.rule_model.rule_changed.connect(self.rule_preview.update_preview)
-        self.rule_model.rule_changed.connect(self.yaml_preview.update_preview)
-
-        # Connect data loader to test panel and simple editor
+        # Data loader to test panel and column updates
         self.data_loader.data_loaded.connect(self.test_panel.set_data)
         self.data_loader.data_loaded.connect(self.update_available_columns)
 
-        # Connect tab changes
-        self.tabs.currentChanged.connect(self.on_tab_changed)
-
-        # Connect editors to switch between simple and advanced modes
-        self.simple_editor.switch_to_advanced.connect(lambda: self.tabs.setCurrentIndex(1))
-        self.advanced_editor.switch_to_simple.connect(lambda: self.tabs.setCurrentIndex(0))
+        # Editor switching
+        self.simple_editor.switch_to_advanced.connect(lambda: self.stack.setCurrentIndex(1))
+        self.advanced_editor.switch_to_simple.connect(lambda: self.stack.setCurrentIndex(0))
 
     def update_available_columns(self, df):
-        """Update column suggestions in the simple editor when data is loaded."""
+        """Update column suggestions when data is loaded."""
         if hasattr(self, 'simple_editor'):
             columns = list(df.columns)
             self.simple_editor.set_available_columns(columns)
-
-    def setup_menu(self):
-        """Set up the application menu."""
-        # File menu
-        file_menu = self.menuBar().addMenu("&File")
-
-        # New rule action
-        new_action = file_menu.addAction("&New Rule")
-        new_action.setShortcut("Ctrl+N")
-        new_action.triggered.connect(self.new_rule)
-
-        # Open rule action
-        open_action = file_menu.addAction("&Open Rule...")
-        open_action.setShortcut("Ctrl+O")
-        open_action.triggered.connect(self.open_rule)
-
-        # Save rule action
-        save_action = file_menu.addAction("&Save Rule")
-        save_action.setShortcut("Ctrl+S")
-        save_action.triggered.connect(self.save_rule)
-
-        # Save As action
-        save_as_action = file_menu.addAction("Save Rule &As...")
-        save_as_action.setShortcut("Ctrl+Shift+S")
-        save_as_action.triggered.connect(self.save_rule_as)
-
-        file_menu.addSeparator()
-
-        # Reload rules action
-        reload_action = file_menu.addAction("&Reload Rules")
-        reload_action.setShortcut("F5")
-        reload_action.triggered.connect(self.load_rule_list)
-
-        file_menu.addSeparator()
-
-        # Exit action
-        exit_action = file_menu.addAction("E&xit")
-        exit_action.setShortcut("Alt+F4")
-        exit_action.triggered.connect(self.close)
-
-        # Edit menu
-        edit_menu = self.menuBar().addMenu("&Edit")
-
-        # Validate rule action
-        validate_action = edit_menu.addAction("&Validate Rule")
-        validate_action.setShortcut("F7")
-        validate_action.triggered.connect(self.validate_rule)
-
-        # Tools menu
-        tools_menu = self.menuBar().addMenu("&Tools")
-
-        # Test with sample data action
-        test_action = tools_menu.addAction("&Test Rule with Data")
-        test_action.setShortcut("F9")
-        test_action.triggered.connect(lambda: self.tabs.setCurrentIndex(3))  # Switch to test tab
-
-        # Export rule configuration action
-        export_action = tools_menu.addAction("&Export Rule Configuration")
-        export_action.triggered.connect(self.export_rule_configuration)
-
-        # Help menu
-        help_menu = self.menuBar().addMenu("&Help")
-
-        # About action
-        about_action = help_menu.addAction("&About")
-        about_action.triggered.connect(self.show_about)
-
-    def on_tab_changed(self, index):
-        """Handle tab changes to update content."""
-        if index == 2:  # Preview tab
-            self.yaml_preview.update_preview()
-        elif index == 3:  # Test tab
-            self.test_panel.refresh_test_results()
 
     def new_rule(self):
         """Create a new rule."""
@@ -230,21 +250,17 @@ class RuleBuilderMainWindow(QMainWindow):
         self.statusBar().showMessage("Created new rule")
 
     def open_rule(self):
-        """Open an existing rule from the rule manager."""
+        """Open an existing rule."""
         from PySide6.QtWidgets import QDialog, QVBoxLayout, QListWidget, QPushButton, QHBoxLayout, QLabel
 
-        # Create a dialog to select a rule
         dialog = QDialog(self)
         dialog.setWindowTitle("Select Rule")
         dialog.setMinimumWidth(400)
         dialog.setMinimumHeight(300)
 
         layout = QVBoxLayout(dialog)
-
-        # Add label
         layout.addWidget(QLabel("Select a rule to open:"))
 
-        # Add list widget
         list_widget = QListWidget()
         layout.addWidget(list_widget)
 
@@ -252,24 +268,19 @@ class RuleBuilderMainWindow(QMainWindow):
         rules = self.rule_manager.list_rules()
         for rule in rules:
             list_widget.addItem(f"{rule.name} ({rule.rule_id})")
-            # Store rule_id as item data
             list_widget.item(list_widget.count() - 1).setData(Qt.UserRole, rule.rule_id)
 
-        # Add buttons
+        # Buttons
         button_layout = QHBoxLayout()
         cancel_btn = QPushButton("Cancel")
         cancel_btn.clicked.connect(dialog.reject)
-
         open_btn = QPushButton("Open")
         open_btn.setDefault(True)
         open_btn.clicked.connect(dialog.accept)
-
         button_layout.addWidget(cancel_btn)
         button_layout.addWidget(open_btn)
-
         layout.addLayout(button_layout)
 
-        # Show dialog
         if dialog.exec() == QDialog.Accepted:
             selected_items = list_widget.selectedItems()
             if selected_items:
@@ -278,26 +289,20 @@ class RuleBuilderMainWindow(QMainWindow):
 
     def load_rule(self, rule_id):
         """Load a rule by ID."""
-        # Load the rule from rule manager
         rule = self.rule_manager.get_rule(rule_id)
         if rule:
-            # Set the rule in the model
             self.rule_model.set_rule(rule)
-
-            # Update UI components
             self.simple_editor.update_from_model()
             self.advanced_editor.update_from_model()
-
             self.statusBar().showMessage(f"Opened rule: {rule.name}")
-
-            # Switch to Rule Builder tab
-            self.tabs.setCurrentIndex(0)
+            # Switch to Simple Editor
+            self.stack.setCurrentIndex(0)
+            self.simple_button.setChecked(True)
         else:
             QMessageBox.warning(self, "Error", f"Rule with ID {rule_id} not found.")
 
     def save_rule(self):
         """Save the current rule."""
-        # Check if rule_id is set (existing rule)
         if self.rule_model.rule_id:
             success, error = self.rule_model.save_rule()
             if success:
@@ -305,20 +310,17 @@ class RuleBuilderMainWindow(QMainWindow):
             else:
                 QMessageBox.warning(self, "Error", f"Failed to save rule: {error}")
         else:
-            # No rule_id, do a Save As
             self.save_rule_as()
 
     def save_rule_as(self):
-        """Save the current rule with a new ID."""
+        """Save rule with new ID."""
         from PySide6.QtWidgets import QInputDialog, QLineEdit
 
-        # Check if rule is valid
         is_valid, error = self.rule_model.validate()
         if not is_valid:
             QMessageBox.warning(self, "Error", f"Rule is not valid: {error}")
             return
 
-        # Get rule name if not set
         if not self.rule_model.name:
             name, ok = QInputDialog.getText(
                 self, "Rule Name", "Enter a name for the rule:",
@@ -329,16 +331,13 @@ class RuleBuilderMainWindow(QMainWindow):
             else:
                 return
 
-        # Generate new rule ID if needed
         if not self.rule_model.rule_id:
             import uuid
             self.rule_model.current_rule.rule_id = str(uuid.uuid4())
 
-        # Save rule
         success, error = self.rule_model.save_rule()
         if success:
             self.statusBar().showMessage(f"Rule '{self.rule_model.name}' saved successfully")
-            # Reload rule list to show the new rule
             self.load_rule_list()
         else:
             QMessageBox.warning(self, "Error", f"Failed to save rule: {error}")
@@ -351,34 +350,8 @@ class RuleBuilderMainWindow(QMainWindow):
         else:
             QMessageBox.warning(self, "Validation", f"Rule is invalid: {error}")
 
-    def export_rule_configuration(self):
-        """Export the current rule to a YAML file."""
-        from PySide6.QtWidgets import QFileDialog
-
-        # Check if rule is valid
-        is_valid, error = self.rule_model.validate()
-        if not is_valid:
-            QMessageBox.warning(self, "Error", f"Rule is not valid: {error}")
-            return
-
-        # Get export file path
-        file_path, _ = QFileDialog.getSaveFileName(
-            self, "Export Rule", "",
-            "YAML Files (*.yaml *.yml);;All Files (*)"
-        )
-
-        if file_path:
-            try:
-                # Export rule as YAML
-                with open(file_path, 'w') as f:
-                    f.write(self.rule_model.to_yaml())
-
-                self.statusBar().showMessage(f"Rule exported to {file_path}")
-            except Exception as e:
-                QMessageBox.critical(self, "Error", f"Error exporting rule: {str(e)}")
-
     def load_rule_list(self):
-        """Reload the list of rules from the rule manager."""
+        """Reload the list of rules."""
         try:
             rules = self.rule_manager.list_rules()
             self.statusBar().showMessage(f"Loaded {len(rules)} rules")
