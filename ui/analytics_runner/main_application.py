@@ -9,7 +9,7 @@ import os
 import logging
 import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QVBoxLayout, QHBoxLayout,
@@ -21,13 +21,14 @@ from PySide6.QtCore import Qt, QTimer, QThreadPool, QObject, QRunnable, Signal
 from PySide6.QtGui import QAction, QIcon, QFont
 
 # Import our components
-from session_manager import SessionManager
-from analytics_runner_stylesheet import AnalyticsRunnerStylesheet
-from error_handler import initialize_error_handler, get_error_handler, set_debug_mode
-from debug_panel import DebugPanel
+from ui.common.session_manager import SessionManager
+from ui.common.stylesheet import AnalyticsRunnerStylesheet
+from ui.common.error_handler import initialize_error_handler, get_error_handler, set_debug_mode
+from ui.analytics_runner.dialogs.debug_panel import DebugPanel
 from data_source_panel import DataSourcePanel
 from data_source_registry import DataSourceRegistry
-from save_data_source_dialog import SaveDataSourceDialog
+from ui.analytics_runner.dialogs.save_data_source_dialog import SaveDataSourceDialog
+from rule_selector_panel import RuleSelectorPanel
 
 # Configure basic logging (will be enhanced by error handler)
 logging.basicConfig(
@@ -49,12 +50,14 @@ class ValidationWorkerSignals(QObject):
 class ValidationWorker(QRunnable):
     """Worker thread for running validation operations"""
 
-    def __init__(self, pipeline, data_source: str, sheet_name: str = None, analytic_id: str = None):
+    def __init__(self, pipeline, data_source: str, sheet_name: str = None,
+                 analytic_id: str = None, rule_ids: List[str] = None):
         super().__init__()
         self.pipeline = pipeline
         self.data_source = data_source
         self.sheet_name = sheet_name
         self.analytic_id = analytic_id or "Simple_Validation"
+        self.rule_ids = rule_ids  # Add rule_ids parameter
         self.signals = ValidationWorkerSignals()
 
     def run(self):
@@ -69,6 +72,10 @@ class ValidationWorker(QRunnable):
                 'output_formats': ['json', 'excel'],
                 'use_parallel': False
             }
+
+            # Add rule_ids if specified
+            if self.rule_ids:
+                validation_params['rule_ids'] = self.rule_ids
 
             # Add sheet name for Excel files
             if self.sheet_name:
@@ -178,6 +185,7 @@ class AnalyticsRunnerApp(QMainWindow):
 
         # Set initial splitter proportions (60% main, 40% results)
         self.main_splitter.setSizes([600, 400])
+        self.results_widget.hide()
 
         # Create menu bar
         self.create_menu_bar()
@@ -187,6 +195,10 @@ class AnalyticsRunnerApp(QMainWindow):
 
         # Create status bar
         self.create_status_bar()
+
+        # Connect data source to rule editor (moved here so both panels exist)
+        self.data_source_panel.previewUpdated.connect(self.rule_selector_panel.set_current_data_preview)
+        self.data_source_panel.previewUpdated.connect(self._update_rule_editor_columns)
 
     def create_main_panel(self):
         """Create the main workflow panel with tabs and scrolling support."""
@@ -222,6 +234,9 @@ class AnalyticsRunnerApp(QMainWindow):
 
         # Advanced Mode tab (unchanged)
         self.create_advanced_mode_tab()
+
+        # Rule Management tab
+        self.create_rule_selection_mode_tab()
 
         # Add stretch to push content to top and allow natural expansion
         self.main_layout.addStretch()
@@ -268,6 +283,32 @@ class AnalyticsRunnerApp(QMainWindow):
 
         # Let content naturally size without forcing stretch
         self.mode_tabs.addTab(self.simple_mode_widget, "Simple Mode")
+
+    def create_rule_selection_mode_tab(self):
+        """Create the enhanced rule selection mode tab with integrated editor."""
+        self.rule_selection_widget = QWidget()
+        rule_selection_layout = QVBoxLayout(self.rule_selection_widget)
+        rule_selection_layout.setContentsMargins(0, 0, 0, 0)
+        rule_selection_layout.setSpacing(0)
+
+        # Create rule selector panel with integrated editor
+        self.rule_selector_panel = RuleSelectorPanel(session_manager=self.session)
+
+        # Connect signals
+        self.rule_selector_panel.rulesSelectionChanged.connect(self._on_rules_selection_changed)
+
+        rule_selection_layout.addWidget(self.rule_selector_panel)
+
+        # Add tab to mode tabs
+        self.mode_tabs.addTab(self.rule_selection_widget, "Rule Management")
+
+    def _update_rule_editor_columns(self, preview_df):
+        """Update rule editor with available columns from data preview."""
+        if preview_df is not None and not preview_df.empty:
+            columns = list(preview_df.columns)
+            self.rule_selector_panel.set_available_columns(columns)
+            # Use log_message method instead of accessing log_view directly
+            self.log_message(f"Updated rule editor with {len(columns)} columns", "DEBUG")
 
     def create_advanced_mode_tab(self):
         """Create the advanced mode tab"""
@@ -523,11 +564,23 @@ class AnalyticsRunnerApp(QMainWindow):
         self.log_message("Backend systems initialized")
 
     def restore_state(self):
-        """Restore application state from previous session."""
+        """Restore application state from previous session - FIXED: Default to Simple Mode"""
+        import base64
+
         # Restore window geometry
         geometry = self.session.get('window_geometry')
-        if geometry:
-            self.restoreGeometry(geometry)
+        if geometry and isinstance(geometry, str):
+            try:
+                # Decode base64 string back to bytes
+                geometry_bytes = base64.b64decode(geometry.encode('utf-8'))
+                self.restoreGeometry(geometry_bytes)
+            except Exception as e:
+                self.log_message(f"Failed to restore window geometry: {e}", "WARNING")
+                # Fall back to default size
+                screen = QApplication.primaryScreen().geometry()
+                x = (screen.width() - 1200) // 2
+                y = (screen.height() - 800) // 2
+                self.setGeometry(x, y, 1200, 800)
         else:
             # Default size and center on screen
             screen = QApplication.primaryScreen().geometry()
@@ -537,19 +590,34 @@ class AnalyticsRunnerApp(QMainWindow):
 
         # Restore splitter position
         splitter_state = self.session.get('splitter_state')
-        if splitter_state:
-            self.main_splitter.restoreState(splitter_state)
+        if splitter_state and isinstance(splitter_state, str):
+            try:
+                # Decode base64 string back to bytes
+                splitter_bytes = base64.b64decode(splitter_state.encode('utf-8'))
+                self.main_splitter.restoreState(splitter_bytes)
+            except Exception as e:
+                self.log_message(f"Failed to restore splitter state: {e}", "WARNING")
 
-        # Restore active tab
-        active_mode = self.session.get('active_mode', 0)
-        self.mode_tabs.setCurrentIndex(active_mode)
+        # FIXED: Always default to Simple Mode (tab 0) for better UX
+        # Don't restore the last active tab - always start with Simple Mode
+        self.mode_tabs.setCurrentIndex(0)  # Always start with Simple Mode
 
-        self.log_message("Application state restored")
+        # Optional: Only restore tab if user specifically wants it
+        # active_mode = self.session.get('active_mode', 0)
+        # self.mode_tabs.setCurrentIndex(active_mode)
+
+        self.log_message("Application state restored - defaulted to Simple Mode")
 
     def save_state(self):
         """Save application state for next session."""
-        self.session.set('window_geometry', self.saveGeometry())
-        self.session.set('splitter_state', self.main_splitter.saveState())
+        import base64
+
+        # Convert QByteArray to base64 strings for JSON serialization
+        geometry = self.saveGeometry()
+        splitter_state = self.main_splitter.saveState()
+
+        self.session.set('window_geometry', base64.b64encode(bytes(geometry)).decode('utf-8'))
+        self.session.set('splitter_state', base64.b64encode(bytes(splitter_state)).decode('utf-8'))
         self.session.set('active_mode', self.mode_tabs.currentIndex())
 
         self.log_message("Application state saved")
@@ -647,6 +715,36 @@ class AnalyticsRunnerApp(QMainWindow):
         self.progress_bar.setValue(value)
         if message:
             self.status_label.setText(message)
+
+    def _on_rules_selection_changed(self, rule_ids: List[str]):
+        """Handle rule selection changes."""
+        self.log_message(f"Rule selection changed: {len(rule_ids)} rules selected")
+
+        # Store selected rules for validation
+        self.selected_rule_ids = rule_ids
+
+        # Update start button if we have both data and rules
+        if hasattr(self, 'data_source_panel') and self.data_source_panel.is_valid() and rule_ids:
+            self.start_button.setText("Start Validation with Selected Rules")
+            self.start_button.setEnabled(True)
+            self.start_validation_action.setEnabled(True)
+        elif not rule_ids:
+            if hasattr(self, 'data_source_panel') and self.data_source_panel.is_valid():
+                self.start_button.setText("Select Rules First")
+            else:
+                self.start_button.setText("Select Data Source and Rules")
+            self.start_button.setEnabled(False)
+            self.start_validation_action.setEnabled(False)
+
+    def _on_rule_edit_requested(self, rule_id: str):
+        """Handle rule editing request."""
+        self.log_message(f"Rule edit requested for: {rule_id}")
+        # TODO: Implement rule editing in Phase 3.2
+        QMessageBox.information(
+            self,
+            "Rule Editor",
+            f"Rule editing will be available in Phase 3.2.\n\nRule ID: {rule_id}"
+        )
 
     def save_current_data_source(self):
         """Save the current data source configuration."""
@@ -985,7 +1083,7 @@ class AnalyticsRunnerApp(QMainWindow):
             self.load_data_source(file_path)
 
     def start_validation(self):
-        """Start the validation process."""
+        """Start the validation process with selected rules."""
         # Get data source from panel
         data_source_file = self.data_source_panel.get_current_file()
 
@@ -997,7 +1095,27 @@ class AnalyticsRunnerApp(QMainWindow):
             QMessageBox.warning(self, "Invalid Data Source", "The selected data source is not valid.")
             return
 
-        self.log_message("Starting validation process")
+        # Get selected rules from enhanced rule selector
+        selected_rules = []
+        if hasattr(self, 'rule_selector_panel'):
+            selected_rules = self.rule_selector_panel.get_selected_rule_ids()
+
+        if not selected_rules:
+            reply = QMessageBox.question(
+                self,
+                "No Rules Selected",
+                "No validation rules are selected. Do you want to run with all available rules?",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No
+            )
+
+            if reply == QMessageBox.No:
+                return
+            else:
+                # Use all rules if none selected
+                selected_rules = None
+
+        self.log_message(f"Starting validation with {len(selected_rules) if selected_rules else 'all'} rules")
 
         # Get sheet name for Excel files
         sheet_name = self.data_source_panel.get_current_sheet()
@@ -1016,7 +1134,8 @@ class AnalyticsRunnerApp(QMainWindow):
             pipeline=None,  # Will be created in worker
             data_source=data_source_file,
             sheet_name=sheet_name,
-            analytic_id=f"Simple_Validation_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            analytic_id=f"Analytics_Validation_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            rule_ids=selected_rules  # Pass selected rules
         )
 
         # Connect worker signals
@@ -1131,6 +1250,10 @@ class AnalyticsRunnerApp(QMainWindow):
         # Clean up data source panel resources
         if hasattr(self, 'data_source_panel'):
             self.data_source_panel.cleanup()
+
+        # Clean up rule selector panel - UPDATED
+        if hasattr(self, 'rule_selector_panel'):
+            self.rule_selector_panel.cleanup()
 
         self.save_state()
 

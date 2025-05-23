@@ -144,7 +144,7 @@ class DataSourceRegistry:
     - Automatic cleanup of invalid sources
     """
     
-    def __init__(self, registry_file: str = "data_sources.json", session_manager=None):
+    def __init__(self, registry_file: str = "data/sessions/data_sources.json", session_manager=None):
         """
         Initialize the data source registry.
         
@@ -716,7 +716,7 @@ class DataSourceRegistry:
 
 
 # Convenience functions for common operations
-def create_registry(registry_file: str = "data_sources.json", session_manager=None) -> DataSourceRegistry:
+def create_registry(registry_file: str = "data/sessions/data_sources.json", session_manager=None) -> DataSourceRegistry:
     """Create a new data source registry instance."""
     return DataSourceRegistry(registry_file, session_manager)
 

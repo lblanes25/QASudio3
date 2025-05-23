@@ -14,9 +14,9 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Signal, QThread
 
-from analytics_runner_stylesheet import AnalyticsRunnerStylesheet
-from pre_validation_widget import PreValidationWidget
-from save_data_source_dialog import SaveDataSourceDialog
+from ui.common.stylesheet import AnalyticsRunnerStylesheet
+from ui.common.widgets.pre_validation_widget import PreValidationWidget
+from ui.analytics_runner.dialogs.save_data_source_dialog import SaveDataSourceDialog
 from ui.analytics_runner.data_source_registry import DataSourceRegistry
 
 logger = logging.getLogger(__name__)

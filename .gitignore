@@ -1,0 +1,15 @@
+
+# Data directory (runtime files)
+data/sessions/*.json
+data/logs/*.log
+data/temp/*
+!data/sessions/.gitkeep
+!data/logs/.gitkeep
+!data/temp/.gitkeep
+
+# Backup directories
+backup_*/
+*_backup*/
+
+# Session files
+session*.json

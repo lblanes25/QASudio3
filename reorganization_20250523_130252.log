@@ -1,0 +1,69 @@
+2025-05-23 13:02:52,803 - INFO - Initializing project reorganization
+2025-05-23 13:02:52,803 - INFO - Project root: C:\Users\luria\PycharmProjects\QAStudiov3
+2025-05-23 13:02:52,803 - INFO - Dry run mode: False
+2025-05-23 13:02:52,803 - INFO - Starting project reorganization...
+2025-05-23 13:02:52,803 - INFO - Created backup directory: C:\Users\luria\PycharmProjects\QAStudiov3\backup_20250523_130252
+2025-05-23 13:02:52,805 - INFO - Backed up: ui/analytics_runner/main_application.py
+2025-05-23 13:02:52,806 - INFO - Backed up: ui/analytics_runner/session_manager.py
+2025-05-23 13:02:52,807 - INFO - Backed up: ui/analytics_runner/analytics_runner_stylesheet.py
+2025-05-23 13:02:52,808 - INFO - Backed up: session.json
+2025-05-23 13:02:52,809 - INFO - Backed up: data_sources.json
+2025-05-23 13:02:52,809 - INFO - Created directory: ui/common
+2025-05-23 13:02:52,810 - INFO - Created directory: ui/common/widgets
+2025-05-23 13:02:52,810 - INFO - Created directory: ui/analytics_runner/dialogs
+2025-05-23 13:02:52,811 - INFO - Created directory: ui/rule_builder/editors
+2025-05-23 13:02:52,811 - INFO - Created directory: ui/rule_builder/panels
+2025-05-23 13:02:52,812 - INFO - Created directory: tests/unit/core
+2025-05-23 13:02:52,813 - INFO - Created directory: tests/unit/data_integration
+2025-05-23 13:02:52,813 - INFO - Created directory: tests/unit/business_logic
+2025-05-23 13:02:52,814 - INFO - Created directory: tests/unit/services
+2025-05-23 13:02:52,814 - INFO - Created directory: tests/integration
+2025-05-23 13:02:52,815 - INFO - Created directory: tests/ui/analytics_runner
+2025-05-23 13:02:52,816 - INFO - Created directory: tests/ui/rule_builder
+2025-05-23 13:02:52,816 - INFO - Created directory: data/rules
+2025-05-23 13:02:52,817 - INFO - Created directory: data/sessions
+2025-05-23 13:02:52,817 - INFO - Created directory: data/logs
+2025-05-23 13:02:52,817 - INFO - Created directory: data/temp
+2025-05-23 13:02:52,817 - INFO - ==================================================
+2025-05-23 13:02:52,817 - INFO - PHASE 1: Moving Common Components
+2025-05-23 13:02:52,817 - INFO - ==================================================
+2025-05-23 13:02:52,831 - INFO - ==================================================
+2025-05-23 13:02:52,831 - INFO - PHASE 2: Reorganizing Analytics Runner
+2025-05-23 13:02:52,831 - INFO - ==================================================
+2025-05-23 13:02:52,834 - INFO - ==================================================
+2025-05-23 13:02:52,834 - INFO - PHASE 3: Reorganizing Rule Builder
+2025-05-23 13:02:52,834 - INFO - ==================================================
+2025-05-23 13:02:52,841 - INFO - ==================================================
+2025-05-23 13:02:52,842 - INFO - PHASE 4: Reorganizing Tests
+2025-05-23 13:02:52,842 - INFO - ==================================================
+2025-05-23 13:02:52,871 - INFO - ==================================================
+2025-05-23 13:02:52,871 - INFO - PHASE 5: Consolidating Data Files
+2025-05-23 13:02:52,871 - INFO - ==================================================
+2025-05-23 13:02:52,871 - WARNING - Destination already exists: data/rules
+2025-05-23 13:02:52,883 - INFO - ==================================================
+2025-05-23 13:02:52,883 - INFO - PHASE 6: Cleaning Up
+2025-05-23 13:02:52,883 - INFO - ==================================================
+2025-05-23 13:02:52,887 - INFO - Removed directory: ui/analytics_runner/session_backups
+2025-05-23 13:02:52,890 - INFO - Removed directory: session_backups
+2025-05-23 13:02:52,890 - INFO - Removed directory: test_output
+2025-05-23 13:02:52,890 - INFO - Removed duplicate: ui/analytics_runner/session.json
+2025-05-23 13:02:52,891 - INFO - Removed duplicate: ui/analytics_runner/data_sources.json
+2025-05-23 13:02:52,891 - INFO - ==================================================
+2025-05-23 13:02:52,891 - INFO - PHASE 7: Creating Import Helpers
+2025-05-23 13:02:52,891 - INFO - ==================================================
+2025-05-23 13:02:52,891 - INFO - Created: ui/common/__init__.py
+2025-05-23 13:02:52,892 - INFO - Created: ui/common/widgets/__init__.py
+2025-05-23 13:02:52,892 - INFO - ==================================================
+2025-05-23 13:02:52,892 - INFO - PHASE 8: Updating .gitignore
+2025-05-23 13:02:52,892 - INFO - ==================================================
+2025-05-23 13:02:52,892 - INFO - Updated .gitignore
+2025-05-23 13:02:52,893 - INFO - ============================================================
+2025-05-23 13:02:52,893 - INFO - REORGANIZATION SUMMARY
+2025-05-23 13:02:52,893 - INFO - ============================================================
+2025-05-23 13:02:52,893 - INFO - Successfully moved 32 items
+2025-05-23 13:02:52,893 - INFO - 
+Next steps:
+2025-05-23 13:02:52,893 - INFO - 1. Update import statements in Python files
+2025-05-23 13:02:52,893 - INFO - 2. Test the application to ensure everything works
+2025-05-23 13:02:52,893 - INFO - 3. Commit the reorganized structure
+2025-05-23 13:02:52,893 - INFO - 4. Remove backup directory when satisfied

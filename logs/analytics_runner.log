@@ -1193,3 +1193,1173 @@ data_integration.errors.error_handler.DataIntegrationError: Error executing read
 2025-05-23 10:33:58,510 - __main__ - INFO - Application closing
 2025-05-23 10:33:58,512 - error_handler - CRITICAL - TypeError: Object of type QByteArray is not JSON serializable
 2025-05-23 10:34:00,222 - __main__ - ERROR - ERROR: Object of type QByteArray is not JSON serializable
+2025-05-23 11:43:30,718 - error_handler - INFO - Error handler initialized
+2025-05-23 11:43:30,723 - session_manager - WARNING - Error loading configuration: Expecting value: line 2 column 22 (char 23)
+2025-05-23 11:43:30,723 - session_manager - INFO - Attempting to restore from backup...
+2025-05-23 11:43:30,723 - session_manager - WARNING - Using default configuration
+2025-05-23 11:43:30,724 - session_manager - INFO - Session manager initialized with config: session.json
+2025-05-23 11:43:30,724 - data_source_registry - INFO - No existing registry found, starting with empty registry
+2025-05-23 11:43:30,724 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 11:43:30,730 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 11:43:30,730 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 11:43:30,777 - __main__ - INFO - Application state restored
+2025-05-23 11:43:30,777 - __main__ - INFO - Backend systems initialized
+2025-05-23 11:43:30,778 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 11:43:33,549 - __main__ - INFO - Application closing
+2025-05-23 11:43:33,553 - __main__ - INFO - Application state saved
+2025-05-23 12:04:21,631 - error_handler - INFO - Error handler initialized
+2025-05-23 12:04:21,636 - session_manager - INFO - Configuration loaded successfully from session.json
+2025-05-23 12:04:21,637 - session_manager - INFO - Session manager initialized with config: session.json
+2025-05-23 12:04:21,641 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 12:04:21,641 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 12:04:21,647 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 12:04:21,647 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 12:04:21,711 - __main__ - INFO - Application state restored
+2025-05-23 12:04:21,711 - __main__ - INFO - Backend systems initialized
+2025-05-23 12:04:21,711 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 12:04:24,809 - __main__ - INFO - Application closing
+2025-05-23 12:04:24,814 - __main__ - INFO - Application state saved
+2025-05-23 13:04:21,447 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 13:04:21,448 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-05-23 13:04:21,448 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 13:04:21,449 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:04:21,449 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:04:21,459 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:04:21,459 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:04:21,558 - __main__ - INFO - Application state restored
+2025-05-23 13:04:21,558 - __main__ - INFO - Backend systems initialized
+2025-05-23 13:04:21,558 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 13:04:29,983 - __main__ - INFO - Data source changed: audit_workpapers_2025Q2.xlsx
+2025-05-23 13:04:29,983 - __main__ - INFO - Data source validation: File appears valid
+2025-05-23 13:04:30,666 - data_integration.connectors.excel_connector - ERROR - Error loading Excel file C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 13:04:30,666 - data_integration.errors.error_handler - ERROR - Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 328, in safe_dataframe_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_openpyxl.py", line 582, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'Loading...' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 195, in get_data
+    df = retry_operation(
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 379, in retry_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 183, in load_excel
+    return safe_dataframe_operation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 344, in safe_dataframe_operation
+    raise DataIntegrationError(error_msg, details)
+data_integration.errors.error_handler.DataIntegrationError: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 13:04:30,695 - data_integration.io.importer - ERROR - Error previewing file C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 13:04:30,695 - data_source_panel - ERROR - Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 13:04:30,698 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 13:04:31,177 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-05-23 13:04:31,178 - __main__ - INFO - Data preview loaded: 30 rows, 11 columns
+2025-05-23 13:04:31,178 - data_source_panel - INFO - Preview loaded: 30 rows, 11 columns
+2025-05-23 13:04:31,190 - data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-05-23 13:04:31,190 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-05-23 13:04:31,190 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-05-23 13:04:40,884 - __main__ - INFO - Application closing
+2025-05-23 13:04:40,888 - __main__ - INFO - Application state saved
+2025-05-23 13:04:54,043 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 13:04:54,044 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-05-23 13:04:54,044 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 13:04:54,044 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:04:54,044 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:04:54,045 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:04:54,045 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:04:54,097 - __main__ - INFO - Application state restored
+2025-05-23 13:04:54,097 - __main__ - INFO - Backend systems initialized
+2025-05-23 13:04:54,097 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 13:04:55,601 - __main__ - INFO - Application closing
+2025-05-23 13:04:55,605 - __main__ - INFO - Application state saved
+2025-05-23 13:40:42,801 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 13:40:42,808 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-05-23 13:40:42,808 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 13:40:42,813 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:40:42,813 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:40:42,823 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:40:42,823 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:40:42,879 - ui.common.error_handler - ERROR - AttributeError: type object 'PySide6.QtCore.Qt' has no attribute 'ScrollBarNever'
+2025-05-23 13:41:21,962 - ui.common.error_handler - CRITICAL - AttributeError: 'AnalyticsRunnerApp' object has no attribute 'log_view'
+2025-05-23 13:41:42,263 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 13:41:42,264 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-05-23 13:41:42,264 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 13:41:42,264 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:41:42,264 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:41:42,266 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:41:42,266 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:41:42,352 - ui.common.error_handler - ERROR - TypeError: 'PySide6.QtGui.QTextFormat.setForeground' called with wrong argument types:
+  PySide6.QtGui.QTextFormat.setForeground(str)
+Supported signatures:
+  PySide6.QtGui.QTextFormat.setForeground(brush: PySide6.QtGui.QBrush | PySide6.QtCore.Qt.BrushStyle | PySide6.QtCore.Qt.GlobalColor | PySide6.QtGui.QColor | PySide6.QtGui.QGradient | PySide6.QtGui.QImage | PySide6.QtGui.QPixmap, /)
+2025-05-23 13:41:58,635 - ui.common.error_handler - CRITICAL - AttributeError: 'AnalyticsRunnerApp' object has no attribute 'log_view'
+2025-05-23 13:46:53,655 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 13:46:53,656 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-05-23 13:46:53,656 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 13:46:53,656 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:46:53,656 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:46:53,658 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:46:53,658 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:46:53,678 - ui.common.error_handler - ERROR - AttributeError: type object 'PySide6.QtCore.Qt' has no attribute 'ScrollBarNever'
+2025-05-23 13:46:56,975 - ui.common.error_handler - CRITICAL - AttributeError: 'AnalyticsRunnerApp' object has no attribute 'log_view'
+2025-05-23 13:47:07,773 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 13:47:07,773 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-05-23 13:47:07,773 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 13:47:07,773 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:47:07,773 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:47:07,775 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:47:07,775 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:47:07,793 - ui.common.error_handler - ERROR - AttributeError: type object 'PySide6.QtCore.Qt' has no attribute 'ScrollBarNever'
+2025-05-23 13:47:39,732 - ui.common.error_handler - CRITICAL - AttributeError: 'AnalyticsRunnerApp' object has no attribute 'log_view'
+2025-05-23 13:47:49,491 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 13:47:49,491 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-05-23 13:47:49,492 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 13:47:49,492 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:47:49,492 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:47:49,493 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:47:49,493 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:47:49,528 - ui.common.error_handler - CRITICAL - AttributeError: 'RuleEditorPanel' object has no attribute 'validation_timer'
+2025-05-23 13:47:50,966 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 13:47:50,988 - rule_selector_panel - INFO - Loaded 0 rules from rule manager
+2025-05-23 13:47:50,989 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 13:47:51,056 - __main__ - INFO - Application state restored
+2025-05-23 13:47:51,056 - __main__ - INFO - Backend systems initialized
+2025-05-23 13:47:51,056 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 13:48:13,011 - __main__ - INFO - Application closing
+2025-05-23 13:48:13,031 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 13:48:13,965 - __main__ - ERROR - ERROR: Object of type bytes is not JSON serializable
+2025-05-23 13:48:26,497 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 13:48:26,497 - ui.common.session_manager - WARNING - Error loading configuration: Expecting value: line 42 column 23 (char 1262)
+2025-05-23 13:48:26,497 - ui.common.session_manager - INFO - Attempting to restore from backup...
+2025-05-23 13:48:26,497 - ui.common.session_manager - INFO - Configuration restored from backup: data\sessions\session.backup1
+2025-05-23 13:48:26,497 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 13:48:26,498 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:48:26,498 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:48:26,499 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:48:26,499 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:48:26,522 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 13:48:26,542 - rule_selector_panel - INFO - Loaded 0 rules from rule manager
+2025-05-23 13:48:26,542 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 13:48:26,644 - ui.common.error_handler - ERROR - TypeError: 'PySide6.QtWidgets.QWidget.restoreGeometry' called with wrong argument types:
+  PySide6.QtWidgets.QWidget.restoreGeometry(dict)
+Supported signatures:
+  PySide6.QtWidgets.QWidget.restoreGeometry(geometry: PySide6.QtCore.QByteArray | bytes | bytearray | memoryview, /)
+2025-05-23 13:49:30,399 - __main__ - INFO - Application closing
+2025-05-23 13:49:30,401 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 13:51:11,285 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 13:51:11,285 - ui.common.session_manager - WARNING - Error loading configuration: Expecting value: line 42 column 23 (char 1262)
+2025-05-23 13:51:11,285 - ui.common.session_manager - INFO - Attempting to restore from backup...
+2025-05-23 13:51:11,285 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup1 is corrupted: Expecting value: line 42 column 23 (char 1262)
+2025-05-23 13:51:11,285 - ui.common.session_manager - INFO - Configuration restored from backup: data\sessions\session.backup2
+2025-05-23 13:51:11,286 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 13:51:11,286 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:51:11,286 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:51:11,287 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:51:11,287 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:51:11,313 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 13:51:11,333 - rule_selector_panel - INFO - Loaded 0 rules from rule manager
+2025-05-23 13:51:11,333 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 13:51:11,433 - ui.common.error_handler - ERROR - TypeError: 'PySide6.QtWidgets.QWidget.restoreGeometry' called with wrong argument types:
+  PySide6.QtWidgets.QWidget.restoreGeometry(dict)
+Supported signatures:
+  PySide6.QtWidgets.QWidget.restoreGeometry(geometry: PySide6.QtCore.QByteArray | bytes | bytearray | memoryview, /)
+2025-05-23 13:51:14,839 - __main__ - INFO - Application closing
+2025-05-23 13:51:14,842 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 13:51:22,812 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 13:51:22,812 - ui.common.session_manager - WARNING - Error loading configuration: Expecting value: line 42 column 23 (char 1262)
+2025-05-23 13:51:22,812 - ui.common.session_manager - INFO - Attempting to restore from backup...
+2025-05-23 13:51:22,812 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup1 is corrupted: Expecting value: line 42 column 23 (char 1262)
+2025-05-23 13:51:22,812 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup2 is corrupted: Expecting value: line 42 column 23 (char 1262)
+2025-05-23 13:51:22,812 - ui.common.session_manager - INFO - Configuration restored from backup: data\sessions\session.backup3
+2025-05-23 13:51:22,813 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 13:51:22,813 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:51:22,813 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:51:22,814 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:51:22,814 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:51:22,840 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 13:51:22,862 - rule_selector_panel - INFO - Loaded 0 rules from rule manager
+2025-05-23 13:51:22,862 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 13:51:22,962 - ui.common.error_handler - ERROR - TypeError: 'PySide6.QtWidgets.QWidget.restoreGeometry' called with wrong argument types:
+  PySide6.QtWidgets.QWidget.restoreGeometry(dict)
+Supported signatures:
+  PySide6.QtWidgets.QWidget.restoreGeometry(geometry: PySide6.QtCore.QByteArray | bytes | bytearray | memoryview, /)
+2025-05-23 13:51:53,161 - __main__ - INFO - Application closing
+2025-05-23 13:51:53,163 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 13:52:39,097 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 13:52:39,097 - ui.common.session_manager - WARNING - Error loading configuration: Expecting value: line 42 column 23 (char 1262)
+2025-05-23 13:52:39,097 - ui.common.session_manager - INFO - Attempting to restore from backup...
+2025-05-23 13:52:39,098 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup1 is corrupted: Expecting value: line 42 column 23 (char 1262)
+2025-05-23 13:52:39,098 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup2 is corrupted: Expecting value: line 42 column 23 (char 1262)
+2025-05-23 13:52:39,098 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup3 is corrupted: Expecting value: line 42 column 23 (char 1262)
+2025-05-23 13:52:39,098 - ui.common.session_manager - WARNING - Using default configuration
+2025-05-23 13:52:39,099 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 13:52:39,099 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:52:39,099 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:52:39,102 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:52:39,102 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:52:39,155 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 13:52:39,191 - rule_selector_panel - INFO - Loaded 0 rules from rule manager
+2025-05-23 13:52:39,191 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 13:52:39,283 - __main__ - INFO - Application state restored
+2025-05-23 13:52:39,283 - __main__ - INFO - Backend systems initialized
+2025-05-23 13:52:39,283 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 13:52:59,212 - rule_editor_panel - INFO - Created new rule with ID: cde336c4-8dc1-4c11-add5-96a0ac23fd12
+2025-05-23 13:53:23,451 - __main__ - INFO - Application closing
+2025-05-23 13:53:23,453 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 13:53:24,920 - __main__ - ERROR - ERROR: Object of type bytes is not JSON serializable
+2025-05-23 13:58:22,395 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 13:58:22,395 - ui.common.session_manager - WARNING - Error loading configuration: Expecting value: line 34 column 23 (char 894)
+2025-05-23 13:58:22,395 - ui.common.session_manager - INFO - Attempting to restore from backup...
+2025-05-23 13:58:22,395 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup1 is corrupted: Expecting value: line 42 column 23 (char 1262)
+2025-05-23 13:58:22,396 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup2 is corrupted: Expecting value: line 42 column 23 (char 1262)
+2025-05-23 13:58:22,396 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup3 is corrupted: Expecting value: line 42 column 23 (char 1262)
+2025-05-23 13:58:22,396 - ui.common.session_manager - WARNING - Using default configuration
+2025-05-23 13:58:22,396 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 13:58:22,396 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:58:22,396 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:58:22,398 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:58:22,398 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:58:22,425 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 13:58:22,446 - rule_selector_panel - INFO - Loaded 0 rules from rule manager
+2025-05-23 13:58:22,446 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 13:58:22,506 - __main__ - INFO - Application state restored
+2025-05-23 13:58:22,506 - __main__ - INFO - Backend systems initialized
+2025-05-23 13:58:22,507 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 13:58:24,522 - __main__ - INFO - Application closing
+2025-05-23 13:58:24,526 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 13:58:25,532 - __main__ - ERROR - ERROR: Object of type bytes is not JSON serializable
+2025-05-23 13:59:55,576 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 13:59:55,577 - ui.common.session_manager - WARNING - Error loading configuration: Expecting value: line 34 column 23 (char 894)
+2025-05-23 13:59:55,577 - ui.common.session_manager - INFO - Attempting to restore from backup...
+2025-05-23 13:59:55,577 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup1 is corrupted: Expecting value: line 34 column 23 (char 894)
+2025-05-23 13:59:55,577 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup2 is corrupted: Expecting value: line 42 column 23 (char 1262)
+2025-05-23 13:59:55,577 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup3 is corrupted: Expecting value: line 42 column 23 (char 1262)
+2025-05-23 13:59:55,577 - ui.common.session_manager - WARNING - Using default configuration
+2025-05-23 13:59:55,578 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 13:59:55,578 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:59:55,578 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:59:55,579 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 13:59:55,580 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 13:59:55,610 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 13:59:55,633 - rule_selector_panel - INFO - Loaded 0 rules from rule manager
+2025-05-23 13:59:55,634 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 13:59:55,697 - __main__ - INFO - Application state restored
+2025-05-23 13:59:55,697 - __main__ - INFO - Backend systems initialized
+2025-05-23 13:59:55,697 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 14:00:50,297 - __main__ - INFO - Application closing
+2025-05-23 14:00:50,301 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 14:00:51,371 - __main__ - ERROR - ERROR: Object of type bytes is not JSON serializable
+2025-05-23 14:01:36,380 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 14:01:36,380 - ui.common.session_manager - WARNING - Error loading configuration: Expecting value: line 34 column 23 (char 894)
+2025-05-23 14:01:36,380 - ui.common.session_manager - INFO - Attempting to restore from backup...
+2025-05-23 14:01:36,381 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup1 is corrupted: Expecting value: line 34 column 23 (char 894)
+2025-05-23 14:01:36,381 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup2 is corrupted: Expecting value: line 34 column 23 (char 894)
+2025-05-23 14:01:36,381 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup3 is corrupted: Expecting value: line 42 column 23 (char 1262)
+2025-05-23 14:01:36,381 - ui.common.session_manager - WARNING - Using default configuration
+2025-05-23 14:01:36,381 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 14:01:36,381 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:01:36,381 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:01:36,383 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:01:36,383 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:01:36,411 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 14:01:36,435 - rule_selector_panel - INFO - Loaded 0 rules from rule manager
+2025-05-23 14:01:36,435 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 14:01:36,500 - __main__ - INFO - Application state restored
+2025-05-23 14:01:36,500 - __main__ - INFO - Backend systems initialized
+2025-05-23 14:01:36,500 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 14:03:04,281 - rule_editor_panel - INFO - Created new rule with ID: 506b0f69-dc9a-4118-bcc9-f6afd8196db5
+2025-05-23 14:04:04,289 - __main__ - INFO - Data source changed: audit_workpapers_2025Q2.xlsx
+2025-05-23 14:04:04,290 - __main__ - INFO - Data source validation: File appears valid
+2025-05-23 14:04:04,712 - data_integration.connectors.excel_connector - ERROR - Error loading Excel file C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:04:04,712 - data_integration.errors.error_handler - ERROR - Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 328, in safe_dataframe_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_openpyxl.py", line 582, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'Loading...' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 195, in get_data
+    df = retry_operation(
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 379, in retry_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 183, in load_excel
+    return safe_dataframe_operation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 344, in safe_dataframe_operation
+    raise DataIntegrationError(error_msg, details)
+data_integration.errors.error_handler.DataIntegrationError: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:04:04,733 - data_integration.io.importer - ERROR - Error previewing file C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:04:04,733 - data_source_panel - ERROR - Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:04:04,736 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:04:05,145 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-05-23 14:04:05,145 - __main__ - INFO - Data preview loaded: 30 rows, 11 columns
+2025-05-23 14:04:05,146 - __main__ - INFO - Updated rule editor with 11 columns
+2025-05-23 14:04:05,146 - data_source_panel - INFO - Preview loaded: 30 rows, 11 columns
+2025-05-23 14:04:05,187 - data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-05-23 14:04:05,187 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-05-23 14:04:05,187 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-05-23 14:05:30,075 - rule_editor_panel - INFO - Created new rule with ID: 95c1b6f1-2102-4899-8558-933ff6b06e32
+2025-05-23 14:05:34,472 - rule_editor_panel - INFO - Created new rule with ID: 7242eaea-ce34-4ca2-bc36-f007744874b0
+2025-05-23 14:05:35,727 - rule_editor_panel - INFO - Created new rule with ID: e9f7471c-b948-47bd-878c-49de59f86de4
+2025-05-23 14:09:53,335 - __main__ - INFO - Application closing
+2025-05-23 14:09:53,337 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 14:09:54,308 - __main__ - ERROR - ERROR: Object of type bytes is not JSON serializable
+2025-05-23 14:21:20,033 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 14:21:20,033 - ui.common.session_manager - WARNING - Error loading configuration: Expecting value: line 36 column 23 (char 1038)
+2025-05-23 14:21:20,034 - ui.common.session_manager - INFO - Attempting to restore from backup...
+2025-05-23 14:21:20,034 - ui.common.session_manager - INFO - Configuration restored from backup: data\sessions\session.backup1
+2025-05-23 14:21:20,034 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 14:21:20,034 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:21:20,034 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:21:20,036 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:21:20,036 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:21:20,080 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 14:21:20,104 - rule_selector_panel - INFO - Loaded 0 rules from rule manager
+2025-05-23 14:21:20,104 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 14:21:20,169 - __main__ - INFO - Application state restored
+2025-05-23 14:21:20,169 - __main__ - INFO - Backend systems initialized
+2025-05-23 14:21:20,169 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 14:21:36,572 - rule_editor_panel - INFO - Created new rule with ID: a63cc31e-e904-4509-9610-8d0776336298
+2025-05-23 14:22:08,679 - __main__ - INFO - Data source changed: audit_workpapers_2025Q2.xlsx
+2025-05-23 14:22:08,679 - __main__ - INFO - Data source validation: File appears valid
+2025-05-23 14:22:08,815 - data_integration.connectors.excel_connector - ERROR - Error loading Excel file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:22:08,815 - data_integration.errors.error_handler - ERROR - Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 328, in safe_dataframe_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_openpyxl.py", line 582, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'Loading...' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 195, in get_data
+    df = retry_operation(
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 379, in retry_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 183, in load_excel
+    return safe_dataframe_operation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 344, in safe_dataframe_operation
+    raise DataIntegrationError(error_msg, details)
+data_integration.errors.error_handler.DataIntegrationError: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:22:08,817 - data_integration.io.importer - ERROR - Error previewing file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:22:08,817 - data_source_panel - ERROR - Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:22:08,818 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:22:09,155 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-05-23 14:22:09,155 - __main__ - INFO - Data preview loaded: 30 rows, 11 columns
+2025-05-23 14:22:09,156 - __main__ - INFO - Updated rule editor with 11 columns
+2025-05-23 14:22:09,156 - data_source_panel - INFO - Preview loaded: 30 rows, 11 columns
+2025-05-23 14:22:09,172 - data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-05-23 14:22:09,173 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-05-23 14:22:09,173 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-05-23 14:22:43,456 - ExcelFormulaProcessor - INFO - [Session d49cbcee] Starting Excel application
+2025-05-23 14:22:43,895 - ExcelFormulaProcessor - INFO - [Session d49cbcee] Excel application startup complete
+2025-05-23 14:22:43,998 - ExcelFormulaProcessor - INFO - [Session d49cbcee] Cleaning up Excel resources
+2025-05-23 14:22:44,072 - rule_editor_panel - INFO - Test results displayed: GC, 1 failures out of 30 items
+2025-05-23 14:25:17,881 - rule_editor_panel - INFO - Created new rule with ID: d2e4c4dd-7f3b-4b71-976f-1b1b2c000d50
+2025-05-23 14:25:50,334 - __main__ - INFO - Data source changed: audit_workpapers_2025Q2.xlsx
+2025-05-23 14:25:50,334 - __main__ - INFO - Data source validation: File appears valid
+2025-05-23 14:25:50,342 - data_integration.connectors.excel_connector - ERROR - Error loading Excel file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:25:50,342 - data_integration.errors.error_handler - ERROR - Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 328, in safe_dataframe_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_openpyxl.py", line 582, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'Loading...' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 195, in get_data
+    df = retry_operation(
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 379, in retry_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 183, in load_excel
+    return safe_dataframe_operation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 344, in safe_dataframe_operation
+    raise DataIntegrationError(error_msg, details)
+data_integration.errors.error_handler.DataIntegrationError: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:25:50,343 - data_integration.io.importer - ERROR - Error previewing file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:25:50,343 - data_source_panel - ERROR - Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:25:50,345 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:25:50,369 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-05-23 14:25:50,370 - __main__ - INFO - Data preview loaded: 30 rows, 11 columns
+2025-05-23 14:25:50,370 - __main__ - INFO - Updated rule editor with 11 columns
+2025-05-23 14:25:50,371 - data_source_panel - INFO - Preview loaded: 30 rows, 11 columns
+2025-05-23 14:25:50,388 - data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-05-23 14:25:50,389 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-05-23 14:25:50,389 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-05-23 14:26:16,137 - ExcelFormulaProcessor - INFO - [Session 28456153] Starting Excel application
+2025-05-23 14:26:16,548 - ExcelFormulaProcessor - INFO - [Session 28456153] Excel application startup complete
+2025-05-23 14:26:16,645 - ExcelFormulaProcessor - INFO - [Session 28456153] Cleaning up Excel resources
+2025-05-23 14:26:16,712 - rule_editor_panel - INFO - Test results displayed: GC, 1 failures out of 30 items
+2025-05-23 14:27:43,669 - __main__ - INFO - Application closing
+2025-05-23 14:27:43,672 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 14:27:44,512 - __main__ - ERROR - ERROR: Object of type bytes is not JSON serializable
+2025-05-23 14:32:38,698 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 14:32:38,698 - ui.common.session_manager - WARNING - Error loading configuration: Expecting value: line 36 column 23 (char 1038)
+2025-05-23 14:32:38,698 - ui.common.session_manager - INFO - Attempting to restore from backup...
+2025-05-23 14:32:38,698 - ui.common.session_manager - INFO - Configuration restored from backup: data\sessions\session.backup1
+2025-05-23 14:32:38,699 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 14:32:38,699 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:32:38,699 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:32:38,700 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:32:38,700 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:32:38,740 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 14:32:38,761 - rule_selector_panel - INFO - Loaded 0 rules from rule manager
+2025-05-23 14:32:38,761 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 14:32:38,824 - __main__ - INFO - Application state restored
+2025-05-23 14:32:38,824 - __main__ - INFO - Backend systems initialized
+2025-05-23 14:32:38,824 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 14:32:42,730 - __main__ - INFO - Data source changed: audit_workpapers_2025Q2.xlsx
+2025-05-23 14:32:42,730 - __main__ - INFO - Data source validation: File appears valid
+2025-05-23 14:32:42,849 - data_integration.connectors.excel_connector - ERROR - Error loading Excel file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:32:42,849 - data_integration.errors.error_handler - ERROR - Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 328, in safe_dataframe_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_openpyxl.py", line 582, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'Loading...' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 195, in get_data
+    df = retry_operation(
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 379, in retry_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 183, in load_excel
+    return safe_dataframe_operation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 344, in safe_dataframe_operation
+    raise DataIntegrationError(error_msg, details)
+data_integration.errors.error_handler.DataIntegrationError: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:32:42,850 - data_integration.io.importer - ERROR - Error previewing file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:32:42,850 - data_source_panel - ERROR - Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:32:42,852 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:32:43,195 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-05-23 14:32:43,195 - __main__ - INFO - Data preview loaded: 30 rows, 11 columns
+2025-05-23 14:32:43,196 - __main__ - INFO - Updated rule editor with 11 columns
+2025-05-23 14:32:43,196 - data_source_panel - INFO - Preview loaded: 30 rows, 11 columns
+2025-05-23 14:32:43,206 - data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-05-23 14:32:43,206 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-05-23 14:32:43,206 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-05-23 14:32:48,469 - rule_editor_panel - INFO - Created new rule with ID: b3e8f7fb-b098-4469-86ad-d565bb648d9b
+2025-05-23 14:33:15,557 - __main__ - INFO - Data source changed: audit_workpapers_2025Q2.xlsx
+2025-05-23 14:33:15,557 - __main__ - INFO - Data source validation: File appears valid
+2025-05-23 14:33:15,565 - data_integration.connectors.excel_connector - ERROR - Error loading Excel file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:33:15,565 - data_integration.errors.error_handler - ERROR - Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 328, in safe_dataframe_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_openpyxl.py", line 582, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'Loading...' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 195, in get_data
+    df = retry_operation(
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 379, in retry_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 183, in load_excel
+    return safe_dataframe_operation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 344, in safe_dataframe_operation
+    raise DataIntegrationError(error_msg, details)
+data_integration.errors.error_handler.DataIntegrationError: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:33:15,566 - data_integration.io.importer - ERROR - Error previewing file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:33:15,566 - data_source_panel - ERROR - Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:33:15,567 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:33:15,597 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-05-23 14:33:15,597 - __main__ - INFO - Data preview loaded: 30 rows, 11 columns
+2025-05-23 14:33:15,598 - __main__ - INFO - Updated rule editor with 11 columns
+2025-05-23 14:33:15,598 - data_source_panel - INFO - Preview loaded: 30 rows, 11 columns
+2025-05-23 14:33:15,619 - data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-05-23 14:33:15,619 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-05-23 14:33:15,619 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-05-23 14:33:37,779 - ExcelFormulaProcessor - INFO - [Session b206b7df] Starting Excel application
+2025-05-23 14:33:38,210 - ExcelFormulaProcessor - INFO - [Session b206b7df] Excel application startup complete
+2025-05-23 14:33:38,307 - ExcelFormulaProcessor - INFO - [Session b206b7df] Cleaning up Excel resources
+2025-05-23 14:33:38,375 - rule_editor_panel - INFO - Test results displayed: GC, 1 failures out of 30 items
+2025-05-23 14:33:39,975 - rule_editor_panel - ERROR - No current rule to save
+2025-05-23 14:33:44,907 - rule_editor_panel - ERROR - No current rule to save
+2025-05-23 14:34:07,473 - rule_editor_panel - ERROR - No current rule to save
+2025-05-23 14:34:31,936 - __main__ - INFO - Application closing
+2025-05-23 14:34:31,939 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 14:34:32,741 - __main__ - ERROR - ERROR: Object of type bytes is not JSON serializable
+2025-05-23 14:36:10,409 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 14:36:10,409 - ui.common.session_manager - WARNING - Error loading configuration: Expecting value: line 36 column 23 (char 1038)
+2025-05-23 14:36:10,409 - ui.common.session_manager - INFO - Attempting to restore from backup...
+2025-05-23 14:36:10,409 - ui.common.session_manager - INFO - Configuration restored from backup: data\sessions\session.backup1
+2025-05-23 14:36:10,409 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 14:36:10,410 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:36:10,410 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:36:10,411 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:36:10,411 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:36:10,444 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 14:36:10,466 - rule_selector_panel - INFO - Loaded 0 rules from rule manager
+2025-05-23 14:36:10,466 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 14:36:10,527 - __main__ - INFO - Application state restored
+2025-05-23 14:36:10,527 - __main__ - INFO - Backend systems initialized
+2025-05-23 14:36:10,527 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 14:36:17,162 - rule_editor_panel - INFO - Created new rule with ID: ad1682c4-4e93-437a-8228-c844532d547b
+2025-05-23 14:36:20,933 - __main__ - INFO - Data source changed: audit_workpapers_2025Q2.xlsx
+2025-05-23 14:36:20,933 - __main__ - INFO - Data source validation: File appears valid
+2025-05-23 14:36:21,045 - data_integration.connectors.excel_connector - ERROR - Error loading Excel file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:36:21,045 - data_integration.errors.error_handler - ERROR - Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 328, in safe_dataframe_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_openpyxl.py", line 582, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'Loading...' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 195, in get_data
+    df = retry_operation(
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 379, in retry_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 183, in load_excel
+    return safe_dataframe_operation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 344, in safe_dataframe_operation
+    raise DataIntegrationError(error_msg, details)
+data_integration.errors.error_handler.DataIntegrationError: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:36:21,046 - data_integration.io.importer - ERROR - Error previewing file C:\Users\luria\PycharmProjects\AuditQAStudio2\test_data\audit_workpapers_2025Q2.xlsx: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:36:21,047 - data_source_panel - ERROR - Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:36:21,048 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:\\\\Users\\\\luria\\\\PycharmProjects\\\\AuditQAStudio2\\\\test_data\\\\audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:36:21,240 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-05-23 14:36:21,240 - __main__ - INFO - Data preview loaded: 30 rows, 11 columns
+2025-05-23 14:36:21,241 - __main__ - INFO - Updated rule editor with 11 columns
+2025-05-23 14:36:21,241 - data_source_panel - INFO - Preview loaded: 30 rows, 11 columns
+2025-05-23 14:36:21,265 - data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-05-23 14:36:21,265 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-05-23 14:36:21,265 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-05-23 14:36:43,292 - ExcelFormulaProcessor - INFO - [Session 638ed43f] Starting Excel application
+2025-05-23 14:36:43,692 - ExcelFormulaProcessor - INFO - [Session 638ed43f] Excel application startup complete
+2025-05-23 14:36:43,786 - ExcelFormulaProcessor - INFO - [Session 638ed43f] Cleaning up Excel resources
+2025-05-23 14:36:43,852 - rule_editor_panel - INFO - Test results displayed: GC, 1 failures out of 30 items
+2025-05-23 14:36:44,997 - rule_editor_panel - INFO - Created new rule: Test1 (ad1682c4-4e93-437a-8228-c844532d547b)
+2025-05-23 14:36:44,997 - rule_selector_panel - INFO - Rule created: ad1682c4-4e93-437a-8228-c844532d547b
+2025-05-23 14:36:44,998 - rule_selector_panel - INFO - Loaded 1 rules from rule manager
+2025-05-23 14:36:45,000 - rule_selector_panel - ERROR - Error loading rules: type object 'PySide6.QtCore.Qt' has no attribute 'ItemIsTristate'
+2025-05-23 14:36:50,958 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-05-23 14:36:50,960 - ui.common.error_handler - CRITICAL - AttributeError: type object 'PySide6.QtCore.Qt' has no attribute 'ItemIsTristate'
+2025-05-23 14:38:08,967 - __main__ - ERROR - ERROR: type object 'PySide6.QtCore.Qt' has no attribute 'ItemIsTristate'
+2025-05-23 14:38:08,968 - rule_editor_panel - INFO - Rule 'Test1' created successfully
+2025-05-23 14:40:23,229 - __main__ - INFO - Application closing
+2025-05-23 14:40:23,235 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 14:40:24,252 - __main__ - ERROR - ERROR: Object of type bytes is not JSON serializable
+2025-05-23 14:40:28,100 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 14:40:28,100 - ui.common.session_manager - WARNING - Error loading configuration: Expecting value: line 38 column 23 (char 1088)
+2025-05-23 14:40:28,100 - ui.common.session_manager - INFO - Attempting to restore from backup...
+2025-05-23 14:40:28,100 - ui.common.session_manager - INFO - Configuration restored from backup: data\sessions\session.backup1
+2025-05-23 14:40:28,101 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 14:40:28,101 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:40:28,101 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:40:28,102 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:40:28,102 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:40:28,132 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 14:40:28,153 - rule_selector_panel - INFO - Loaded 1 rules from rule manager
+2025-05-23 14:40:28,153 - rule_selector_panel - ERROR - Error loading rules: type object 'PySide6.QtCore.Qt' has no attribute 'ItemIsTristate'
+2025-05-23 14:40:35,410 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 14:40:35,469 - __main__ - INFO - Application state restored
+2025-05-23 14:40:35,469 - __main__ - INFO - Backend systems initialized
+2025-05-23 14:40:35,469 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 14:40:55,336 - __main__ - INFO - Application closing
+2025-05-23 14:40:55,339 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 14:40:56,935 - __main__ - ERROR - ERROR: Object of type bytes is not JSON serializable
+2025-05-23 14:40:58,894 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 14:40:58,894 - ui.common.session_manager - WARNING - Error loading configuration: Expecting value: line 36 column 23 (char 1038)
+2025-05-23 14:40:58,894 - ui.common.session_manager - INFO - Attempting to restore from backup...
+2025-05-23 14:40:58,895 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup1 is corrupted: Expecting value: line 38 column 23 (char 1088)
+2025-05-23 14:40:58,895 - ui.common.session_manager - INFO - Configuration restored from backup: data\sessions\session.backup2
+2025-05-23 14:40:58,895 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 14:40:58,895 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:40:58,895 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:40:58,897 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:40:58,897 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:40:58,924 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 14:40:58,944 - rule_selector_panel - INFO - Loaded 1 rules from rule manager
+2025-05-23 14:40:58,945 - rule_selector_panel - ERROR - Error loading rules: type object 'PySide6.QtCore.Qt' has no attribute 'Itemflag'
+2025-05-23 14:41:04,567 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 14:41:04,629 - __main__ - INFO - Application state restored
+2025-05-23 14:41:04,629 - __main__ - INFO - Backend systems initialized
+2025-05-23 14:41:04,629 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 14:41:09,340 - __main__ - INFO - Application closing
+2025-05-23 14:41:09,344 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 14:41:10,472 - __main__ - ERROR - ERROR: Object of type bytes is not JSON serializable
+2025-05-23 14:41:12,316 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 14:41:12,316 - ui.common.session_manager - WARNING - Error loading configuration: Expecting value: line 36 column 23 (char 1038)
+2025-05-23 14:41:12,316 - ui.common.session_manager - INFO - Attempting to restore from backup...
+2025-05-23 14:41:12,316 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup1 is corrupted: Expecting value: line 36 column 23 (char 1038)
+2025-05-23 14:41:12,317 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup2 is corrupted: Expecting value: line 38 column 23 (char 1088)
+2025-05-23 14:41:12,317 - ui.common.session_manager - INFO - Configuration restored from backup: data\sessions\session.backup3
+2025-05-23 14:41:12,317 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 14:41:12,317 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:41:12,317 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:41:12,319 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:41:12,319 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:41:12,344 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 14:41:12,364 - rule_selector_panel - INFO - Loaded 1 rules from rule manager
+2025-05-23 14:41:12,364 - rule_selector_panel - ERROR - Error loading rules: type object 'ItemFlag' has no attribute 'ItemIsTristate'
+2025-05-23 14:41:15,172 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 14:41:15,231 - __main__ - INFO - Application state restored
+2025-05-23 14:41:15,231 - __main__ - INFO - Backend systems initialized
+2025-05-23 14:41:15,232 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 14:42:14,976 - __main__ - INFO - Application closing
+2025-05-23 14:42:14,980 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 14:42:16,093 - __main__ - ERROR - ERROR: Object of type bytes is not JSON serializable
+2025-05-23 14:42:17,848 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 14:42:17,848 - ui.common.session_manager - WARNING - Error loading configuration: Expecting value: line 36 column 23 (char 1038)
+2025-05-23 14:42:17,848 - ui.common.session_manager - INFO - Attempting to restore from backup...
+2025-05-23 14:42:17,848 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup1 is corrupted: Expecting value: line 36 column 23 (char 1038)
+2025-05-23 14:42:17,848 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup2 is corrupted: Expecting value: line 36 column 23 (char 1038)
+2025-05-23 14:42:17,848 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup3 is corrupted: Expecting value: line 38 column 23 (char 1088)
+2025-05-23 14:42:17,848 - ui.common.session_manager - WARNING - Using default configuration
+2025-05-23 14:42:17,849 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 14:42:17,849 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:42:17,849 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:42:17,850 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:42:17,850 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:42:17,877 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 14:42:17,899 - rule_selector_panel - INFO - Loaded 1 rules from rule manager
+2025-05-23 14:42:17,903 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 14:42:18,962 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 14:42:19,633 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 14:42:19,710 - __main__ - INFO - Application state restored
+2025-05-23 14:42:19,710 - __main__ - INFO - Backend systems initialized
+2025-05-23 14:42:19,710 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 14:42:26,325 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 14:42:26,325 - ui.common.session_manager - WARNING - Error loading configuration: Expecting value: line 34 column 23 (char 894)
+2025-05-23 14:42:26,325 - ui.common.session_manager - INFO - Attempting to restore from backup...
+2025-05-23 14:42:26,325 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup1 is corrupted: Expecting value: line 34 column 23 (char 894)
+2025-05-23 14:42:26,325 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup2 is corrupted: Expecting value: line 36 column 23 (char 1038)
+2025-05-23 14:42:26,326 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup3 is corrupted: Expecting value: line 36 column 23 (char 1038)
+2025-05-23 14:42:26,326 - ui.common.session_manager - WARNING - Using default configuration
+2025-05-23 14:42:26,326 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 14:42:26,326 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:42:26,326 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:42:26,327 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:42:26,327 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:42:26,356 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 14:42:26,376 - rule_selector_panel - INFO - Loaded 1 rules from rule manager
+2025-05-23 14:42:26,379 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 14:42:27,368 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 14:42:28,102 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 14:42:28,165 - __main__ - INFO - Application state restored
+2025-05-23 14:42:28,165 - __main__ - INFO - Backend systems initialized
+2025-05-23 14:42:28,165 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 14:42:43,218 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 14:42:44,123 - __main__ - ERROR - ERROR: Object of type bytes is not JSON serializable
+2025-05-23 14:42:50,514 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 14:42:51,899 - __main__ - ERROR - ERROR: Object of type bytes is not JSON serializable
+2025-05-23 14:43:00,927 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 14:43:30,690 - __main__ - ERROR - ERROR: Object of type bytes is not JSON serializable
+2025-05-23 14:43:32,571 - __main__ - INFO - Application closing
+2025-05-23 14:43:32,573 - ui.common.error_handler - CRITICAL - TypeError: Object of type bytes is not JSON serializable
+2025-05-23 14:43:33,615 - __main__ - ERROR - ERROR: Object of type bytes is not JSON serializable
+2025-05-23 14:44:29,364 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 14:44:29,364 - ui.common.session_manager - WARNING - Error loading configuration: Expecting value: line 36 column 23 (char 1038)
+2025-05-23 14:44:29,365 - ui.common.session_manager - INFO - Attempting to restore from backup...
+2025-05-23 14:44:29,365 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup1 is corrupted: Expecting value: line 36 column 23 (char 1038)
+2025-05-23 14:44:29,365 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup2 is corrupted: Expecting value: line 36 column 23 (char 1038)
+2025-05-23 14:44:29,366 - ui.common.session_manager - WARNING - Backup file data\sessions\session.backup3 is corrupted: Expecting value: line 36 column 23 (char 1038)
+2025-05-23 14:44:29,366 - ui.common.session_manager - WARNING - Using default configuration
+2025-05-23 14:44:29,366 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 14:44:29,366 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:44:29,367 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:44:29,368 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:44:29,368 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:44:29,406 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 14:44:29,434 - rule_selector_panel - INFO - Loaded 1 rules from rule manager
+2025-05-23 14:44:29,439 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 14:44:29,512 - __main__ - INFO - Application state restored
+2025-05-23 14:44:29,512 - __main__ - INFO - Backend systems initialized
+2025-05-23 14:44:29,512 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 14:44:36,641 - __main__ - INFO - Data source changed: audit_workpapers_2025Q2.xlsx
+2025-05-23 14:44:36,641 - __main__ - INFO - Data source validation: File appears valid
+2025-05-23 14:44:36,751 - data_integration.connectors.excel_connector - ERROR - Error loading Excel file C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:44:36,752 - data_integration.errors.error_handler - ERROR - Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 328, in safe_dataframe_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_openpyxl.py", line 582, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'Loading...' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 195, in get_data
+    df = retry_operation(
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 379, in retry_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 183, in load_excel
+    return safe_dataframe_operation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 344, in safe_dataframe_operation
+    raise DataIntegrationError(error_msg, details)
+data_integration.errors.error_handler.DataIntegrationError: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:44:36,753 - data_integration.io.importer - ERROR - Error previewing file C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:44:36,753 - data_source_panel - ERROR - Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:44:36,755 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 14:44:36,938 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-05-23 14:44:36,939 - __main__ - INFO - Data preview loaded: 30 rows, 11 columns
+2025-05-23 14:44:36,939 - __main__ - INFO - Updated rule editor with 11 columns
+2025-05-23 14:44:36,940 - data_source_panel - INFO - Preview loaded: 30 rows, 11 columns
+2025-05-23 14:44:36,948 - data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-05-23 14:44:36,949 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-05-23 14:44:36,949 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-05-23 14:44:55,801 - rule_editor_panel - INFO - Created new rule with ID: e81f9ee5-11e8-4640-a6f2-948e37ad5105
+2025-05-23 14:44:55,801 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 14:44:55,803 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 14:45:43,268 - ExcelFormulaProcessor - INFO - [Session 1e04a8ab] Starting Excel application
+2025-05-23 14:45:43,681 - ExcelFormulaProcessor - INFO - [Session 1e04a8ab] Excel application startup complete
+2025-05-23 14:45:43,778 - ExcelFormulaProcessor - INFO - [Session 1e04a8ab] Cleaning up Excel resources
+2025-05-23 14:45:43,848 - rule_editor_panel - INFO - Test results displayed: PC, 3 failures out of 30 items
+2025-05-23 14:45:50,566 - rule_editor_panel - INFO - Created new rule: Test2 (e81f9ee5-11e8-4640-a6f2-948e37ad5105)
+2025-05-23 14:45:50,566 - rule_selector_panel - INFO - Rule created: e81f9ee5-11e8-4640-a6f2-948e37ad5105
+2025-05-23 14:45:50,567 - rule_selector_panel - INFO - Loaded 2 rules from rule manager
+2025-05-23 14:45:50,568 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 14:45:50,570 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 14:45:50,573 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 14:45:50,574 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 14:45:50,576 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-05-23 14:45:50,576 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-05-23 14:45:50,578 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-05-23 14:45:50,579 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-05-23 14:45:50,581 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-05-23 14:45:50,584 - rule_editor_panel - INFO - Rule 'Test2' created successfully
+2025-05-23 14:46:13,627 - __main__ - INFO - Rule selection changed: 2 rules selected
+2025-05-23 14:46:17,480 - __main__ - INFO - Starting validation with 2 rules
+2025-05-23 14:46:17,480 - __main__ - INFO - Using Excel sheet: Workpapers
+2025-05-23 14:46:17,487 - services.validation_service - INFO - Initializing report generator with default configuration
+2025-05-23 14:46:17,494 - __main__ - INFO - Validation started
+2025-05-23 14:46:17,495 - ExcelFormulaProcessor - INFO - [Session 1ee154e0] Starting Excel application
+2025-05-23 14:46:17,867 - ExcelFormulaProcessor - INFO - [Session 1ee154e0] Excel application startup complete
+2025-05-23 14:46:17,934 - ExcelFormulaProcessor - INFO - [Session 1ee154e0] Cleaning up Excel resources
+2025-05-23 14:46:17,998 - ExcelFormulaProcessor - INFO - [Session 372b6744] Starting Excel application
+2025-05-23 14:46:18,352 - ExcelFormulaProcessor - INFO - [Session 372b6744] Excel application startup complete
+2025-05-23 14:46:18,422 - ExcelFormulaProcessor - INFO - [Session 372b6744] Cleaning up Excel resources
+2025-05-23 14:46:18,479 - services.validation_service - INFO - Generating detailed Excel report: output\Analytics_Validation_20250523_144617_20250523_144618_detailed_report.xlsx
+2025-05-23 14:46:18,484 - reporting.generation.report_generator - INFO - Generating Excel report at output\Analytics_Validation_20250523_144617_20250523_144618_detailed_report.xlsx
+2025-05-23 14:46:18,529 - reporting.generation.report_generator - INFO - Excel report successfully generated at output\Analytics_Validation_20250523_144617_20250523_144618_detailed_report.xlsx
+2025-05-23 14:46:18,529 - services.validation_service - INFO - Excel report generated successfully
+2025-05-23 14:46:18,529 - __main__ - INFO - Validation completed successfully
+2025-05-23 14:47:53,122 - __main__ - INFO - Application closing
+2025-05-23 14:47:53,124 - rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-05-23 14:47:53,128 - __main__ - INFO - Application state saved
+2025-05-23 14:49:27,443 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 14:49:27,443 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-05-23 14:49:27,444 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 14:49:27,444 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:49:27,444 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:49:27,448 - ui.common.error_handler - ERROR - AttributeError: type object 'AnalyticsRunnerStylesheet' has no attribute 'FONT_SIZE_REGULAR'
+2025-05-23 14:49:31,674 - ui.common.error_handler - CRITICAL - AttributeError: 'AnalyticsRunnerApp' object has no attribute 'log_view'
+2025-05-23 14:49:36,124 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 14:49:36,125 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-05-23 14:49:36,125 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 14:49:36,125 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:49:36,125 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:49:36,127 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:49:36,127 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:49:36,168 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 14:49:36,190 - rule_selector_panel - INFO - Loaded 2 rules from rule manager
+2025-05-23 14:49:36,197 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 14:49:36,306 - __main__ - INFO - Application state restored
+2025-05-23 14:49:36,306 - __main__ - INFO - Backend systems initialized
+2025-05-23 14:49:36,306 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 14:50:31,999 - __main__ - INFO - Application closing
+2025-05-23 14:50:32,000 - rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-05-23 14:50:32,004 - __main__ - INFO - Application state saved
+2025-05-23 14:51:25,531 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 14:51:25,532 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-05-23 14:51:25,532 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 14:51:25,532 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:51:25,532 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:51:25,533 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:51:25,533 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:51:25,562 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 14:51:25,585 - rule_selector_panel - INFO - Loaded 2 rules from rule manager
+2025-05-23 14:51:25,593 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 14:51:25,699 - __main__ - INFO - Application state restored
+2025-05-23 14:51:25,699 - __main__ - INFO - Backend systems initialized
+2025-05-23 14:51:25,699 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 14:51:31,036 - rule_editor_panel - INFO - Created new rule with ID: 151018fd-22f3-44c4-afe5-50e34f575b8f
+2025-05-23 14:51:33,835 - rule_editor_panel - INFO - Created new rule with ID: 9f6f021b-1517-4569-8d07-43752b01ea7d
+2025-05-23 14:51:33,835 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 14:51:33,837 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 14:51:33,839 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 14:51:33,840 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 14:52:00,316 - __main__ - INFO - Application closing
+2025-05-23 14:52:00,318 - rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-05-23 14:52:00,323 - __main__ - INFO - Application state saved
+2025-05-23 14:52:24,019 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 14:52:24,020 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-05-23 14:52:24,020 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 14:52:24,020 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:52:24,020 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:52:24,021 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:52:24,022 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:52:24,055 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 14:52:24,076 - rule_selector_panel - INFO - Loaded 2 rules from rule manager
+2025-05-23 14:52:24,084 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 14:52:24,227 - __main__ - INFO - Application state restored
+2025-05-23 14:52:24,227 - __main__ - INFO - Backend systems initialized
+2025-05-23 14:52:24,228 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 14:52:31,740 - rule_editor_panel - INFO - Created new rule with ID: f375a9e9-4194-4ede-a509-3564469c827b
+2025-05-23 14:52:31,741 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 14:52:31,742 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 14:52:31,744 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 14:52:31,745 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 14:52:37,188 - __main__ - INFO - Application closing
+2025-05-23 14:52:37,190 - rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-05-23 14:52:37,196 - __main__ - INFO - Application state saved
+2025-05-23 14:54:02,729 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 14:54:02,730 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-05-23 14:54:02,730 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 14:54:02,730 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:54:02,730 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:54:02,732 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:54:02,732 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:54:02,762 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 14:54:02,785 - rule_selector_panel - INFO - Loaded 2 rules from rule manager
+2025-05-23 14:54:02,793 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 14:54:02,907 - __main__ - INFO - Application state restored
+2025-05-23 14:54:02,907 - __main__ - INFO - Backend systems initialized
+2025-05-23 14:54:02,907 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 14:54:07,376 - rule_editor_panel - INFO - Created new rule with ID: 66c8a141-9200-4cf5-9fcd-9e00c5f0440f
+2025-05-23 14:54:07,377 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 14:54:07,379 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 14:54:07,380 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 14:54:07,382 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 14:54:11,701 - __main__ - INFO - Application closing
+2025-05-23 14:54:11,703 - rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-05-23 14:54:11,706 - __main__ - INFO - Application state saved
+2025-05-23 14:54:22,799 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 14:54:22,799 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-05-23 14:54:22,800 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 14:54:22,800 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:54:22,800 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:54:22,801 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:54:22,801 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:54:22,828 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 14:54:22,848 - rule_selector_panel - INFO - Loaded 2 rules from rule manager
+2025-05-23 14:54:22,854 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 14:54:22,959 - __main__ - INFO - Application state restored
+2025-05-23 14:54:22,959 - __main__ - INFO - Backend systems initialized
+2025-05-23 14:54:22,959 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 14:54:24,314 - __main__ - INFO - Application closing
+2025-05-23 14:54:24,316 - rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-05-23 14:54:24,321 - __main__ - INFO - Application state saved
+2025-05-23 14:55:17,337 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 14:55:17,338 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-05-23 14:55:17,338 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 14:55:17,339 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:55:17,339 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:55:17,341 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:55:17,341 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:55:17,383 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 14:55:17,405 - rule_selector_panel - INFO - Loaded 2 rules from rule manager
+2025-05-23 14:55:17,412 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 14:55:17,526 - __main__ - INFO - Application state restored - defaulted to Simple Mode
+2025-05-23 14:55:17,526 - __main__ - INFO - Backend systems initialized
+2025-05-23 14:55:17,526 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 14:56:03,630 - __main__ - INFO - Application closing
+2025-05-23 14:56:03,631 - rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-05-23 14:56:03,635 - __main__ - INFO - Application state saved
+2025-05-23 14:57:00,504 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 14:57:00,505 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-05-23 14:57:00,505 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 14:57:00,505 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:57:00,505 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:57:00,506 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:57:00,507 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:57:00,538 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 14:57:00,561 - rule_selector_panel - INFO - Loaded 2 rules from rule manager
+2025-05-23 14:57:00,568 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 14:57:00,680 - __main__ - INFO - Application state restored - defaulted to Simple Mode
+2025-05-23 14:57:00,680 - __main__ - INFO - Backend systems initialized
+2025-05-23 14:57:00,680 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 14:58:26,346 - __main__ - INFO - Application closing
+2025-05-23 14:58:26,348 - rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-05-23 14:58:26,352 - __main__ - INFO - Application state saved
+2025-05-23 14:58:40,107 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 14:58:40,107 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-05-23 14:58:40,108 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 14:58:40,108 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:58:40,108 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:58:40,110 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 14:58:40,110 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 14:58:40,145 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 14:58:40,167 - rule_selector_panel - INFO - Loaded 2 rules from rule manager
+2025-05-23 14:58:40,174 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 14:58:40,287 - __main__ - INFO - Application state restored - defaulted to Simple Mode
+2025-05-23 14:58:40,287 - __main__ - INFO - Backend systems initialized
+2025-05-23 14:58:40,287 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 14:59:46,395 - __main__ - INFO - Application closing
+2025-05-23 14:59:46,397 - rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-05-23 14:59:46,401 - __main__ - INFO - Application state saved
+2025-05-23 15:00:10,414 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 15:00:10,415 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-05-23 15:00:10,415 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 15:00:10,415 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 15:00:10,415 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 15:00:10,416 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 15:00:10,416 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 15:00:10,450 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 15:00:10,473 - rule_selector_panel - INFO - Loaded 2 rules from rule manager
+2025-05-23 15:00:10,480 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 15:00:10,591 - __main__ - INFO - Application state restored - defaulted to Simple Mode
+2025-05-23 15:00:10,592 - __main__ - INFO - Backend systems initialized
+2025-05-23 15:00:10,592 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 15:00:35,612 - __main__ - INFO - Application closing
+2025-05-23 15:00:35,614 - rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-05-23 15:00:35,618 - __main__ - INFO - Application state saved
+2025-05-23 15:03:45,944 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 15:03:45,945 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-05-23 15:03:45,945 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 15:03:45,946 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 15:03:45,946 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 15:03:45,948 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 15:03:45,948 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 15:03:45,986 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 15:03:46,007 - rule_selector_panel - INFO - Loaded 2 rules from rule manager
+2025-05-23 15:03:46,014 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 15:03:46,126 - __main__ - INFO - Application state restored - defaulted to Simple Mode
+2025-05-23 15:03:46,126 - __main__ - INFO - Backend systems initialized
+2025-05-23 15:03:46,127 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 15:03:59,046 - __main__ - INFO - Data source changed: audit_workpapers_2025Q2.xlsx
+2025-05-23 15:03:59,046 - __main__ - INFO - Data source validation: File appears valid
+2025-05-23 15:03:59,165 - data_integration.connectors.excel_connector - ERROR - Error loading Excel file C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 15:03:59,165 - data_integration.errors.error_handler - ERROR - Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 328, in safe_dataframe_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 508, in read_excel
+    data = io.parse(
+           ^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 1616, in parse
+    return self._reader.parse(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 773, in parse
+    sheet = self.get_sheet_by_name(asheetname)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_openpyxl.py", line 582, in get_sheet_by_name
+    self.raise_if_bad_sheet_by_name(name)
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\.venv\Lib\site-packages\pandas\io\excel\_base.py", line 624, in raise_if_bad_sheet_by_name
+    raise ValueError(f"Worksheet named '{name}' not found")
+ValueError: Worksheet named 'Loading...' not found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 195, in get_data
+    df = retry_operation(
+         ^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 379, in retry_operation
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\connectors\excel_connector.py", line 183, in load_excel
+    return safe_dataframe_operation(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\luria\PycharmProjects\QAStudiov3\data_integration\errors\error_handler.py", line 344, in safe_dataframe_operation
+    raise DataIntegrationError(error_msg, details)
+data_integration.errors.error_handler.DataIntegrationError: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 15:03:59,166 - data_integration.io.importer - ERROR - Error previewing file C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 15:03:59,166 - data_source_panel - ERROR - Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 15:03:59,168 - data_source_panel - ERROR - Preview error: Error loading file preview: Failed to load data from ExcelConnector: Error executing read_excel: Worksheet named 'Loading...' not found - Details: {"function": "read_excel", "args": "('C:/Users/luria/PycharmProjects/AuditQAStudio2/test_data/audit_workpapers_2025Q2.xlsx',)", "kwargs": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}} - Details: {"source_name": "ExcelConnector", "params": {"sheet_name": "Loading...", "header": 0, "nrows": 50, "na_values": ["#N/A", "#N/A N/A", "#NA", "-NA", "#NULL!", "#NUM!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#DIV/0", "#NUM", "#REF", "#VALUE"], "engine": "openpyxl", "parse_dates": true}}
+2025-05-23 15:03:59,507 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-05-23 15:03:59,508 - __main__ - INFO - Data preview loaded: 30 rows, 11 columns
+2025-05-23 15:03:59,508 - __main__ - INFO - Updated rule editor with 11 columns
+2025-05-23 15:03:59,509 - data_source_panel - INFO - Preview loaded: 30 rows, 11 columns
+2025-05-23 15:03:59,525 - data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-05-23 15:03:59,526 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-05-23 15:03:59,526 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-05-23 15:04:04,492 - rule_editor_panel - INFO - Created new rule with ID: 8e7fa72e-4e09-4279-914b-b7f12ded88a9
+2025-05-23 15:04:04,492 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:04:04,494 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:04:04,496 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:04:04,497 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:04:40,736 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:04:40,739 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:04:40,741 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:04:40,743 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:05:14,068 - __main__ - INFO - Application closing
+2025-05-23 15:05:14,069 - rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-05-23 15:05:14,073 - __main__ - INFO - Application state saved
+2025-05-23 15:05:41,082 - ui.common.error_handler - INFO - Error handler initialized
+2025-05-23 15:05:41,083 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-05-23 15:05:41,083 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-05-23 15:05:41,083 - data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 15:05:41,083 - data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 15:05:41,085 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-05-23 15:05:41,085 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-05-23 15:05:41,141 - rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-05-23 15:05:41,167 - rule_selector_panel - INFO - Loaded 2 rules from rule manager
+2025-05-23 15:05:41,175 - rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-05-23 15:05:41,292 - __main__ - INFO - Application state restored - defaulted to Simple Mode
+2025-05-23 15:05:41,292 - __main__ - INFO - Backend systems initialized
+2025-05-23 15:05:41,292 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-05-23 15:05:48,475 - rule_selector_panel - INFO - Loaded 2 rules from rule manager
+2025-05-23 15:05:48,476 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:05:48,479 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:05:48,481 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:05:48,482 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:05:50,788 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:05:50,790 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:05:50,792 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:05:50,794 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:05:51,923 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:05:51,926 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:05:51,928 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:05:51,930 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:05:59,143 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:05:59,146 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:06:00,757 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:06:00,763 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:06:00,766 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:06:00,768 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:06:03,926 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-05-23 15:06:06,568 - rule_selector_panel - INFO - Loaded 1 rules from rule manager
+2025-05-23 15:06:06,569 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:06:06,571 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:06:06,572 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:06:06,572 - rule_selector_panel - INFO - Deleted rule: Test2 (e81f9ee5-11e8-4640-a6f2-948e37ad5105)
+2025-05-23 15:06:07,728 - rule_selector_panel - INFO - Loaded 1 rules from rule manager
+2025-05-23 15:06:07,729 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:06:07,731 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-05-23 15:06:20,340 - __main__ - INFO - Application closing
+2025-05-23 15:06:20,342 - rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-05-23 15:06:20,346 - __main__ - INFO - Application state saved

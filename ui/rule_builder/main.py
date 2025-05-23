@@ -37,7 +37,7 @@ def main():
     else:
         # Try to find rules directory in common locations
         possible_paths = [
-            "./rules",  # Current directory
+            "data/rules",  # Current directory
             "../rules",  # Parent directory
             os.path.expanduser("~/rules"),  # Home directory
         ]

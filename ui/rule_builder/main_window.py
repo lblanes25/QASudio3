@@ -4,11 +4,11 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 
 from rule_model import RuleModel
-from simple_rule_editor import SimpleRuleEditor
-from advanced_rule_editor import AdvancedRuleEditor
-from rule_preview_panel import RulePreviewPanel
-from rule_test_panel import RuleTestPanel
-from data_loader_panel import DataLoaderPanel
+from ui.rule_builder.editors.simple_rule_editor import SimpleRuleEditor
+from ui.rule_builder.editors.advanced_rule_editor import AdvancedRuleEditor
+from ui.rule_builder.panels.rule_preview_panel import RulePreviewPanel
+from ui.rule_builder.panels.rule_test_panel import RuleTestPanel
+from ui.rule_builder.panels.data_loader_panel import DataLoaderPanel
 
 from core.rule_engine.rule_manager import ValidationRuleManager
 from stylesheet import Stylesheet

@@ -1,0 +1,62 @@
+2025-05-23 13:02:16,398 - INFO - Initializing project reorganization
+2025-05-23 13:02:16,398 - INFO - Project root: C:\Users\luria\PycharmProjects\QAStudiov3
+2025-05-23 13:02:16,398 - INFO - Dry run mode: True
+2025-05-23 13:02:16,398 - INFO - Starting project reorganization...
+2025-05-23 13:02:16,398 - INFO - DRY RUN: Would create backup directory
+2025-05-23 13:02:16,398 - INFO - DRY RUN: Would create directory: ui/common
+2025-05-23 13:02:16,398 - INFO - DRY RUN: Would create directory: ui/common/widgets
+2025-05-23 13:02:16,398 - INFO - DRY RUN: Would create directory: ui/analytics_runner/dialogs
+2025-05-23 13:02:16,398 - INFO - DRY RUN: Would create directory: ui/rule_builder/editors
+2025-05-23 13:02:16,399 - INFO - DRY RUN: Would create directory: ui/rule_builder/panels
+2025-05-23 13:02:16,399 - INFO - DRY RUN: Would create directory: tests/unit/core
+2025-05-23 13:02:16,399 - INFO - DRY RUN: Would create directory: tests/unit/data_integration
+2025-05-23 13:02:16,399 - INFO - DRY RUN: Would create directory: tests/unit/business_logic
+2025-05-23 13:02:16,399 - INFO - DRY RUN: Would create directory: tests/unit/services
+2025-05-23 13:02:16,399 - INFO - DRY RUN: Would create directory: tests/integration
+2025-05-23 13:02:16,399 - INFO - DRY RUN: Would create directory: tests/ui/analytics_runner
+2025-05-23 13:02:16,399 - INFO - DRY RUN: Would create directory: tests/ui/rule_builder
+2025-05-23 13:02:16,399 - INFO - DRY RUN: Would create directory: data/rules
+2025-05-23 13:02:16,400 - INFO - DRY RUN: Would create directory: data/sessions
+2025-05-23 13:02:16,400 - INFO - DRY RUN: Would create directory: data/logs
+2025-05-23 13:02:16,400 - INFO - DRY RUN: Would create directory: data/temp
+2025-05-23 13:02:16,400 - INFO - ==================================================
+2025-05-23 13:02:16,400 - INFO - PHASE 1: Moving Common Components
+2025-05-23 13:02:16,400 - INFO - ==================================================
+2025-05-23 13:02:16,449 - INFO - ==================================================
+2025-05-23 13:02:16,449 - INFO - PHASE 2: Reorganizing Analytics Runner
+2025-05-23 13:02:16,449 - INFO - ==================================================
+2025-05-23 13:02:16,451 - INFO - ==================================================
+2025-05-23 13:02:16,451 - INFO - PHASE 3: Reorganizing Rule Builder
+2025-05-23 13:02:16,451 - INFO - ==================================================
+2025-05-23 13:02:16,455 - INFO - ==================================================
+2025-05-23 13:02:16,456 - INFO - PHASE 4: Reorganizing Tests
+2025-05-23 13:02:16,456 - INFO - ==================================================
+2025-05-23 13:02:16,473 - INFO - ==================================================
+2025-05-23 13:02:16,473 - INFO - PHASE 5: Consolidating Data Files
+2025-05-23 13:02:16,473 - INFO - ==================================================
+2025-05-23 13:02:16,482 - INFO - ==================================================
+2025-05-23 13:02:16,482 - INFO - PHASE 6: Cleaning Up
+2025-05-23 13:02:16,482 - INFO - ==================================================
+2025-05-23 13:02:16,482 - INFO - DRY RUN: Would remove directory: ui/analytics_runner/session_backups
+2025-05-23 13:02:16,482 - INFO - DRY RUN: Would remove directory: session_backups
+2025-05-23 13:02:16,482 - INFO - DRY RUN: Would remove directory: test_output
+2025-05-23 13:02:16,483 - INFO - DRY RUN: Would remove duplicate: ui/analytics_runner/session.json
+2025-05-23 13:02:16,483 - INFO - DRY RUN: Would remove duplicate: ui/analytics_runner/data_sources.json
+2025-05-23 13:02:16,483 - INFO - ==================================================
+2025-05-23 13:02:16,483 - INFO - PHASE 7: Creating Import Helpers
+2025-05-23 13:02:16,483 - INFO - ==================================================
+2025-05-23 13:02:16,483 - INFO - DRY RUN: Would create import helper files
+2025-05-23 13:02:16,483 - INFO - ==================================================
+2025-05-23 13:02:16,483 - INFO - PHASE 8: Updating .gitignore
+2025-05-23 13:02:16,483 - INFO - ==================================================
+2025-05-23 13:02:16,483 - INFO - DRY RUN: Would update .gitignore
+2025-05-23 13:02:16,484 - INFO - ============================================================
+2025-05-23 13:02:16,484 - INFO - REORGANIZATION SUMMARY
+2025-05-23 13:02:16,484 - INFO - ============================================================
+2025-05-23 13:02:16,484 - INFO - DRY RUN COMPLETED - No files were actually moved
+2025-05-23 13:02:16,484 - INFO - 
+Next steps:
+2025-05-23 13:02:16,484 - INFO - 1. Update import statements in Python files
+2025-05-23 13:02:16,484 - INFO - 2. Test the application to ensure everything works
+2025-05-23 13:02:16,484 - INFO - 3. Commit the reorganized structure
+2025-05-23 13:02:16,484 - INFO - 4. Remove backup directory when satisfied

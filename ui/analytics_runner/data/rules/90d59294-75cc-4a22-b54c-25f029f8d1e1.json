@@ -1,0 +1,17 @@
+{
+  "rule_id": "90d59294-75cc-4a22-b54c-25f029f8d1e1",
+  "name": "Test Save Rule",
+  "formula": "=[Column1]<>''",
+  "description": "Test rule to verify save functionality",
+  "threshold": 1.0,
+  "metadata": {
+    "severity": "medium",
+    "category": "data_quality",
+    "tags": [
+      "test",
+      "save_test"
+    ],
+    "title": "Test Save Rule",
+    "created_at": "2025-05-23T14:32:06.164777"
+  }
+}

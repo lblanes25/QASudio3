@@ -296,7 +296,7 @@ class ValidationRuleManager:
         Args:
             rules_directory: Directory to store rule files
         """
-        self.rules_directory = Path(rules_directory) if rules_directory else Path("./rules")
+        self.rules_directory = Path(rules_directory) if rules_directory else Path("data/rules")
         self.rules: Dict[str, ValidationRule] = {}
         self.parser = ValidationRuleParser()
 
