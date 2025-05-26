@@ -42,6 +42,11 @@ def set_dataframe_value(df, row_idx, col_name, value):
             temp_values[row_idx] = value
             # Assign back to DataFrame
             df[col_name] = temp_values
+        # If column is numeric but value is boolean, convert boolean to appropriate numeric type
+        elif pd.api.types.is_numeric_dtype(current_dtype) and isinstance(value, bool):
+            # Convert boolean to numeric: True->1, False->0
+            numeric_value = float(value) if pd.api.types.is_float_dtype(current_dtype) else int(value)
+            df.at[row_idx, col_name] = numeric_value
         # If column is string/object but value is numeric, just set it
         elif pd.api.types.is_object_dtype(current_dtype) and isinstance(value, (int, float, np.number)):
             df.at[row_idx, col_name] = str(value)
@@ -56,9 +61,20 @@ def set_dataframe_value(df, row_idx, col_name, value):
                 temp_values = df[col_name].astype(object).values
                 temp_values[row_idx] = value
                 df[col_name] = temp_values
-        # Otherwise just set the value
+        # Otherwise check for any remaining type compatibility issues
         else:
-            df.at[row_idx, col_name] = value
+            # Check if we're trying to assign an incompatible type
+            if (pd.api.types.is_numeric_dtype(current_dtype) and 
+                not isinstance(value, (int, float, np.number, type(None))) and 
+                not pd.isna(value)):
+                # Convert column to object type to allow mixed types
+                logger.debug(f"Converting column {col_name} from {current_dtype} to object type for value {value}")
+                temp_values = df[col_name].astype(object).values
+                temp_values[row_idx] = value
+                df[col_name] = temp_values
+            else:
+                # Safe to assign directly
+                df.at[row_idx, col_name] = value
             
     except Exception as e:
         logger.warning(f"Error setting {value} in {col_name} at index {row_idx}: {str(e)}")
@@ -74,5 +90,16 @@ def set_dataframe_value(df, row_idx, col_name, value):
             df[col_name] = temp_series
         except Exception as e:
             logger.error(f"Failed to set value even with fallback method: {str(e)}")
-            # Last resort: just try to set it directly and accept any warnings
-            df.at[row_idx, col_name] = value
+            # Last resort: try type conversion before direct assignment
+            try:
+                current_dtype = df[col_name].dtype
+                if pd.api.types.is_numeric_dtype(current_dtype) and isinstance(value, bool):
+                    # Convert boolean to numeric to avoid FutureWarning
+                    numeric_value = float(value) if pd.api.types.is_float_dtype(current_dtype) else int(value)
+                    df.at[row_idx, col_name] = numeric_value
+                else:
+                    # Direct assignment as last resort
+                    df.at[row_idx, col_name] = value
+            except Exception:
+                # If all else fails, just set it and accept any warnings
+                df.at[row_idx, col_name] = value

@@ -10,9 +10,10 @@ from pathlib import Path
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QFrame, QScrollArea, QGroupBox, QTextEdit, QProgressBar,
-    QSizePolicy, QTreeWidget, QTreeWidgetItem, QHeaderView
+    QSizePolicy, QTreeWidget, QTreeWidgetItem, QHeaderView,
+    QToolButton
 )
-from PySide6.QtCore import Qt, Signal, QThread, QTimer
+from PySide6.QtCore import Qt, Signal, QThread, QTimer, QPropertyAnimation, QEasingCurve
 from PySide6.QtGui import QFont, QPalette
 
 from ui.common.stylesheet import AnalyticsRunnerStylesheet
@@ -137,6 +138,7 @@ class PreValidationWidget(QWidget):
 
     # Signals
     validationStatusChanged = Signal(bool, str)  # Is valid, status message
+    validationResultsReady = Signal(dict)  # Full validation results for logging
 
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
@@ -146,6 +148,8 @@ class PreValidationWidget(QWidget):
         self._is_valid = False
         self._has_warnings = False
         self._worker = None
+        self._is_collapsed = False
+        self._auto_collapse_enabled = True
 
         # Setup UI
         self._setup_ui()
@@ -214,12 +218,36 @@ class PreValidationWidget(QWidget):
         self.stats_label.setFont(AnalyticsRunnerStylesheet.get_fonts()['small'])
         self.stats_label.setAlignment(Qt.AlignRight)
         status_layout.addWidget(self.stats_label)
+        
+        # Toggle button for expand/collapse
+        self.toggle_button = QToolButton()
+        self.toggle_button.setArrowType(Qt.DownArrow)
+        self.toggle_button.setToolTip("Show/Hide validation details")
+        self.toggle_button.clicked.connect(self.toggle_collapse)
+        self.toggle_button.setStyleSheet(f"""
+            QToolButton {{
+                border: none;
+                background: transparent;
+                padding: 4px;
+            }}
+            QToolButton:hover {{
+                background-color: {AnalyticsRunnerStylesheet.ACCENT_COLOR};
+                border-radius: 4px;
+            }}
+        """)
+        status_layout.addWidget(self.toggle_button)
 
         # Initialize with neutral styling
         self._update_status_display("ready")
 
     def _create_results_area(self, parent_layout):
         """Create the validation results display area with better sizing."""
+        # Container widget for collapsible content
+        self.results_container = QWidget()
+        self.results_container_layout = QVBoxLayout(self.results_container)
+        self.results_container_layout.setContentsMargins(0, 0, 0, 0)
+        self.results_container_layout.setSpacing(8)
+        
         # Results tree widget with improved sizing
         self.results_tree = QTreeWidget()
         self.results_tree.setHeaderLabels(["Rule", "Status", "Issues"])
@@ -242,7 +270,7 @@ class PreValidationWidget(QWidget):
 
         # Initially hidden
         self.results_tree.setVisible(False)
-        parent_layout.addWidget(self.results_tree)
+        self.results_container_layout.addWidget(self.results_tree)
 
         # Error/warning summary text with better sizing
         self.summary_text = QTextEdit()
@@ -256,7 +284,10 @@ class PreValidationWidget(QWidget):
         # Set size policy for better resizing
         self.summary_text.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        parent_layout.addWidget(self.summary_text)
+        self.results_container_layout.addWidget(self.summary_text)
+        
+        # Add container to parent layout
+        parent_layout.addWidget(self.results_container)
 
     def _setup_connections(self):
         """Setup signal connections."""
@@ -433,9 +464,22 @@ class PreValidationWidget(QWidget):
         self.results_tree.setVisible(True)
         if errors or warnings:
             self.summary_text.setVisible(True)
+            
+        # Auto-collapse if validation passed and auto-collapse is enabled
+        if self._auto_collapse_enabled and is_valid and not warnings:
+            # Delay the collapse slightly so user can see the success
+            QTimer.singleShot(1500, self.collapse)
+            logger.info("Pre-validation passed - will auto-collapse")
+        else:
+            # Ensure expanded if there are issues
+            if not is_valid or warnings:
+                self.expand()
 
         # Emit status signal
         self.validationStatusChanged.emit(is_valid, message)
+        
+        # Emit full results for logging
+        self.validationResultsReady.emit(results)
 
         logger.info(f"Pre-validation complete: {status} - {stats}")
 
@@ -528,3 +572,51 @@ class PreValidationWidget(QWidget):
             self._worker.stop()
             self._worker.quit()
             self._worker.wait()
+    
+    def toggle_collapse(self):
+        """Toggle the collapsed state of the validation details."""
+        if self._is_collapsed:
+            self.expand()
+        else:
+            self.collapse()
+    
+    def collapse(self):
+        """Collapse the validation details section."""
+        if not self._is_collapsed:
+            self._is_collapsed = True
+            self.results_container.setVisible(False)
+            self.toggle_button.setArrowType(Qt.RightArrow)
+            self.toggle_button.setToolTip("Show validation details")
+            
+            # Reduce the group box size
+            self.validation_group.setMaximumHeight(100)
+            
+            # Update status label to show collapsed state
+            if self._is_valid and hasattr(self, 'status_label'):
+                current_text = self.status_label.text()
+                if "View details" not in current_text:
+                    self.status_label.setText(f"{current_text} (click ▶ to view details)")
+            
+            logger.debug("Pre-validation panel collapsed")
+    
+    def expand(self):
+        """Expand the validation details section."""
+        if self._is_collapsed:
+            self._is_collapsed = False
+            self.results_container.setVisible(True)
+            self.toggle_button.setArrowType(Qt.DownArrow)
+            self.toggle_button.setToolTip("Hide validation details")
+            
+            # Remove height restriction
+            self.validation_group.setMaximumHeight(16777215)  # Qt default max
+            
+            # Clean up status text
+            if hasattr(self, 'status_label'):
+                current_text = self.status_label.text()
+                self.status_label.setText(current_text.replace(" (click ▶ to view details)", ""))
+            
+            logger.debug("Pre-validation panel expanded")
+    
+    def set_auto_collapse(self, enabled: bool):
+        """Enable or disable auto-collapse on successful validation."""
+        self._auto_collapse_enabled = enabled

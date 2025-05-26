@@ -8,6 +8,7 @@ import sys
 import os
 import logging
 import datetime
+import pandas as pd
 from pathlib import Path
 from typing import Optional, List
 
@@ -15,7 +16,8 @@ from PySide6.QtWidgets import (
     QApplication, QMainWindow, QVBoxLayout, QHBoxLayout,
     QWidget, QSplitter, QTabWidget, QStatusBar, QMenuBar,
     QToolBar, QTextEdit, QLabel, QPushButton, QProgressBar,
-    QMessageBox, QFileDialog, QCheckBox, QScrollArea
+    QMessageBox, QFileDialog, QCheckBox, QScrollArea, QLineEdit,
+    QComboBox, QFrame, QTableWidget, QStackedWidget, QHeaderView, QTableWidgetItem
 )
 from PySide6.QtCore import Qt, QTimer, QThreadPool, QObject, QRunnable, Signal
 from PySide6.QtGui import QAction, QIcon, QFont
@@ -28,7 +30,12 @@ from ui.analytics_runner.dialogs.debug_panel import DebugPanel
 from data_source_panel import DataSourcePanel
 from data_source_registry import DataSourceRegistry
 from ui.analytics_runner.dialogs.save_data_source_dialog import SaveDataSourceDialog
+from services.progress_tracking_pipeline import ProgressTrackingPipeline
 from rule_selector_panel import RuleSelectorPanel
+from ui.analytics_runner.cancellable_validation_worker import (
+    CancellableValidationWorker, CancellableWorkerSignals, ExecutionStatus
+)
+from ui.common.widgets.results_tree_widget import ResultsTreeWidget
 
 # Configure basic logging (will be enhanced by error handler)
 logging.basicConfig(
@@ -45,19 +52,33 @@ class ValidationWorkerSignals(QObject):
     error = Signal(str)
     result = Signal(dict)
     progress = Signal(int, str)
+    # Report generation signals
+    reportStarted = Signal()
+    reportProgress = Signal(int, str)
+    reportCompleted = Signal(dict)
+    reportError = Signal(str)
+    # Real-time progress tracking signals
+    progressUpdated = Signal(int)  # Progress percentage (0-100, or -1 for error)
+    statusUpdated = Signal(str)  # Status message
+    ruleStarted = Signal(str, int, int)  # Rule name, current index, total count
 
 
 class ValidationWorker(QRunnable):
     """Worker thread for running validation operations"""
 
     def __init__(self, pipeline, data_source: str, sheet_name: str = None,
-                 analytic_id: str = None, rule_ids: List[str] = None):
+                 analytic_id: str = None, rule_ids: List[str] = None,
+                 generate_reports: bool = True, report_formats: List[str] = None,
+                 output_dir: str = None):
         super().__init__()
         self.pipeline = pipeline
         self.data_source = data_source
         self.sheet_name = sheet_name
         self.analytic_id = analytic_id or "Simple_Validation"
         self.rule_ids = rule_ids  # Add rule_ids parameter
+        self.generate_reports = generate_reports
+        self.report_formats = report_formats or ['excel', 'html']
+        self.output_dir = output_dir or './output'
         self.signals = ValidationWorkerSignals()
 
     def run(self):
@@ -65,21 +86,45 @@ class ValidationWorker(QRunnable):
         try:
             self.signals.started.emit()
 
+            # Define progress callback that emits signals
+            def progress_callback(progress: int, status: str):
+                self.signals.progressUpdated.emit(progress)
+                self.signals.statusUpdated.emit(status)
+                
+                # Parse rule info from status if available
+                if "Processing rule" in status and "/" in status:
+                    # Extract rule number and name
+                    parts = status.split(":")
+                    if len(parts) > 1:
+                        rule_info = parts[0].replace("Processing rule", "").strip()
+                        rule_name = parts[1].split("(")[0].strip()
+                        
+                        # Extract current and total
+                        if "/" in rule_info:
+                            current, total = rule_info.split("/")
+                            try:
+                                current_idx = int(current)
+                                total_count = int(total)
+                                self.signals.ruleStarted.emit(rule_name, current_idx, total_count)
+                            except ValueError:
+                                pass
+
             # Prepare validation parameters
             validation_params = {
-                'data_source': self.data_source,
+                'data_source_path': self.data_source,
+                'source_type': 'excel' if self.data_source.endswith(('.xlsx', '.xls')) else 'csv',
+                'rule_ids': self.rule_ids,
+                'selected_sheet': self.sheet_name,
                 'analytic_id': self.analytic_id,
-                'output_formats': ['json', 'excel'],
-                'use_parallel': False
+                'output_formats': self.report_formats if self.generate_reports else ['json'],
+                'use_parallel': False,
+                'progress_callback': progress_callback
             }
 
-            # Add rule_ids if specified
-            if self.rule_ids:
-                validation_params['rule_ids'] = self.rule_ids
-
-            # Add sheet name for Excel files
-            if self.sheet_name:
-                validation_params['data_source_params'] = {'sheet_name': self.sheet_name}
+            # Add use_all_rules flag if no specific rules selected
+            if not self.rule_ids:
+                validation_params['use_all_rules'] = True
+                logger.info("No specific rules selected - will use all available rules")
 
             self.signals.progress.emit(25, "Preparing validation...")
 
@@ -88,12 +133,48 @@ class ValidationWorker(QRunnable):
 
             # Create pipeline if not provided
             if not self.pipeline:
-                self.pipeline = ValidationPipeline(output_dir='./output')
+                # Ensure output directory exists
+                import os
+                os.makedirs(self.output_dir, exist_ok=True)
+                logger.info(f"Created/verified output directory: {self.output_dir}")
+                
+                # Import rule manager with correct rules directory
+                from core.rule_engine.rule_manager import ValidationRuleManager
+                rule_manager = ValidationRuleManager(rules_directory="./data/rules")
+                
+                self.pipeline = ValidationPipeline(
+                    rule_manager=rule_manager,
+                    output_dir=self.output_dir
+                )
 
-            # Run validation
-            results = self.pipeline.validate_data_source(**validation_params)
+            # Create progress tracking wrapper and run validation
+            progress_pipeline = ProgressTrackingPipeline(self.pipeline)
+            results = progress_pipeline.validate_data_source_with_progress(**validation_params)
 
             self.signals.progress.emit(90, "Processing results...")
+            
+            # Log validation results for debugging
+            logger.info(f"Validation completed. Valid: {results.get('valid')}, Status: {results.get('status')}")
+            logger.info(f"Generate reports: {self.generate_reports}, Report formats: {self.report_formats}")
+            logger.info(f"Output files in results: {results.get('output_files', [])}")
+            
+            # Check if report generation occurred and emit appropriate signals
+            # Note: Reports should be generated regardless of validation result
+            if self.generate_reports and results.get('output_files'):
+                self.signals.reportStarted.emit()
+                self.signals.reportProgress.emit(95, "Reports generated successfully")
+                
+                # Emit report completion with file paths
+                report_info = {
+                    'output_files': results.get('output_files', []),
+                    'output_dir': self.output_dir
+                }
+                self.signals.reportCompleted.emit(report_info)
+            elif self.generate_reports:
+                # Reports were requested but not generated
+                logger.warning("Reports were requested but no output files were generated")
+                self.signals.reportError.emit("No report files were generated. Check logs for details.")
+            
             self.signals.result.emit(results)
 
         except Exception as e:
@@ -232,8 +313,8 @@ class AnalyticsRunnerApp(QMainWindow):
         # Simple Mode tab (updated with better spacing)
         self.create_simple_mode_tab()
 
-        # Advanced Mode tab (unchanged)
-        self.create_advanced_mode_tab()
+        # Results & Reports tab
+        self.create_results_reports_tab()
 
         # Rule Management tab
         self.create_rule_selection_mode_tab()
@@ -267,22 +348,448 @@ class AnalyticsRunnerApp(QMainWindow):
 
         simple_layout.addWidget(self.data_source_panel)
 
-        # Validation section with cleaner layout
-        validation_section = QWidget()
-        validation_layout = QVBoxLayout(validation_section)
-        validation_layout.setContentsMargins(0, 8, 0, 0)  # Minimal top margin only
+        # Report Generation Options section
+        report_section = QWidget()
+        report_section.setStyleSheet(f"""
+            QWidget {{
+                background-color: {AnalyticsRunnerStylesheet.ACCENT_COLOR};
+                border: 1px solid {AnalyticsRunnerStylesheet.PRIMARY_COLOR}40;
+                border-radius: 6px;
+                padding: {AnalyticsRunnerStylesheet.STANDARD_SPACING}px;
+            }}
+        """)
+        report_layout = QVBoxLayout(report_section)
+        report_layout.setContentsMargins(12, 12, 12, 12)
+        report_layout.setSpacing(8)
 
+        # Report options header
+        report_header = QLabel("Report Generation")
+        report_header.setFont(AnalyticsRunnerStylesheet.get_fonts()['header'])
+        report_header.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.DARK_TEXT}; background-color: transparent;")
+        report_layout.addWidget(report_header)
+
+        # Checkbox frame for report formats
+        checkbox_frame = QWidget()
+        checkbox_frame.setStyleSheet("background-color: transparent;")
+        checkbox_layout = QVBoxLayout(checkbox_frame)
+        checkbox_layout.setContentsMargins(0, 0, 0, 0)
+        checkbox_layout.setSpacing(6)
+
+        # Excel report checkbox
+        self.excel_report_checkbox = QCheckBox("Generate Excel Report")
+        self.excel_report_checkbox.setChecked(True)
+        self.excel_report_checkbox.setStyleSheet("background-color: transparent;")
+        self.excel_report_checkbox.toggled.connect(self._on_report_option_changed)
+        checkbox_layout.addWidget(self.excel_report_checkbox)
+
+        # HTML report checkbox
+        self.html_report_checkbox = QCheckBox("Generate HTML Report")
+        self.html_report_checkbox.setChecked(True)
+        self.html_report_checkbox.setStyleSheet("background-color: transparent;")
+        self.html_report_checkbox.toggled.connect(self._on_report_option_changed)
+        checkbox_layout.addWidget(self.html_report_checkbox)
+
+        # Audit Leader-Specific Workbooks checkbox (always enabled for discoverability)
+        self.leader_packs_checkbox = QCheckBox("Generate Audit Leader-Specific Workbooks")
+        self.leader_packs_checkbox.setChecked(False)
+        self.leader_packs_checkbox.setEnabled(True)  # Always enabled
+        self.leader_packs_checkbox.setStyleSheet("background-color: transparent;")
+        self.leader_packs_checkbox.setToolTip("Creates individual Excel workbooks for each responsible party. Requires a responsible party column to be selected.")
+        self.leader_packs_checkbox.toggled.connect(self._on_leader_packs_changed)
+        checkbox_layout.addWidget(self.leader_packs_checkbox)
+        
+        # Warning label for leader packs (hidden by default)
+        self.leader_packs_warning = QLabel("⚠️ Select a responsible party column to enable this feature")
+        self.leader_packs_warning.setStyleSheet(f"""
+            color: {AnalyticsRunnerStylesheet.WARNING_COLOR};
+            background-color: transparent;
+            font-size: 12px;
+            padding-left: 20px;
+        """)
+        self.leader_packs_warning.setVisible(False)
+        checkbox_layout.addWidget(self.leader_packs_warning)
+
+        report_layout.addWidget(checkbox_frame)
+
+        # Output directory selection
+        output_dir_frame = QWidget()
+        output_dir_frame.setStyleSheet("background-color: transparent;")
+        output_dir_layout = QHBoxLayout(output_dir_frame)
+        output_dir_layout.setContentsMargins(0, 0, 0, 0)
+        output_dir_layout.setSpacing(8)
+
+        output_dir_label = QLabel("Output Directory:")
+        output_dir_label.setStyleSheet("background-color: transparent;")
+        output_dir_layout.addWidget(output_dir_label)
+
+        self.output_dir_edit = QLineEdit("./output")
+        self.output_dir_edit.setReadOnly(True)
+        output_dir_layout.addWidget(self.output_dir_edit)
+
+        self.output_dir_button = QPushButton("Browse")
+        self.output_dir_button.setProperty("buttonStyle", "secondary")
+        self.output_dir_button.clicked.connect(self.browse_output_directory)
+        self.output_dir_button.setMaximumWidth(80)
+        output_dir_layout.addWidget(self.output_dir_button)
+
+        report_layout.addWidget(output_dir_frame)
+
+        simple_layout.addWidget(report_section)
+
+        # Progress tracking section
+        progress_section = QWidget()
+        progress_section.setStyleSheet(f"""
+            QWidget {{
+                background-color: {AnalyticsRunnerStylesheet.ACCENT_COLOR};
+                border: 1px solid {AnalyticsRunnerStylesheet.PRIMARY_COLOR}40;
+                border-radius: 6px;
+                padding: {AnalyticsRunnerStylesheet.STANDARD_SPACING}px;
+            }}
+        """)
+        progress_layout = QVBoxLayout(progress_section)
+        progress_layout.setContentsMargins(12, 12, 12, 12)
+        progress_layout.setSpacing(8)
+        
+        # Progress header
+        progress_header = QLabel("Validation Progress")
+        progress_header.setFont(AnalyticsRunnerStylesheet.get_fonts()['header'])
+        progress_header.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.DARK_TEXT}; background-color: transparent;")
+        progress_layout.addWidget(progress_header)
+        
+        # Progress bar
+        self.validation_progress_bar = QProgressBar()
+        self.validation_progress_bar.setStyleSheet(f"""
+            QProgressBar {{
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 4px;
+                text-align: center;
+                min-height: 20px;
+            }}
+            QProgressBar::chunk {{
+                background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                border-radius: 3px;
+            }}
+        """)
+        self.validation_progress_bar.setVisible(False)
+        progress_layout.addWidget(self.validation_progress_bar)
+        
+        # Status message label
+        self.validation_status_label = QLabel("")
+        self.validation_status_label.setStyleSheet(f"""
+            color: {AnalyticsRunnerStylesheet.DARK_TEXT}; 
+            background-color: transparent;
+            font-size: 13px;
+        """)
+        self.validation_status_label.setVisible(False)
+        progress_layout.addWidget(self.validation_status_label)
+        
+        # Rule execution summary
+        self.rule_summary_label = QLabel("")
+        self.rule_summary_label.setStyleSheet(f"""
+            color: {AnalyticsRunnerStylesheet.LIGHT_TEXT}; 
+            background-color: transparent;
+            font-size: 12px;
+            font-style: italic;
+        """)
+        self.rule_summary_label.setVisible(False)
+        progress_layout.addWidget(self.rule_summary_label)
+        
+        simple_layout.addWidget(progress_section)
+        self.progress_section = progress_section
+        self.progress_section.setVisible(False)  # Hidden by default
+
+        # Execution Management section
+        execution_section = QWidget()
+        execution_section.setStyleSheet(f"""
+            QWidget {{
+                background-color: {AnalyticsRunnerStylesheet.ACCENT_COLOR};
+                border: 1px solid {AnalyticsRunnerStylesheet.PRIMARY_COLOR}40;
+                border-radius: 6px;
+                padding: {AnalyticsRunnerStylesheet.STANDARD_SPACING}px;
+            }}
+        """)
+        execution_layout = QVBoxLayout(execution_section)
+        execution_layout.setContentsMargins(12, 12, 12, 12)
+        execution_layout.setSpacing(8)
+        
+        # Execution header with status
+        execution_header_layout = QHBoxLayout()
+        execution_header_layout.setSpacing(12)
+        
+        execution_header = QLabel("Execution Control")
+        execution_header.setFont(AnalyticsRunnerStylesheet.get_fonts()['header'])
+        execution_header.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.DARK_TEXT}; background-color: transparent;")
+        execution_header_layout.addWidget(execution_header)
+        
+        # Status indicator
+        self.execution_status_label = QLabel("Status: Ready")
+        self.execution_status_label.setStyleSheet(f"""
+            color: {AnalyticsRunnerStylesheet.DARK_TEXT}; 
+            background-color: transparent;
+            font-weight: bold;
+            padding: 4px 8px;
+            border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+            border-radius: 4px;
+        """)
+        execution_header_layout.addStretch()
+        execution_header_layout.addWidget(self.execution_status_label)
+        
+        execution_layout.addLayout(execution_header_layout)
+        
+        # Session info label
+        self.session_info_label = QLabel("")
+        self.session_info_label.setStyleSheet(f"""
+            color: {AnalyticsRunnerStylesheet.LIGHT_TEXT}; 
+            background-color: transparent;
+            font-size: 12px;
+            font-style: italic;
+        """)
+        self.session_info_label.setVisible(False)
+        execution_layout.addWidget(self.session_info_label)
+        
+        # Execution parameters section
+        params_widget = QWidget()
+        params_widget.setStyleSheet("background-color: transparent;")
+        params_layout = QVBoxLayout(params_widget)
+        params_layout.setContentsMargins(0, 8, 0, 8)
+        params_layout.setSpacing(8)
+        
+        # Row 1: Analytic ID and Execution Mode
+        row1_layout = QHBoxLayout()
+        row1_layout.setSpacing(12)
+        
+        # Analytic ID input
+        analytic_id_label = QLabel("Analytic ID:")
+        analytic_id_label.setStyleSheet("background-color: transparent;")
+        row1_layout.addWidget(analytic_id_label)
+        
+        self.analytic_id_input = QLineEdit()
+        self.analytic_id_input.setPlaceholderText(f"Analytics_Validation_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}")
+        self.analytic_id_input.setToolTip("Enter a custom Analytic ID or leave empty for auto-generated timestamp")
+        self.analytic_id_input.setStyleSheet(f"""
+            QLineEdit {{
+                background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 4px;
+                padding: 6px 10px;
+                min-height: 20px;
+            }}
+            QLineEdit:focus {{
+                border-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+            }}
+        """)
+        row1_layout.addWidget(self.analytic_id_input, 2)
+        
+        row1_layout.addSpacing(20)
+        
+        # Execution mode selector
+        mode_label = QLabel("Execution Mode:")
+        mode_label.setStyleSheet("background-color: transparent;")
+        row1_layout.addWidget(mode_label)
+        
+        self.execution_mode_combo = QComboBox()
+        self.execution_mode_combo.addItems(["Serial", "Parallel"])
+        self.execution_mode_combo.setCurrentText("Serial")
+        self.execution_mode_combo.setToolTip("Select execution mode for validation rules")
+        self.execution_mode_combo.setStyleSheet(f"""
+            QComboBox {{
+                background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 4px;
+                padding: 6px 10px;
+                min-height: 20px;
+                min-width: 100px;
+                color: {AnalyticsRunnerStylesheet.DARK_TEXT};
+            }}
+            QComboBox:hover {{
+                border-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+            }}
+            QComboBox::drop-down {{
+                border: none;
+                padding-right: 8px;
+            }}
+            QComboBox::down-arrow {{
+                image: none;
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 5px solid {AnalyticsRunnerStylesheet.DARK_TEXT};
+                margin-right: 5px;
+            }}
+            QComboBox QAbstractItemView {{
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                selection-background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                selection-color: white;
+                outline: none;
+                padding: 4px;
+            }}
+            QComboBox QAbstractItemView::item {{
+                min-height: 30px;
+                padding: 4px 8px;
+                color: {AnalyticsRunnerStylesheet.DARK_TEXT};
+            }}
+            QComboBox QAbstractItemView::item:hover {{
+                background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
+            }}
+        """)
+        row1_layout.addWidget(self.execution_mode_combo, 1)
+        
+        params_layout.addLayout(row1_layout)
+        
+        # Row 2: Responsible Party Column
+        row2_layout = QHBoxLayout()
+        row2_layout.setSpacing(12)
+        
+        party_label = QLabel("Responsible Party Column:")
+        party_label.setStyleSheet("background-color: transparent;")
+        row2_layout.addWidget(party_label)
+        
+        self.responsible_party_combo = QComboBox()
+        self.responsible_party_combo.addItem("None")
+        self.responsible_party_combo.setEnabled(False)  # Disabled until data is loaded
+        self.responsible_party_combo.setToolTip("Select column containing responsible party information")
+        self.responsible_party_combo.setStyleSheet(f"""
+            QComboBox {{
+                background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 4px;
+                padding: 6px 10px;
+                min-height: 20px;
+                color: {AnalyticsRunnerStylesheet.DARK_TEXT};
+            }}
+            QComboBox:hover:enabled {{
+                border-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+            }}
+            QComboBox:disabled {{
+                background-color: {AnalyticsRunnerStylesheet.DISABLED_COLOR};
+                color: #999999;
+            }}
+            QComboBox::drop-down {{
+                border: none;
+                padding-right: 8px;
+            }}
+            QComboBox::down-arrow {{
+                image: none;
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 5px solid {AnalyticsRunnerStylesheet.DARK_TEXT};
+                margin-right: 5px;
+            }}
+            QComboBox::down-arrow:disabled {{
+                border-top: 5px solid #999999;
+            }}
+            QComboBox QAbstractItemView {{
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                selection-background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                selection-color: white;
+                outline: none;
+                padding: 4px;
+            }}
+            QComboBox QAbstractItemView::item {{
+                min-height: 30px;
+                padding: 4px 8px;
+                color: {AnalyticsRunnerStylesheet.DARK_TEXT};
+            }}
+            QComboBox QAbstractItemView::item:hover {{
+                background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
+            }}
+        """)
+        self.responsible_party_combo.currentIndexChanged.connect(self._on_responsible_party_changed)
+        row2_layout.addWidget(self.responsible_party_combo, 2)
+        
+        row2_layout.addStretch()
+        
+        params_layout.addLayout(row2_layout)
+        
+        execution_layout.addWidget(params_widget)
+        
+        # Control buttons layout
+        controls_layout = QHBoxLayout()
+        controls_layout.setSpacing(8)
+        
+        # Start/Run button
         self.start_button = QPushButton("Select Data Source First")
         self.start_button.setFont(AnalyticsRunnerStylesheet.get_fonts()['regular'])
         self.start_button.setEnabled(False)
         self.start_button.clicked.connect(self.start_validation)
         self.start_button.setMinimumHeight(AnalyticsRunnerStylesheet.BUTTON_HEIGHT)
-        validation_layout.addWidget(self.start_button)
-
-        simple_layout.addWidget(validation_section)
+        self.start_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 6px 16px;
+                font-weight: bold;
+            }}
+            QPushButton:hover:enabled {{
+                background-color: {AnalyticsRunnerStylesheet.HOVER_COLOR};
+            }}
+            QPushButton:pressed {{
+                background-color: #014A8F;
+            }}
+            QPushButton:disabled {{
+                background-color: {AnalyticsRunnerStylesheet.DISABLED_COLOR};
+                color: #999999;
+            }}
+        """)
+        controls_layout.addWidget(self.start_button)
+        
+        # Cancel button
+        self.cancel_button = QPushButton("Cancel")
+        self.cancel_button.setFont(AnalyticsRunnerStylesheet.get_fonts()['regular'])
+        self.cancel_button.setEnabled(False)
+        self.cancel_button.clicked.connect(self.cancel_validation)
+        self.cancel_button.setMinimumHeight(AnalyticsRunnerStylesheet.BUTTON_HEIGHT)
+        self.cancel_button.setProperty("buttonStyle", "danger")
+        self.cancel_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {AnalyticsRunnerStylesheet.ERROR_COLOR};
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 6px 16px;
+                font-weight: bold;
+            }}
+            QPushButton:hover {{
+                background-color: #C82333;
+            }}
+            QPushButton:pressed {{
+                background-color: #A71D2A;
+            }}
+            QPushButton:disabled {{
+                background-color: {AnalyticsRunnerStylesheet.DISABLED_COLOR};
+                color: #999999;
+            }}
+        """)
+        controls_layout.addWidget(self.cancel_button)
+        
+        # Pause/Resume button (disabled for MVP)
+        self.pause_button = QPushButton("Pause")
+        self.pause_button.setFont(AnalyticsRunnerStylesheet.get_fonts()['regular'])
+        self.pause_button.setEnabled(False)
+        self.pause_button.setMinimumHeight(AnalyticsRunnerStylesheet.BUTTON_HEIGHT)
+        self.pause_button.setProperty("buttonStyle", "secondary")
+        self.pause_button.setToolTip("Pause/Resume functionality coming in future release")
+        self.pause_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {AnalyticsRunnerStylesheet.DISABLED_COLOR};
+                color: #999999;
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 4px;
+                padding: 6px 16px;
+            }}
+        """)
+        controls_layout.addWidget(self.pause_button)
+        
+        execution_layout.addLayout(controls_layout)
+        
+        simple_layout.addWidget(execution_section)
 
         # Let content naturally size without forcing stretch
-        self.mode_tabs.addTab(self.simple_mode_widget, "Simple Mode")
+        self.mode_tabs.addTab(self.simple_mode_widget, "Validation")
 
     def create_rule_selection_mode_tab(self):
         """Create the enhanced rule selection mode tab with integrated editor."""
@@ -310,17 +817,528 @@ class AnalyticsRunnerApp(QMainWindow):
             # Use log_message method instead of accessing log_view directly
             self.log_message(f"Updated rule editor with {len(columns)} columns", "DEBUG")
 
-    def create_advanced_mode_tab(self):
-        """Create the advanced mode tab"""
-        self.advanced_mode_widget = QWidget()
-        advanced_layout = QVBoxLayout(self.advanced_mode_widget)
-        advanced_layout.setSpacing(AnalyticsRunnerStylesheet.SECTION_SPACING)
-        advanced_layout.setContentsMargins(24, 24, 24, 24)
+    def create_results_reports_tab(self):
+        """Create the Results & Reports tab with sub-tabs"""
+        self.results_reports_widget = QWidget()
+        results_layout = QVBoxLayout(self.results_reports_widget)
+        results_layout.setSpacing(AnalyticsRunnerStylesheet.SECTION_SPACING)
+        results_layout.setContentsMargins(24, 24, 24, 24)
 
-        # Advanced mode title
-        advanced_label = QLabel("Advanced Validation Mode")
-        advanced_label.setFont(AnalyticsRunnerStylesheet.get_fonts()['title'])
-        advanced_label.setStyleSheet(f"""
+        # Header section with title and controls
+        header_widget = QWidget()
+        header_layout = QHBoxLayout(header_widget)
+        header_layout.setSpacing(16)
+        
+        # Left side: Title and status
+        left_header = QWidget()
+        left_header_layout = QVBoxLayout(left_header)
+        left_header_layout.setSpacing(4)
+        
+        # Title
+        results_title = QLabel("Results & Reports")
+        results_title.setFont(AnalyticsRunnerStylesheet.get_fonts()['title'])
+        results_title.setStyleSheet(f"""
+            QLabel {{
+                color: {AnalyticsRunnerStylesheet.DARK_TEXT};
+                padding: 0px;
+                border: none;
+            }}
+        """)
+        left_header_layout.addWidget(results_title)
+        
+        # Status indicator
+        self.results_status_label = QLabel("No results loaded")
+        self.results_status_label.setFont(AnalyticsRunnerStylesheet.get_fonts()['regular'])
+        self.results_status_label.setStyleSheet(f"""
+            QLabel {{
+                color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};
+                padding: 4px 8px;
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 4px;
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+            }}
+        """)
+        left_header_layout.addWidget(self.results_status_label)
+        
+        header_layout.addWidget(left_header)
+        header_layout.addStretch()
+        
+        # Right side: Clear Results button
+        self.clear_results_button = QPushButton("Clear Results")
+        self.clear_results_button.setEnabled(False)
+        self.clear_results_button.clicked.connect(self.clear_results)
+        self.clear_results_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+                color: {AnalyticsRunnerStylesheet.DARK_TEXT};
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 4px;
+                padding: 6px 16px;
+                font-weight: 500;
+            }}
+            QPushButton:hover:enabled {{
+                background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
+                border-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+            }}
+            QPushButton:pressed {{
+                background-color: {AnalyticsRunnerStylesheet.BORDER_COLOR};
+            }}
+            QPushButton:disabled {{
+                color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};
+                background-color: {AnalyticsRunnerStylesheet.DISABLED_COLOR};
+            }}
+        """)
+        header_layout.addWidget(self.clear_results_button)
+        
+        results_layout.addWidget(header_widget)
+        
+        # Create sub-tabs for different result views
+        self.results_reports_tabs = QTabWidget()
+        self.results_reports_tabs.setStyleSheet(f"""
+            QTabWidget::pane {{
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+                border-radius: 4px;
+                margin-top: -1px;
+            }}
+            QTabBar::tab {{
+                background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
+                color: {AnalyticsRunnerStylesheet.DARK_TEXT};
+                padding: 8px 16px;
+                margin-right: 2px;
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-bottom: none;
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+            }}
+            QTabBar::tab:selected {{
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+                font-weight: 500;
+            }}
+            QTabBar::tab:hover:!selected {{
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+        """)
+        
+        # Create Summary tab
+        self.create_summary_tab()
+        
+        # Create Rule Details tab
+        self.create_rule_details_tab()
+        
+        # Create Failed Items tab
+        self.create_failed_items_tab()
+        
+        # Create Reports tab
+        self.create_reports_tab()
+        
+        results_layout.addWidget(self.results_reports_tabs)
+        
+        # Add the tab to main tabs
+        self.mode_tabs.addTab(self.results_reports_widget, "Results & Reports")
+    
+    def create_summary_tab(self):
+        """Create the Summary sub-tab with compact layout"""
+        self.summary_widget = QWidget()
+        summary_layout = QVBoxLayout(self.summary_widget)
+        summary_layout.setContentsMargins(16, 16, 16, 16)
+        summary_layout.setSpacing(12)  # Reduced from 24
+        
+        # Compact Overview Card - combines compliance rate and status counts
+        overview_card = QFrame()
+        overview_card.setStyleSheet(f"""
+            QFrame {{
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 8px;
+                padding: 16px;
+            }}
+        """)
+        overview_layout = QHBoxLayout(overview_card)
+        overview_layout.setSpacing(24)
+        
+        # Left side: Compliance Rate
+        rate_section = QWidget()
+        rate_layout = QVBoxLayout(rate_section)
+        rate_layout.setSpacing(4)
+        rate_layout.setContentsMargins(0, 0, 0, 0)
+        
+        rate_title = QLabel("Compliance Rate")
+        rate_title.setFont(AnalyticsRunnerStylesheet.get_fonts()['small'])
+        rate_title.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};")
+        rate_layout.addWidget(rate_title)
+        
+        self.compliance_rate_label = QLabel("--")
+        self.compliance_rate_label.setFont(QFont("Arial", 32, QFont.Bold))
+        self.compliance_rate_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};")
+        rate_layout.addWidget(self.compliance_rate_label)
+        
+        overview_layout.addWidget(rate_section)
+        
+        # Vertical separator
+        separator = QFrame()
+        separator.setFrameShape(QFrame.VLine)
+        separator.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.BORDER_COLOR};")
+        overview_layout.addWidget(separator)
+        
+        # Right side: Status counts in horizontal layout
+        counts_section = QWidget()
+        counts_layout = QVBoxLayout(counts_section)
+        counts_layout.setSpacing(8)
+        counts_layout.setContentsMargins(0, 0, 0, 0)
+        
+        counts_title = QLabel("Status Breakdown")
+        counts_title.setFont(AnalyticsRunnerStylesheet.get_fonts()['small'])
+        counts_title.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};")
+        counts_layout.addWidget(counts_title)
+        
+        # Status blocks in pill style
+        status_row = QWidget()
+        status_layout = QHBoxLayout(status_row)
+        status_layout.setSpacing(12)
+        status_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # GC - Green pill
+        self.gc_pill = self._create_status_pill("GC", "0", "#27ae60", "white")
+        status_layout.addWidget(self.gc_pill)
+        
+        # PC - Amber pill
+        self.pc_pill = self._create_status_pill("PC", "0", "#f39c12", "#2c3e50")
+        status_layout.addWidget(self.pc_pill)
+        
+        # DNC - Red pill
+        self.dnc_pill = self._create_status_pill("DNC", "0", "#e74c3c", "white")
+        status_layout.addWidget(self.dnc_pill)
+        
+        status_layout.addStretch()
+        counts_layout.addWidget(status_row)
+        
+        overview_layout.addWidget(counts_section)
+        overview_layout.addStretch()
+        
+        summary_layout.addWidget(overview_card)
+        
+        # Execution Details - Horizontal layout
+        details_card = QFrame()
+        details_card.setStyleSheet(f"""
+            QFrame {{
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 8px;
+                padding: 12px 16px;
+            }}
+        """)
+        
+        # Grid layout for details
+        details_grid = QHBoxLayout(details_card)
+        details_grid.setSpacing(24)
+        
+        # Left column
+        left_details = QVBoxLayout()
+        left_details.setSpacing(6)
+        
+        self.timestamp_label = self._create_detail_label("Timestamp", "--")
+        left_details.addWidget(self.timestamp_label)
+        
+        self.rules_count_label = self._create_detail_label("Rules Applied", "--")
+        left_details.addWidget(self.rules_count_label)
+        
+        details_grid.addLayout(left_details)
+        
+        # Right column
+        right_details = QVBoxLayout()
+        right_details.setSpacing(6)
+        
+        self.execution_time_label = self._create_detail_label("Execution Time", "--")
+        right_details.addWidget(self.execution_time_label)
+        
+        self.data_source_label = self._create_detail_label("Data Source", "--")
+        self.data_source_label.setWordWrap(True)
+        right_details.addWidget(self.data_source_label)
+        
+        details_grid.addLayout(right_details)
+        details_grid.addStretch()
+        
+        summary_layout.addWidget(details_card)
+        
+        # Add placeholder for when no results
+        self.summary_placeholder = QLabel("No validation results to display")
+        self.summary_placeholder.setAlignment(Qt.AlignCenter)
+        self.summary_placeholder.setStyleSheet(f"""
+            QLabel {{
+                color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};
+                font-style: italic;
+                padding: 40px;
+            }}
+        """)
+        self.summary_placeholder.hide()
+        summary_layout.addWidget(self.summary_placeholder)
+        
+        summary_layout.addStretch()
+        
+        self.results_reports_tabs.addTab(self.summary_widget, "Summary")
+    
+    def _create_status_pill(self, label: str, count: str, bg_color: str, text_color: str) -> QLabel:
+        """Create a pill-style status block"""
+        pill = QLabel(f"{label} {count}")
+        pill.setObjectName(f"{label.lower()}_pill")
+        pill.setAlignment(Qt.AlignCenter)
+        font = AnalyticsRunnerStylesheet.get_fonts()['regular']
+        font.setBold(True)
+        pill.setFont(font)
+        pill.setStyleSheet(f"""
+            QLabel {{
+                background-color: {bg_color};
+                color: {text_color};
+                border-radius: 14px;
+                padding: 6px 16px;
+                min-width: 70px;
+                font-weight: bold;
+                font-size: 14px;
+            }}
+            QLabel:hover {{
+                background-color: {bg_color}dd;
+            }}
+        """)
+        
+        # Set tooltip with full status name
+        tooltips = {
+            "GC": "Generally Conforms",
+            "PC": "Partially Conforms",
+            "DNC": "Does Not Conform"
+        }
+        pill.setToolTip(tooltips.get(label, label))
+        
+        # Store the label and count parts for easy updates
+        pill.label_text = label
+        pill.count_text = count
+        
+        return pill
+    
+    def _create_detail_label(self, title: str, value: str) -> QLabel:
+        """Create a compact detail label"""
+        label = QLabel(f"<b>{title}:</b> {value}")
+        label.setFont(AnalyticsRunnerStylesheet.get_fonts()['small'])
+        label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};")
+        return label
+    
+    def _create_status_frame(self, title: str, count: str, color: str) -> QFrame:
+        """Create a status count frame"""
+        frame = QFrame()
+        frame.setStyleSheet(f"""
+            QFrame {{
+                background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
+                border: 2px solid {color};
+                border-radius: 8px;
+                padding: 16px;
+                min-width: 150px;
+            }}
+        """)
+        
+        layout = QVBoxLayout(frame)
+        layout.setSpacing(8)
+        
+        title_label = QLabel(title)
+        title_label.setFont(AnalyticsRunnerStylesheet.get_fonts()['regular'])
+        title_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};")
+        title_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title_label)
+        
+        count_label = QLabel(count)
+        count_label.setObjectName(f"{title.lower().replace(' ', '_')}_count")
+        count_label.setFont(QFont("Arial", 24, QFont.Bold))
+        count_label.setStyleSheet(f"color: {color};")
+        count_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(count_label)
+        
+        return frame
+    
+    def create_rule_details_tab(self):
+        """Create the Rule Details sub-tab"""
+        self.rule_details_widget = QWidget()
+        rule_details_layout = QVBoxLayout(self.rule_details_widget)
+        rule_details_layout.setContentsMargins(16, 16, 16, 16)
+        rule_details_layout.setSpacing(12)
+        
+        # Header with filter controls
+        header_layout = QHBoxLayout()
+        
+        # Title
+        title = QLabel("Rule Execution Details")
+        title.setFont(AnalyticsRunnerStylesheet.get_fonts()['header'])
+        title.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.DARK_TEXT};")
+        header_layout.addWidget(title)
+        
+        header_layout.addStretch()
+        
+        # Filter by status
+        filter_label = QLabel("Filter by Status:")
+        filter_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};")
+        header_layout.addWidget(filter_label)
+        
+        self.rule_status_filter = QComboBox()
+        self.rule_status_filter.addItems(["All", "Passed", "Failed", "Error"])
+        self.rule_status_filter.setMinimumWidth(120)
+        self.rule_status_filter.currentTextChanged.connect(self._filter_rule_details)
+        header_layout.addWidget(self.rule_status_filter)
+        
+        rule_details_layout.addLayout(header_layout)
+        
+        # Scrollable area for rule cards
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setStyleSheet(f"""
+            QScrollArea {{
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 4px;
+                background-color: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
+            }}
+            QScrollBar:vertical {{
+                width: 12px;
+                background-color: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
+                border-radius: 6px;
+            }}
+            QScrollBar::handle:vertical {{
+                background-color: {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 6px;
+                min-height: 20px;
+            }}
+            QScrollBar::handle:vertical:hover {{
+                background-color: {AnalyticsRunnerStylesheet.HOVER_COLOR};
+            }}
+        """)
+        
+        # Container for rule cards
+        self.rule_cards_container = QWidget()
+        self.rule_cards_layout = QVBoxLayout(self.rule_cards_container)
+        self.rule_cards_layout.setSpacing(8)
+        self.rule_cards_layout.setContentsMargins(8, 8, 8, 8)
+        
+        # Placeholder when no results
+        self.rule_details_placeholder = QLabel("No validation results to display")
+        self.rule_details_placeholder.setAlignment(Qt.AlignCenter)
+        self.rule_details_placeholder.setStyleSheet(f"""
+            QLabel {{
+                color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};
+                font-style: italic;
+                padding: 40px;
+            }}
+        """)
+        self.rule_cards_layout.addWidget(self.rule_details_placeholder)
+        
+        scroll_area.setWidget(self.rule_cards_container)
+        rule_details_layout.addWidget(scroll_area)
+        
+        self.results_reports_tabs.addTab(self.rule_details_widget, "Rule Details")
+    
+    def create_failed_items_tab(self):
+        """Create the Failed Items sub-tab"""
+        self.failed_items_widget = QWidget()
+        failed_items_layout = QVBoxLayout(self.failed_items_widget)
+        failed_items_layout.setContentsMargins(16, 16, 16, 16)
+        failed_items_layout.setSpacing(12)
+        
+        # Header with controls
+        header_layout = QHBoxLayout()
+        
+        # Title
+        title = QLabel("Failed Validation Items")
+        title.setFont(AnalyticsRunnerStylesheet.get_fonts()['header'])
+        title.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.DARK_TEXT};")
+        header_layout.addWidget(title)
+        
+        header_layout.addStretch()
+        
+        # Export button
+        export_button = QPushButton("Export to CSV")
+        export_button.setIcon(QIcon.fromTheme("document-save"))
+        export_button.clicked.connect(self._export_failed_items)
+        export_button.setEnabled(False)  # Disabled until we have results
+        self.failed_items_export_btn = export_button
+        header_layout.addWidget(export_button)
+        
+        failed_items_layout.addLayout(header_layout)
+        
+        # Table for failed items
+        self.failed_items_table = QTableWidget()
+        self.failed_items_table.setAlternatingRowColors(True)
+        self.failed_items_table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.failed_items_table.setSortingEnabled(True)
+        self.failed_items_table.setStyleSheet(f"""
+            QTableWidget {{
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 4px;
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+            }}
+            QTableWidget::item {{
+                padding: 4px 8px;
+                border: none;
+            }}
+            QTableWidget::item:selected {{
+                background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                color: white;
+            }}
+            QHeaderView::section {{
+                background-color: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
+                padding: 6px;
+                border: none;
+                border-bottom: 2px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                font-weight: bold;
+                color: {AnalyticsRunnerStylesheet.DARK_TEXT};
+            }}
+            QTableWidget::item:alternate {{
+                background-color: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
+            }}
+        """)
+        
+        # Set default columns
+        self.failed_items_table.setColumnCount(5)
+        self.failed_items_table.setHorizontalHeaderLabels([
+            "Rule Name", "Column", "Row", "Value", "Reason"
+        ])
+        
+        # Configure column widths
+        header = self.failed_items_table.horizontalHeader()
+        header.setStretchLastSection(True)
+        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.Fixed)
+        header.setSectionResizeMode(3, QHeaderView.Interactive)
+        header.setSectionResizeMode(4, QHeaderView.Stretch)
+        
+        self.failed_items_table.setColumnWidth(2, 80)  # Row column
+        
+        # Placeholder when no failures
+        self.failed_items_placeholder = QLabel("No failed items to display")
+        self.failed_items_placeholder.setAlignment(Qt.AlignCenter)
+        self.failed_items_placeholder.setStyleSheet(f"""
+            QLabel {{
+                color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};
+                font-style: italic;
+                padding: 40px;
+            }}
+        """)
+        
+        # Stack widget to switch between table and placeholder
+        self.failed_items_stack = QStackedWidget()
+        self.failed_items_stack.addWidget(self.failed_items_placeholder)
+        self.failed_items_stack.addWidget(self.failed_items_table)
+        self.failed_items_stack.setCurrentIndex(0)  # Show placeholder initially
+        
+        failed_items_layout.addWidget(self.failed_items_stack)
+        
+        self.results_reports_tabs.addTab(self.failed_items_widget, "Failed Items")
+    
+    def create_reports_tab(self):
+        """Create the Reports sub-tab"""
+        self.reports_widget = QWidget()
+        reports_layout = QVBoxLayout(self.reports_widget)
+        reports_layout.setContentsMargins(20, 20, 20, 20)
+        reports_layout.setSpacing(16)
+        
+        # Title
+        reports_title = QLabel("Generated Reports")
+        reports_title.setFont(AnalyticsRunnerStylesheet.get_fonts()['header'])
+        reports_title.setStyleSheet(f"""
             QLabel {{
                 color: {AnalyticsRunnerStylesheet.DARK_TEXT};
                 padding: 0px;
@@ -328,26 +1346,17 @@ class AnalyticsRunnerApp(QMainWindow):
                 margin-bottom: 8px;
             }}
         """)
-        advanced_label.setAlignment(Qt.AlignCenter)
-        advanced_layout.addWidget(advanced_label)
-
-        # Advanced mode subtitle
-        advanced_subtitle = QLabel("Full control over validation settings and rule selection")
-        advanced_subtitle.setFont(AnalyticsRunnerStylesheet.get_fonts()['regular'])
-        advanced_subtitle.setStyleSheet(f"""
-            QLabel {{
-                color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};
-                padding: 0px;
-                border: none;
-            }}
-        """)
-        advanced_subtitle.setAlignment(Qt.AlignCenter)
-        advanced_layout.addWidget(advanced_subtitle)
-
-        # Placeholder for advanced controls
-        advanced_placeholder = QLabel("Advanced controls will be implemented in Phase 3")
-        advanced_placeholder.setAlignment(Qt.AlignCenter)
-        advanced_placeholder.setStyleSheet(f"""
+        reports_layout.addWidget(reports_title)
+        
+        # Reports container
+        self.reports_container = QWidget()
+        self.reports_container_layout = QVBoxLayout(self.reports_container)
+        self.reports_container_layout.setSpacing(12)
+        
+        # Placeholder for no reports
+        self.no_reports_label = QLabel("No reports generated yet")
+        self.no_reports_label.setAlignment(Qt.AlignCenter)
+        self.no_reports_label.setStyleSheet(f"""
             QLabel {{
                 color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};
                 font-style: italic;
@@ -357,11 +1366,575 @@ class AnalyticsRunnerApp(QMainWindow):
                 background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
             }}
         """)
-        advanced_layout.addWidget(advanced_placeholder)
-
-        advanced_layout.addStretch()
-
-        self.mode_tabs.addTab(self.advanced_mode_widget, "Advanced Mode")
+        self.reports_container_layout.addWidget(self.no_reports_label)
+        
+        reports_layout.addWidget(self.reports_container)
+        reports_layout.addStretch()
+        
+        self.results_reports_tabs.addTab(self.reports_widget, "Reports")
+    
+    def _create_report_card(self, file_path: str, file_type: str) -> QFrame:
+        """Create a card widget for a report file"""
+        import os
+        
+        card = QFrame()
+        card.setStyleSheet(f"""
+            QFrame {{
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 8px;
+                padding: 16px;
+            }}
+            QFrame:hover {{
+                border-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+            }}
+        """)
+        
+        card_layout = QHBoxLayout(card)
+        card_layout.setSpacing(12)
+        
+        # Icon based on file type
+        icon_label = QLabel()
+        icon_label.setFixedSize(48, 48)
+        icon_label.setAlignment(Qt.AlignCenter)
+        icon_label.setStyleSheet(f"""
+            QLabel {{
+                background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
+                border-radius: 8px;
+                font-size: 24px;
+            }}
+        """)
+        
+        if file_type == "Excel":
+            icon_label.setText("📊")
+        elif file_type == "HTML":
+            icon_label.setText("🌐")
+        elif file_type == "JSON":
+            icon_label.setText("📄")
+        elif file_type == "ZIP":
+            icon_label.setText("📦")
+        else:
+            icon_label.setText("📁")
+            
+        card_layout.addWidget(icon_label)
+        
+        # File info
+        info_layout = QVBoxLayout()
+        info_layout.setSpacing(4)
+        
+        file_name = os.path.basename(file_path)
+        name_label = QLabel(file_name)
+        name_label.setFont(AnalyticsRunnerStylesheet.get_fonts()['regular'])
+        name_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.DARK_TEXT};")
+        info_layout.addWidget(name_label)
+        
+        # File size
+        if os.path.exists(file_path):
+            file_size = os.path.getsize(file_path)
+            size_str = f"{file_size / 1024:.1f} KB" if file_size < 1024 * 1024 else f"{file_size / (1024 * 1024):.1f} MB"
+            size_label = QLabel(f"{file_type} • {size_str}")
+        else:
+            size_label = QLabel(f"{file_type}")
+            
+        size_label.setFont(AnalyticsRunnerStylesheet.get_fonts()['small'])
+        size_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};")
+        info_layout.addWidget(size_label)
+        
+        card_layout.addLayout(info_layout)
+        card_layout.addStretch()
+        
+        # Action buttons
+        button_layout = QHBoxLayout()
+        button_layout.setSpacing(8)
+        
+        # Open button
+        open_btn = QPushButton("Open")
+        open_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 6px 12px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {AnalyticsRunnerStylesheet.HOVER_COLOR};
+            }}
+        """)
+        # Store file path as a property to avoid lambda capture issues
+        open_btn.file_path = file_path
+        open_btn.clicked.connect(lambda checked, path=file_path: self._open_report_file(path))
+        button_layout.addWidget(open_btn)
+        
+        # Show in folder button
+        folder_btn = QPushButton("Show in Folder")
+        folder_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+                color: {AnalyticsRunnerStylesheet.DARK_TEXT};
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 4px;
+                padding: 6px 12px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
+                border-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+            }}
+        """)
+        # Store file path as a property to avoid lambda capture issues
+        folder_btn.file_path = file_path
+        folder_btn.clicked.connect(lambda checked, path=file_path: self._show_in_folder(path))
+        button_layout.addWidget(folder_btn)
+        
+        card_layout.addLayout(button_layout)
+        
+        return card
+    
+    def _disconnect_widget_signals(self, widget):
+        """Recursively disconnect all signals from a widget and its children to prevent orphaned connections"""
+        try:
+            # Disconnect signals from the widget itself if it has any
+            if hasattr(widget, 'clicked'):
+                widget.clicked.disconnect()
+            if hasattr(widget, 'textChanged'):
+                widget.textChanged.disconnect()
+            if hasattr(widget, 'currentIndexChanged'):
+                widget.currentIndexChanged.disconnect()
+            if hasattr(widget, 'toggled'):
+                widget.toggled.disconnect()
+            
+            # Recursively disconnect signals from all children
+            for child in widget.findChildren(QPushButton):
+                if hasattr(child, 'clicked'):
+                    child.clicked.disconnect()
+            
+            for child in widget.findChildren(QComboBox):
+                if hasattr(child, 'currentIndexChanged'):
+                    child.currentIndexChanged.disconnect()
+                if hasattr(child, 'currentTextChanged'):
+                    child.currentTextChanged.disconnect()
+            
+            for child in widget.findChildren(QCheckBox):
+                if hasattr(child, 'toggled'):
+                    child.toggled.disconnect()
+                    
+        except Exception as e:
+            # If disconnection fails, just log it but don't crash
+            logger.debug(f"Signal disconnection warning: {e}")
+    
+    def _update_summary_tab(self, results: dict):
+        """Update the Summary tab with validation results"""
+        # Hide placeholder, show actual content
+        if hasattr(self, 'summary_placeholder'):
+            self.summary_placeholder.hide()
+            
+        # Update compliance rate
+        summary = results.get('summary', {})
+        compliance_rate = summary.get('compliance_rate', 0)
+        self.compliance_rate_label.setText(f"{compliance_rate:.1%}")
+        
+        # Update status color based on rate
+        if compliance_rate >= 0.95:
+            color = AnalyticsRunnerStylesheet.SUCCESS_COLOR
+        elif compliance_rate >= 0.8:
+            color = AnalyticsRunnerStylesheet.WARNING_COLOR
+        else:
+            color = AnalyticsRunnerStylesheet.ERROR_COLOR
+        self.compliance_rate_label.setStyleSheet(f"color: {color}; font-size: 32px; font-weight: bold;")
+        
+        # Update compliance counts
+        compliance_counts = summary.get('compliance_counts', {})
+        
+        # Update GC pill
+        gc_count = compliance_counts.get('GC', 0)
+        self.gc_pill.setText(f"GC {gc_count}")
+        self.gc_pill.count_text = str(gc_count)
+            
+        # Update PC pill
+        pc_count = compliance_counts.get('PC', 0)
+        self.pc_pill.setText(f"PC {pc_count}")
+        self.pc_pill.count_text = str(pc_count)
+            
+        # Update DNC pill
+        dnc_count = compliance_counts.get('DNC', 0)
+        self.dnc_pill.setText(f"DNC {dnc_count}")
+        self.dnc_pill.count_text = str(dnc_count)
+            
+        # Update execution details using the compact format
+        timestamp = results.get('timestamp', 'N/A')
+        if timestamp != 'N/A':
+            try:
+                dt = datetime.datetime.fromisoformat(timestamp)
+                timestamp = dt.strftime("%Y-%m-%d %H:%M:%S")
+            except:
+                pass
+        self.timestamp_label.setText(f"<b>Timestamp:</b> {timestamp}")
+        
+        # Rules count
+        rules_applied = len(results.get('rules_applied', []))
+        self.rules_count_label.setText(f"<b>Rules Applied:</b> {rules_applied}")
+        
+        # Execution time
+        exec_time = results.get('execution_time', 0)
+        if exec_time > 60:
+            time_str = f"{exec_time/60:.1f} minutes"
+        else:
+            time_str = f"{exec_time:.1f} seconds"
+        self.execution_time_label.setText(f"<b>Execution Time:</b> {time_str}")
+        
+        # Data source
+        data_source = results.get('data_source', 'Unknown')
+        data_source_name = os.path.basename(data_source) if data_source != 'Unknown' else data_source
+        self.data_source_label.setText(f"<b>Data Source:</b> {data_source_name}")
+        self.data_source_label.setToolTip(data_source)
+        
+    def _update_reports_tab(self, results: dict):
+        """Update the Reports tab with generated files"""
+        # Clear existing report cards - properly disconnect signals first
+        while self.reports_container_layout.count():
+            item = self.reports_container_layout.takeAt(0)
+            if item.widget():
+                widget = item.widget()
+                # Disconnect all signals from buttons in the widget to prevent orphaned connections
+                self._disconnect_widget_signals(widget)
+                widget.deleteLater()
+                
+        output_files = results.get('output_files', [])
+        
+        if output_files:
+            # Hide no reports label
+            self.no_reports_label.hide()
+            
+            # Add report cards
+            for file_path in output_files:
+                # Determine file type
+                if file_path.endswith('.xlsx'):
+                    file_type = "Excel"
+                elif file_path.endswith('.html'):
+                    file_type = "HTML"
+                elif file_path.endswith('.json'):
+                    file_type = "JSON"
+                elif file_path.endswith('.zip'):
+                    file_type = "ZIP"
+                else:
+                    file_type = "File"
+                    
+                card = self._create_report_card(file_path, file_type)
+                self.reports_container_layout.addWidget(card)
+                
+            # Check for leader packs
+            leader_packs = results.get('leader_packs', {})
+            if leader_packs.get('success') and leader_packs.get('zip_path'):
+                card = self._create_report_card(
+                    leader_packs['zip_path'], 
+                    "ZIP"
+                )
+                self.reports_container_layout.addWidget(card)
+        else:
+            # Show no reports label
+            self.no_reports_label.show()
+            
+        # Add stretch at the end
+        self.reports_container_layout.addStretch()
+        
+    def _update_rule_details_tab(self, results: dict):
+        """Update the Rule Details tab with rule execution information"""
+        # Clear existing rule cards - properly disconnect signals first
+        while self.rule_cards_layout.count():
+            item = self.rule_cards_layout.takeAt(0)
+            if item.widget():
+                widget = item.widget()
+                # Disconnect all signals from buttons in the widget to prevent orphaned connections
+                self._disconnect_widget_signals(widget)
+                widget.deleteLater()
+        
+        # Get rule details from results
+        rule_details = results.get('rule_details', [])
+        rules_applied = results.get('rules_applied', [])
+        
+        if rule_details or rules_applied:
+            # Hide placeholder
+            self.rule_details_placeholder.hide()
+            
+            # Create a card for each rule
+            for i, rule_detail in enumerate(rule_details if rule_details else rules_applied):
+                if isinstance(rule_detail, dict):
+                    rule_name = rule_detail.get('name', f'Rule {i+1}')
+                    status = rule_detail.get('status', 'Unknown')
+                    passed = rule_detail.get('passed', 0)
+                    failed = rule_detail.get('failed', 0)
+                    errors = rule_detail.get('errors', 0)
+                else:
+                    # If we only have rule names, create minimal cards
+                    rule_name = str(rule_detail)
+                    status = 'Applied'
+                    passed = 0
+                    failed = 0
+                    errors = 0
+                
+                card = self._create_rule_detail_card(rule_name, status, passed, failed, errors)
+                self.rule_cards_layout.addWidget(card)
+        else:
+            # Show placeholder
+            self.rule_details_placeholder.show()
+            self.rule_cards_layout.addWidget(self.rule_details_placeholder)
+        
+        # Add stretch at the end
+        self.rule_cards_layout.addStretch()
+    
+    def _create_rule_detail_card(self, rule_name: str, status: str, passed: int, failed: int, errors: int) -> QFrame:
+        """Create a card widget for rule details"""
+        card = QFrame()
+        card.setStyleSheet(f"""
+            QFrame {{
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 8px;
+                padding: 12px;
+            }}
+            QFrame:hover {{
+                border-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+            }}
+        """)
+        
+        layout = QHBoxLayout(card)
+        layout.setSpacing(16)
+        
+        # Rule info section
+        info_layout = QVBoxLayout()
+        info_layout.setSpacing(4)
+        
+        # Rule name
+        name_label = QLabel(rule_name)
+        name_font = AnalyticsRunnerStylesheet.get_fonts()['regular']
+        name_font.setBold(True)
+        name_label.setFont(name_font)
+        name_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.DARK_TEXT};")
+        info_layout.addWidget(name_label)
+        
+        # Status
+        status_color = {
+            'Passed': AnalyticsRunnerStylesheet.SUCCESS_COLOR,
+            'Failed': AnalyticsRunnerStylesheet.ERROR_COLOR,
+            'Error': AnalyticsRunnerStylesheet.ERROR_COLOR,
+            'Applied': AnalyticsRunnerStylesheet.PRIMARY_COLOR
+        }.get(status, AnalyticsRunnerStylesheet.LIGHT_TEXT)
+        
+        status_label = QLabel(f"Status: {status}")
+        status_label.setStyleSheet(f"color: {status_color}; font-weight: bold;")
+        info_layout.addWidget(status_label)
+        
+        layout.addLayout(info_layout)
+        layout.addStretch()
+        
+        # Stats section
+        stats_layout = QHBoxLayout()
+        stats_layout.setSpacing(24)
+        
+        # Passed
+        passed_label = QLabel(f"✓ {passed:,}")
+        passed_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.SUCCESS_COLOR}; font-weight: bold;")
+        stats_layout.addWidget(passed_label)
+        
+        # Failed
+        failed_label = QLabel(f"✗ {failed:,}")
+        failed_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.ERROR_COLOR}; font-weight: bold;")
+        stats_layout.addWidget(failed_label)
+        
+        # Errors
+        if errors > 0:
+            error_label = QLabel(f"⚠ {errors:,}")
+            error_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.WARNING_COLOR}; font-weight: bold;")
+            stats_layout.addWidget(error_label)
+        
+        layout.addLayout(stats_layout)
+        
+        return card
+    
+    def _update_failed_items_tab(self, results: dict):
+        """Update the Failed Items tab with validation failures"""
+        # Clear existing items
+        self.failed_items_table.setRowCount(0)
+        
+        # Get failed items from results
+        failed_items = results.get('failed_items', [])
+        
+        if failed_items:
+            # Show table
+            self.failed_items_stack.setCurrentIndex(1)
+            self.failed_items_export_btn.setEnabled(True)
+            
+            # Add rows
+            self.failed_items_table.setRowCount(len(failed_items))
+            
+            for row, item in enumerate(failed_items):
+                # Rule Name
+                self.failed_items_table.setItem(row, 0, QTableWidgetItem(item.get('rule_name', '')))
+                
+                # Column
+                self.failed_items_table.setItem(row, 1, QTableWidgetItem(item.get('column', '')))
+                
+                # Row
+                self.failed_items_table.setItem(row, 2, QTableWidgetItem(str(item.get('row', ''))))
+                
+                # Value
+                self.failed_items_table.setItem(row, 3, QTableWidgetItem(str(item.get('value', ''))))
+                
+                # Reason
+                self.failed_items_table.setItem(row, 4, QTableWidgetItem(item.get('reason', '')))
+        else:
+            # Show placeholder
+            self.failed_items_stack.setCurrentIndex(0)
+            self.failed_items_export_btn.setEnabled(False)
+    
+    def _filter_rule_details(self, filter_text: str):
+        """Filter rule detail cards based on status"""
+        # This will be implemented when we have actual rule details
+        pass
+    
+    def _export_failed_items(self):
+        """Export failed items to CSV"""
+        if self.failed_items_table.rowCount() == 0:
+            return
+            
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export Failed Items",
+            "failed_items.csv",
+            "CSV Files (*.csv)"
+        )
+        
+        if file_path:
+            try:
+                # Create data for export
+                data = []
+                for row in range(self.failed_items_table.rowCount()):
+                    row_data = []
+                    for col in range(self.failed_items_table.columnCount()):
+                        item = self.failed_items_table.item(row, col)
+                        row_data.append(item.text() if item else '')
+                    data.append(row_data)
+                
+                # Create DataFrame and export
+                df = pd.DataFrame(data, columns=[
+                    "Rule Name", "Column", "Row", "Value", "Reason"
+                ])
+                df.to_csv(file_path, index=False)
+                
+                self.log_message(f"Failed items exported to: {file_path}")
+                QMessageBox.information(self, "Export Complete", "Failed items exported successfully!")
+                
+            except Exception as e:
+                self.log_message(f"Error exporting failed items: {str(e)}", "ERROR")
+                QMessageBox.critical(self, "Export Error", f"Failed to export: {str(e)}")
+        
+    def _open_report_file(self, file_path: str):
+        """Open a report file with the default application"""
+        import subprocess
+        import platform
+        
+        try:
+            if platform.system() == 'Windows':
+                os.startfile(file_path)
+            elif platform.system() == 'Darwin':  # macOS
+                subprocess.run(['open', file_path])
+            else:  # Linux
+                subprocess.run(['xdg-open', file_path])
+        except Exception as e:
+            QMessageBox.warning(
+                self, 
+                "Error Opening File", 
+                f"Could not open file: {str(e)}"
+            )
+            
+    def _show_in_folder(self, file_path: str):
+        """Show file in folder/explorer"""
+        import subprocess
+        import platform
+        
+        try:
+            if platform.system() == 'Windows':
+                subprocess.run(['explorer', '/select,', os.path.normpath(file_path)])
+            elif platform.system() == 'Darwin':  # macOS
+                subprocess.run(['open', '-R', file_path])
+            else:  # Linux
+                folder = os.path.dirname(file_path)
+                subprocess.run(['xdg-open', folder])
+        except Exception as e:
+            QMessageBox.warning(
+                self, 
+                "Error", 
+                f"Could not open folder: {str(e)}"
+            )
+    
+    def clear_results(self):
+        """Clear all results from the Results & Reports tab"""
+        # Update status
+        self.results_status_label.setText("No results loaded")
+        self.results_status_label.setStyleSheet(f"""
+            QLabel {{
+                color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};
+                padding: 4px 8px;
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 4px;
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+            }}
+        """)
+        
+        # Disable clear button
+        self.clear_results_button.setEnabled(False)
+        
+        # Clear Summary tab
+        self.compliance_rate_label.setText("--")
+        self.compliance_rate_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR}; font-size: 32px; font-weight: bold;")
+        
+        # Reset status pills
+        self.gc_pill.setText("GC 0")
+        self.gc_pill.count_text = "0"
+        self.pc_pill.setText("PC 0")
+        self.pc_pill.count_text = "0"
+        self.dnc_pill.setText("DNC 0")
+        self.dnc_pill.count_text = "0"
+            
+        # Reset execution details
+        self.timestamp_label.setText("<b>Timestamp:</b> --")
+        self.rules_count_label.setText("<b>Rules Applied:</b> --")
+        self.execution_time_label.setText("<b>Execution Time:</b> --")
+        self.data_source_label.setText("<b>Data Source:</b> --")
+        self.data_source_label.setToolTip("")
+        
+        # Clear Rule Details tab
+        while self.rule_cards_layout.count():
+            item = self.rule_cards_layout.takeAt(0)
+            if item.widget():
+                widget = item.widget()
+                self._disconnect_widget_signals(widget)
+                widget.deleteLater()
+        self.rule_details_placeholder.show()
+        self.rule_cards_layout.addWidget(self.rule_details_placeholder)
+        
+        # Clear Failed Items tab
+        self.failed_items_table.setRowCount(0)
+        self.failed_items_stack.setCurrentIndex(0)
+        self.failed_items_export_btn.setEnabled(False)
+        
+        # Clear Reports tab
+        while self.reports_container_layout.count():
+            item = self.reports_container_layout.takeAt(0)
+            if item.widget():
+                widget = item.widget()
+                self._disconnect_widget_signals(widget)
+                widget.deleteLater()
+        self.no_reports_label.show()
+        
+        # Clear the side panel results view
+        if hasattr(self, 'results_view'):
+            self.results_view.tree_widget.clear()
+            self.results_view.failing_items_cache.clear()
+        
+        self.log_message("Results cleared", "INFO")
 
     def create_results_panel(self):
         """Create the results and logging panel."""
@@ -380,11 +1953,10 @@ class AnalyticsRunnerApp(QMainWindow):
         self.results_tabs = QTabWidget()
         results_layout.addWidget(self.results_tabs)
 
-        # Results tab
-        self.results_view = QTextEdit()
-        self.results_view.setReadOnly(True)
-        self.results_view.setPlaceholderText("Validation results will appear here...")
-        self.results_view.setFont(AnalyticsRunnerStylesheet.get_fonts()['regular'])
+        # Results tab with interactive tree widget
+        self.results_view = ResultsTreeWidget()
+        self.results_view.ruleSelected.connect(self._on_result_rule_selected)
+        self.results_view.exportRequested.connect(self._on_result_export_requested)
         self.results_tabs.addTab(self.results_view, "Results")
 
         # Log tab
@@ -550,9 +2122,11 @@ class AnalyticsRunnerApp(QMainWindow):
             self.error_handler.errorOccurred.connect(self.on_error_occurred)
             self.error_handler.debugModeChanged.connect(self.on_debug_mode_changed)
 
-            # Sync initial debug mode state
-            self.debug_checkbox.setChecked(self.error_handler.debug_mode)
-            self.debug_mode_action.setChecked(self.error_handler.debug_mode)
+            # Sync initial debug mode state only if UI elements exist
+            if hasattr(self, 'debug_checkbox') and self.debug_checkbox:
+                self.debug_checkbox.setChecked(self.error_handler.debug_mode)
+            if hasattr(self, 'debug_mode_action') and self.debug_mode_action:
+                self.debug_mode_action.setChecked(self.error_handler.debug_mode)
 
     def init_backend(self):
         """Initialize backend connections."""
@@ -694,9 +2268,11 @@ class AnalyticsRunnerApp(QMainWindow):
         timestamp = datetime.datetime.now().strftime("%H:%M:%S")
         formatted_message = f"[{timestamp}] {level}: {message}"
 
-        self.log_view.append(formatted_message)
+        # Only append to log_view if it exists
+        if hasattr(self, 'log_view') and self.log_view is not None:
+            self.log_view.append(formatted_message)
 
-        # Also log to file
+        # Always log to file/console
         if level == "ERROR":
             logger.error(message)
         elif level == "WARNING":
@@ -930,8 +2506,17 @@ class AnalyticsRunnerApp(QMainWindow):
             metadata_text.append("")
             metadata_text.append(f"Custom Validation Rules: {len(source.validation_rules)} defined")
 
-        # Display in results view
-        self.results_view.setPlainText('\n'.join(metadata_text))
+        # Display metadata in results tree widget
+        metadata_results = {
+            'status': 'METADATA',
+            'timestamp': datetime.datetime.now().isoformat(),
+            'message': '\n'.join(metadata_text),
+            'summary': {
+                'total_rules': 0,
+                'compliance_counts': {}
+            }
+        }
+        self.results_view.load_results(metadata_results)
 
         # Switch to results tab to show the metadata
         if hasattr(self, 'results_tabs'):
@@ -1026,12 +2611,40 @@ class AnalyticsRunnerApp(QMainWindow):
             if cols > 10:
                 summary_text += f" (+ {cols - 10} more)"
 
-            self.results_view.setPlainText(summary_text)
+            # Create preview results for tree widget
+            preview_results = {
+                'status': 'PREVIEW',
+                'timestamp': datetime.datetime.now().isoformat(),
+                'message': summary_text,
+                'summary': {
+                    'total_rules': 0,
+                    'compliance_counts': {}
+                },
+                'data_metrics': {
+                    'row_count': rows,
+                    'column_count': cols,
+                    'columns': list(preview_df.columns)
+                }
+            }
+            self.results_view.load_results(preview_results)
+            
+            # Update responsible party dropdown with column names
+            self.responsible_party_combo.clear()
+            self.responsible_party_combo.addItem("None")
+            self.responsible_party_combo.addItems(list(preview_df.columns))
+            self.responsible_party_combo.setEnabled(True)
+            self.responsible_party_combo.setCurrentIndex(0)  # Default to "None"
+            
         else:
             self.log_message("Data preview cleared", "INFO")
 
             # Disable save action when no valid preview
             self.save_source_action.setEnabled(False)
+            
+            # Clear and disable responsible party dropdown
+            self.responsible_party_combo.clear()
+            self.responsible_party_combo.addItem("None")
+            self.responsible_party_combo.setEnabled(False)
 
     # Slot methods for menu actions
     def new_session(self):
@@ -1082,6 +2695,53 @@ class AnalyticsRunnerApp(QMainWindow):
             file_path = action.data()
             self.load_data_source(file_path)
 
+    def browse_output_directory(self):
+        """Browse for output directory."""
+        current_dir = self.output_dir_edit.text()
+        if not os.path.exists(current_dir):
+            current_dir = os.getcwd()
+            
+        directory = QFileDialog.getExistingDirectory(
+            self,
+            "Select Output Directory",
+            current_dir,
+            QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks
+        )
+        
+        if directory:
+            self.output_dir_edit.setText(directory)
+            self.log_message(f"Output directory set to: {directory}")
+            
+    def _on_report_option_changed(self):
+        """Handle report option checkbox changes."""
+        # Enable/disable output directory selection based on report options
+        reports_enabled = (self.excel_report_checkbox.isChecked() or 
+                          self.html_report_checkbox.isChecked())
+        
+        self.output_dir_edit.setEnabled(reports_enabled)
+        self.output_dir_button.setEnabled(reports_enabled)
+        
+        if not reports_enabled:
+            self.log_message("Report generation disabled - only JSON results will be saved", "INFO")
+    
+    def _on_leader_packs_changed(self, checked: bool):
+        """Handle leader packs checkbox changes."""
+        if checked and self.responsible_party_combo.currentIndex() == 0:  # "None" selected
+            self.leader_packs_warning.setVisible(True)
+            self.log_message("Leader packs require a responsible party column to be selected", "WARNING")
+        else:
+            self.leader_packs_warning.setVisible(False)
+            if checked:
+                self.log_message("Audit Leader-Specific Workbooks will be generated", "INFO")
+    
+    def _on_responsible_party_changed(self, index: int):
+        """Handle responsible party column selection changes."""
+        # Update leader packs warning visibility
+        if self.leader_packs_checkbox.isChecked() and index == 0:  # "None" selected
+            self.leader_packs_warning.setVisible(True)
+        else:
+            self.leader_packs_warning.setVisible(False)
+
     def start_validation(self):
         """Start the validation process with selected rules."""
         # Get data source from panel
@@ -1122,20 +2782,100 @@ class AnalyticsRunnerApp(QMainWindow):
         if sheet_name:
             self.log_message(f"Using Excel sheet: {sheet_name}")
 
-        # Update UI state
+        # Update UI state for execution
         self.start_button.setEnabled(False)
+        self.cancel_button.setEnabled(True)
+        self.execution_status_label.setText("Status: Active")
+        self.execution_status_label.setStyleSheet(f"""
+            color: white; 
+            background-color: {AnalyticsRunnerStylesheet.SUCCESS_COLOR};
+            font-weight: bold;
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+        """)
         self.start_validation_action.setEnabled(False)
         self.stop_validation_action.setEnabled(True)
         self.show_progress(True)
         self.update_progress(0, "Initializing validation...")
 
-        # Create and start validation worker
-        self.validation_worker = ValidationWorker(
+        # Get new execution parameters
+        analytic_id = self.analytic_id_input.text().strip()
+        if not analytic_id:
+            # Use default timestamp format if empty
+            analytic_id = f"Analytics_Validation_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        else:
+            # Validate analytic ID (no special characters that could cause issues)
+            if not all(c.isalnum() or c in ['_', '-', ' '] for c in analytic_id):
+                QMessageBox.warning(
+                    self, 
+                    "Invalid Analytic ID", 
+                    "Analytic ID can only contain letters, numbers, spaces, hyphens, and underscores."
+                )
+                self.start_button.setEnabled(True)
+                self.cancel_button.setEnabled(False)
+                self.execution_status_label.setText("Status: Ready")
+                self.execution_status_label.setStyleSheet(f"""
+                    color: {AnalyticsRunnerStylesheet.DARK_TEXT}; 
+                    background-color: transparent;
+                    font-weight: bold;
+                    padding: 4px 8px;
+                    border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                    border-radius: 4px;
+                """)
+                return
+        
+        execution_mode = self.execution_mode_combo.currentText()
+        use_parallel = (execution_mode == "Parallel")
+        
+        responsible_party_column = None
+        if self.responsible_party_combo.currentIndex() > 0:  # Not "None"
+            responsible_party_column = self.responsible_party_combo.currentText()
+        
+        # Log execution parameters
+        self.log_message(f"Analytic ID: {analytic_id}")
+        self.log_message(f"Execution Mode: {execution_mode}")
+        if responsible_party_column:
+            self.log_message(f"Responsible Party Column: {responsible_party_column}")
+        
+        # Check leader packs settings
+        generate_leader_packs = self.leader_packs_checkbox.isChecked() and responsible_party_column is not None
+        if self.leader_packs_checkbox.isChecked() and not responsible_party_column:
+            self.log_message("Leader packs requested but no responsible party column selected - will be skipped", "WARNING")
+        
+        # Collect report generation options
+        generate_reports = self.excel_report_checkbox.isChecked() or self.html_report_checkbox.isChecked()
+        report_formats = []
+        if self.excel_report_checkbox.isChecked():
+            report_formats.append('excel')
+        if self.html_report_checkbox.isChecked():
+            report_formats.append('html')
+        
+        # Always include JSON for results
+        report_formats.append('json')
+        
+        output_dir = self.output_dir_edit.text()
+        
+        # Debug logging
+        self.log_message(f"Report generation enabled: {generate_reports}")
+        self.log_message(f"Report formats requested: {report_formats}")
+        self.log_message(f"Output directory: {output_dir}")
+        if generate_leader_packs:
+            self.log_message("Audit Leader-Specific Workbooks will be generated", "INFO")
+
+        # Create and start cancellable validation worker
+        self.validation_worker = CancellableValidationWorker(
             pipeline=None,  # Will be created in worker
             data_source=data_source_file,
             sheet_name=sheet_name,
-            analytic_id=f"Analytics_Validation_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            rule_ids=selected_rules  # Pass selected rules
+            analytic_id=analytic_id,  # Use the validated analytic ID
+            rule_ids=selected_rules,  # Pass selected rules
+            generate_reports=generate_reports,
+            report_formats=report_formats,
+            output_dir=output_dir,
+            use_parallel=use_parallel,
+            responsible_party_column=responsible_party_column,
+            generate_leader_packs=generate_leader_packs
         )
 
         # Connect worker signals
@@ -1144,6 +2884,22 @@ class AnalyticsRunnerApp(QMainWindow):
         self.validation_worker.signals.result.connect(self._on_validation_complete)
         self.validation_worker.signals.error.connect(self._on_validation_error)
         self.validation_worker.signals.finished.connect(self._on_validation_finished)
+        
+        # Connect real-time progress tracking signals
+        self.validation_worker.signals.progressUpdated.connect(self._on_progress_updated)
+        self.validation_worker.signals.statusUpdated.connect(self._on_status_updated)
+        self.validation_worker.signals.ruleStarted.connect(self._on_rule_started)
+        
+        # Connect report generation signals
+        self.validation_worker.signals.reportStarted.connect(self._on_report_started)
+        self.validation_worker.signals.reportProgress.connect(self.update_progress)
+        self.validation_worker.signals.reportCompleted.connect(self._on_report_completed)
+        self.validation_worker.signals.reportError.connect(self._on_report_error)
+        
+        # Connect execution management signals
+        self.validation_worker.signals.sessionStarted.connect(self._on_session_started)
+        self.validation_worker.signals.statusChanged.connect(self._on_execution_status_changed)
+        self.validation_worker.signals.cancelled.connect(self._on_validation_cancelled)
 
         # Start worker
         self.threadpool.start(self.validation_worker)
@@ -1152,35 +2908,234 @@ class AnalyticsRunnerApp(QMainWindow):
     def _on_validation_started(self):
         """Handle validation start."""
         self.log_message("Validation started")
+        # Show progress section
+        self.progress_section.setVisible(True)
+        self.validation_progress_bar.setVisible(True)
+        self.validation_status_label.setVisible(True)
+        self.rule_summary_label.setVisible(True)
+        self.validation_progress_bar.setValue(0)
 
     def _on_validation_complete(self, results: dict):
         """Handle validation completion with results."""
         self.log_message("Validation completed successfully")
 
-        # Format and display results
-        result_text = self._format_validation_results(results)
-        self.results_view.setPlainText(result_text)
+        # Update status in Results & Reports tab
+        self.results_status_label.setText("Results loaded")
+        self.results_status_label.setStyleSheet(f"""
+            QLabel {{
+                color: {AnalyticsRunnerStylesheet.SUCCESS_COLOR};
+                padding: 4px 8px;
+                border: 1px solid {AnalyticsRunnerStylesheet.SUCCESS_COLOR};
+                border-radius: 4px;
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+            }}
+        """)
+        self.clear_results_button.setEnabled(True)
+        
+        # Update Summary tab
+        self._update_summary_tab(results)
+        
+        # Update Rule Details tab
+        self._update_rule_details_tab(results)
+        
+        # Update Failed Items tab
+        self._update_failed_items_tab(results)
+        
+        # Update Reports tab
+        self._update_reports_tab(results)
+        
+        # Load results into interactive tree widget (in side panel for now)
+        self.results_view.load_results(results)
 
-        # Switch to results tab
-        if hasattr(self, 'results_tabs'):
-            self.results_tabs.setCurrentIndex(0)
+        # Switch to Results & Reports tab and Summary sub-tab
+        for i in range(self.mode_tabs.count()):
+            if self.mode_tabs.tabText(i) == "Results & Reports":
+                self.mode_tabs.setCurrentIndex(i)
+                self.results_reports_tabs.setCurrentIndex(0)  # Summary tab
+                break
 
     def _on_validation_error(self, error_message: str):
         """Handle validation error."""
         self.log_message(f"Validation failed: {error_message}", "ERROR")
         QMessageBox.critical(self, "Validation Error", f"Validation failed:\n\n{error_message}")
-        self.results_view.setPlainText(f"Validation Error:\n{error_message}")
+        
+        # Update status in Results & Reports tab
+        self.results_status_label.setText("Validation failed")
+        self.results_status_label.setStyleSheet(f"""
+            QLabel {{
+                color: {AnalyticsRunnerStylesheet.ERROR_COLOR};
+                padding: 4px 8px;
+                border: 1px solid {AnalyticsRunnerStylesheet.ERROR_COLOR};
+                border-radius: 4px;
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+            }}
+        """)
+        
+        # Create error results for display
+        error_results = {
+            'status': 'ERROR',
+            'timestamp': datetime.datetime.now().isoformat(),
+            'error': error_message,
+            'summary': {'total_rules': 0, 'compliance_counts': {'GC': 0, 'PC': 0, 'DNC': 0}, 'compliance_rate': 0},
+            'rules_applied': [],
+            'execution_time': 0,
+            'data_source': 'N/A',
+            'output_files': []
+        }
+        
+        # Update tabs with error state
+        self._update_summary_tab(error_results)
+        self._update_rule_details_tab(error_results)
+        self._update_failed_items_tab(error_results)
+        self._update_reports_tab(error_results)
+        
+        # Still update the side panel
+        self.results_view.load_results(error_results)
+        
+        # Switch to Results & Reports tab
+        for i in range(self.mode_tabs.count()):
+            if self.mode_tabs.tabText(i) == "Results & Reports":
+                self.mode_tabs.setCurrentIndex(i)
+                self.results_reports_tabs.setCurrentIndex(0)  # Summary tab
+                break
 
     def _on_validation_finished(self):
         """Handle validation worker finished (cleanup)."""
         self.start_button.setEnabled(True)
+        self.cancel_button.setEnabled(False)
+        self.cancel_button.setText("Cancel")
         self.start_validation_action.setEnabled(True)
         self.stop_validation_action.setEnabled(False)
         self.show_progress(False)
         self.status_label.setText("Validation completed")
+        
+        # Reset execution status if not already set
+        if hasattr(self, 'execution_status_label'):
+            current_status = self.execution_status_label.text()
+            if "Active" in current_status:
+                self.execution_status_label.setText("Status: Ready")
+                self.execution_status_label.setStyleSheet(f"""
+                    color: {AnalyticsRunnerStylesheet.DARK_TEXT}; 
+                    background-color: transparent;
+                    font-weight: bold;
+                    padding: 4px 8px;
+                    border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                    border-radius: 4px;
+                """)
+        
+        # Hide progress after a delay
+        QTimer.singleShot(3000, self._hide_progress_section)
+    
+    def _on_progress_updated(self, progress: int):
+        """Handle real-time progress updates."""
+        if progress == -1:
+            # Error state
+            self.validation_progress_bar.setStyleSheet(f"""
+                QProgressBar {{
+                    background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+                    border: 1px solid {AnalyticsRunnerStylesheet.ERROR_COLOR};
+                    border-radius: 4px;
+                    text-align: center;
+                    min-height: 20px;
+                }}
+                QProgressBar::chunk {{
+                    background-color: {AnalyticsRunnerStylesheet.ERROR_COLOR};
+                    border-radius: 3px;
+                }}
+            """)
+        else:
+            self.validation_progress_bar.setValue(progress)
+    
+    def _on_status_updated(self, status: str):
+        """Handle status message updates."""
+        self.validation_status_label.setText(status)
+        
+        # Extract ETA if present
+        if "ETA:" in status:
+            eta_match = status.find("ETA:")
+            if eta_match != -1:
+                eta_text = status[eta_match:]
+                self.validation_status_label.setToolTip(eta_text)
+    
+    def _on_rule_started(self, rule_name: str, current: int, total: int):
+        """Handle individual rule start notification."""
+        self.rule_summary_label.setText(f"Rule {current} of {total}: {rule_name}")
+        
+        # Also update in log for detailed tracking
+        self.log_message(f"Evaluating rule {current}/{total}: {rule_name}")
+    
+    def _hide_progress_section(self):
+        """Hide the progress section with animation."""
+        self.progress_section.setVisible(False)
+    
+    def cancel_validation(self):
+        """Cancel the running validation."""
+        if hasattr(self, 'validation_worker') and self.validation_worker:
+            self.log_message("Cancellation requested by user")
+            self.validation_worker.cancel("User requested cancellation")
+            self.cancel_button.setEnabled(False)
+            self.cancel_button.setText("Cancelling...")
+    
+    def _on_session_started(self, session_id: str, timestamp: str):
+        """Handle session start notification."""
+        self.session_info_label.setText(f"Session: {session_id} | Started: {timestamp}")
+        self.session_info_label.setVisible(True)
+        self.log_message(f"Validation session started: {session_id}")
+    
+    def _on_execution_status_changed(self, status: str):
+        """Handle execution status changes."""
+        self.execution_status_label.setText(f"Status: {status}")
+        
+        # Update status styling based on state
+        if status == ExecutionStatus.ACTIVE:
+            bg_color = AnalyticsRunnerStylesheet.SUCCESS_COLOR
+            text_color = "white"
+        elif status == ExecutionStatus.CANCELLED:
+            bg_color = AnalyticsRunnerStylesheet.WARNING_COLOR
+            text_color = "black"
+        elif status == ExecutionStatus.ERROR:
+            bg_color = AnalyticsRunnerStylesheet.ERROR_COLOR
+            text_color = "white"
+        elif status == ExecutionStatus.COMPLETED:
+            bg_color = AnalyticsRunnerStylesheet.INFO_COLOR
+            text_color = "white"
+        else:
+            bg_color = AnalyticsRunnerStylesheet.SURFACE_COLOR
+            text_color = AnalyticsRunnerStylesheet.DARK_TEXT
+            
+        self.execution_status_label.setStyleSheet(f"""
+            color: {text_color}; 
+            background-color: {bg_color};
+            font-weight: bold;
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+        """)
+    
+    def _on_validation_cancelled(self, reason: str):
+        """Handle validation cancellation."""
+        self.log_message(f"Validation cancelled: {reason}")
+        self.cancel_button.setText("Cancel")
+        self.cancel_button.setEnabled(False)
+        
+        # Update progress to show cancellation
+        self.validation_progress_bar.setValue(100)
+        self.validation_status_label.setText("Validation cancelled")
+        
+        # Create cancelled results for display
+        cancelled_results = {
+            'status': 'CANCELLED',
+            'timestamp': datetime.datetime.now().isoformat(),
+            'message': reason,
+            'summary': {'total_rules': 0, 'compliance_counts': {}}
+        }
+        if hasattr(self, 'results_view'):
+            self.results_view.load_results(cancelled_results)
+            
+        QMessageBox.information(self, "Validation Cancelled", f"The validation was cancelled:\n{reason}")
 
     def _format_validation_results(self, results: dict) -> str:
-        """Format validation results for text display."""
+        """Format validation results for text display with detailed item counts per rule."""
         lines = ["=== VALIDATION RESULTS ===", ""]
 
         status = results.get('status', 'UNKNOWN')
@@ -1199,10 +3154,163 @@ class AnalyticsRunnerApp(QMainWindow):
             lines.append(f"Compliance: {summary.get('compliance_rate', 0):.1%}")
             lines.append("")
 
+        # Add detailed rule results with item counts
+        rule_results = results.get('rule_results', {})
+        if rule_results:
+            lines.append("=== RULE RESULTS (WITH ITEM COUNTS) ===")
+            lines.append("")
+            
+            # Sort rules by name for consistent display
+            sorted_rules = sorted(rule_results.items(), key=lambda x: x[1].rule.name if hasattr(x[1], 'rule') else x[0])
+            
+            for rule_id, result in sorted_rules:
+                try:
+                    # Extract rule information
+                    if hasattr(result, 'rule'):
+                        rule_name = result.rule.name
+                        rule_status = result.compliance_status
+                    else:
+                        # Fallback if structure is different
+                        rule_name = rule_id
+                        rule_status = "UNKNOWN"
+                    
+                    # Get summary data with safe defaults
+                    if hasattr(result, 'summary'):
+                        result_summary = result.summary
+                    else:
+                        result_summary = {}
+                    
+                    # Extract counts with safe defaults
+                    total_items = result_summary.get('total_items', 0)
+                    gc_count = result_summary.get('gc_count', 0)
+                    pc_count = result_summary.get('pc_count', 0)
+                    dnc_count = result_summary.get('dnc_count', 0)
+                    
+                    # Calculate passed and failed
+                    passed = gc_count
+                    failed = dnc_count + pc_count  # PC treated as failed per requirements
+                    
+                    # Format the rule result line
+                    if total_items > 0:
+                        lines.append(f"{rule_name}: {rule_status} ({passed} passed, {failed} failed out of {total_items} total)")
+                    else:
+                        lines.append(f"{rule_name}: {rule_status} (No data processed)")
+                        
+                except Exception as e:
+                    # Handle any unexpected structure
+                    logger.warning(f"Error formatting rule result {rule_id}: {str(e)}")
+                    lines.append(f"{rule_id}: Error displaying results")
+                    
+            lines.append("")
+
         exec_time = results.get('execution_time', 0)
         lines.append(f"Execution Time: {exec_time:.2f} seconds")
 
+        # Add generated files if any
+        output_files = results.get('output_files', [])
+        if output_files:
+            lines.append("")
+            lines.append("=== GENERATED REPORTS ===")
+            for file_path in output_files:
+                file_name = os.path.basename(file_path)
+                lines.append(f"• {file_name}")
+
         return "\n".join(lines)
+    
+    def _on_report_started(self):
+        """Handle report generation start."""
+        self.log_message("Report generation started")
+        
+    def _on_report_completed(self, report_info: dict):
+        """Handle report generation completion."""
+        # Check if this is a leader pack report
+        if report_info.get('type') == 'leader_packs':
+            self._handle_leader_pack_results(report_info.get('results', {}))
+            return
+            
+        self.log_message("Reports generated successfully")
+        
+        # Display report files in results view
+        output_files = report_info.get('output_files', [])
+        if output_files:
+            # Append to existing results
+            current_text = self.results_view.toPlainText()
+            
+            report_text = [
+                "",
+                "=== GENERATED REPORTS ===",
+                f"Output Directory: {report_info.get('output_dir', 'unknown')}",
+                ""
+            ]
+            
+            for file_path in output_files:
+                file_name = os.path.basename(file_path)
+                file_size = os.path.getsize(file_path) if os.path.exists(file_path) else 0
+                size_str = f"{file_size / 1024:.1f} KB" if file_size < 1024 * 1024 else f"{file_size / (1024 * 1024):.1f} MB"
+                
+                # Format based on file type
+                if file_path.endswith('.xlsx'):
+                    icon = "📊"
+                    desc = "Excel Report"
+                elif file_path.endswith('.html'):
+                    icon = "🌐"
+                    desc = "HTML Report"
+                elif file_path.endswith('.json'):
+                    icon = "📄"
+                    desc = "JSON Results"
+                else:
+                    icon = "📁"
+                    desc = "Report File"
+                    
+                report_text.append(f"{icon} {file_name} ({size_str}) - {desc}")
+                report_text.append(f"   Path: {file_path}")
+                
+            # For ResultsTreeWidget, we need to refresh with updated data
+            # This is handled by the tree widget's report display
+            
+    def _on_report_error(self, error_msg: str):
+        """Handle report generation error."""
+        self.log_message(f"Report generation error: {error_msg}", "ERROR")
+        QMessageBox.warning(
+            self,
+            "Report Generation Error",
+            f"Failed to generate some reports:\n\n{error_msg}\n\nValidation results have still been saved."
+        )
+        
+    def _handle_leader_pack_results(self, leader_pack_results: dict):
+        """Handle leader pack generation results."""
+        if leader_pack_results.get('success'):
+            # Count the number of leader packs generated
+            leader_reports = leader_pack_results.get('leader_reports', {})
+            num_packs = len(leader_reports)
+            
+            self.log_message(f"Successfully generated {num_packs} Audit Leader-Specific Workbooks")
+            
+            # Show success message with details
+            zip_path = leader_pack_results.get('zip_path', '')
+            if zip_path and os.path.exists(zip_path):
+                file_size = os.path.getsize(zip_path)
+                size_str = f"{file_size / (1024 * 1024):.1f} MB" if file_size > 1024 * 1024 else f"{file_size / 1024:.1f} KB"
+                
+                message = f"Successfully generated {num_packs} Audit Leader-Specific Workbooks\n\n"
+                message += f"ZIP file created: {os.path.basename(zip_path)} ({size_str})\n"
+                message += f"Location: {zip_path}"
+                
+                QMessageBox.information(self, "Leader Packs Generated", message)
+            else:
+                # Just show count if no ZIP
+                QMessageBox.information(
+                    self, 
+                    "Leader Packs Generated", 
+                    f"Successfully generated {num_packs} Audit Leader-Specific Workbooks"
+                )
+        else:
+            # Handle failure
+            error_msg = leader_pack_results.get('error', 'Unknown error')
+            self.log_message(f"Failed to generate leader packs: {error_msg}", "WARNING")
+            
+            # Don't show a warning dialog - just log it
+            # This is as requested: "failures shouldn't block the validation from completing"
 
     def stop_validation(self):
         """Stop the validation process."""
@@ -1222,9 +3330,17 @@ class AnalyticsRunnerApp(QMainWindow):
         self.show_progress(False)
         self.status_label.setText("Validation completed")
 
-        # Show mock results
-        self.results_view.setPlainText(
-            "Validation Results:\n\nMock results - functionality will be implemented in later phases.")
+        # Show mock results in tree widget
+        mock_results = {
+            'status': 'MOCK',
+            'timestamp': datetime.datetime.now().isoformat(),
+            'message': "Validation Results:\n\nMock results - functionality will be implemented in later phases.",
+            'summary': {
+                'total_rules': 0,
+                'compliance_counts': {}
+            }
+        }
+        self.results_view.load_results(mock_results)
 
     def toggle_results_panel(self):
         """Toggle visibility of the results panel."""
@@ -1324,6 +3440,14 @@ class AnalyticsRunnerApp(QMainWindow):
         """Handle debug mode change from error handler"""
         self.debug_checkbox.setChecked(enabled)
         self.debug_mode_action.setChecked(enabled)
+    
+    def _on_result_rule_selected(self, rule_id: str):
+        """Handle rule selection in results tree"""
+        self.log_message(f"Rule selected for details: {rule_id}")
+        
+    def _on_result_export_requested(self, rule_id: str, df: pd.DataFrame):
+        """Handle export request from results tree"""
+        self.log_message(f"Exported {len(df)} failing items for rule: {rule_id}")
 
 
 def main():

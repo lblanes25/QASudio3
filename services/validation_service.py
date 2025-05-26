@@ -106,7 +106,8 @@ class ValidationPipeline:
                              exclude_rule_types: Optional[List[str]] = None,
                              expected_schema: Optional[Union[List[str], str]] = None,
                              use_parallel: bool = False,
-                             report_config: Optional[str] = None) -> Dict[str, Any]:
+                             report_config: Optional[str] = None,
+                             use_all_rules: bool = False) -> Dict[str, Any]:
         """
         Run validation process on a data source.
 
@@ -123,6 +124,7 @@ class ValidationPipeline:
             expected_schema: Expected column list or path to schema file
             use_parallel: Whether to evaluate rules in parallel
             report_config: Optional path to report configuration YAML file
+            use_all_rules: If True, use all available rules regardless of analytic_id
 
         Returns:
             Dictionary with validation results
@@ -189,16 +191,22 @@ class ValidationPipeline:
                     return results
 
             # Get rules to apply with filtering
+            # If use_all_rules is True, don't filter by analytic_id
             rules = self._get_rules_to_apply(
                 rule_ids,
-                analytic_id,
+                analytic_id if not use_all_rules else None,
                 min_severity=min_severity,
                 exclude_rule_types=exclude_rule_types
             )
+            
+            logger.info(f"Found {len(rules)} rules to apply")
+            if rules:
+                logger.info(f"Rule IDs: {[r.rule_id for r in rules[:5]]}{'...' if len(rules) > 5 else ''}")
 
             if not rules:
                 results['valid'] = False
                 results['status'] = 'NO_RULES_FOUND'
+                logger.warning(f"No rules found. rule_ids={rule_ids}, analytic_id={analytic_id}")
                 return results
 
             # Add rule metadata to results
@@ -224,6 +232,9 @@ class ValidationPipeline:
                 if self.archive_dir:
                     archive_paths = self._archive_outputs(output_paths)
                     results['archived_files'] = archive_paths
+                    
+            # Store rule_results for potential leader pack generation
+            results['_rule_evaluation_results'] = rule_results
 
             # Calculate total execution time
             end_time = datetime.datetime.now()

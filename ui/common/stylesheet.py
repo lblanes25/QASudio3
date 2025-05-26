@@ -27,6 +27,7 @@ class AnalyticsRunnerStylesheet:
     ACCENT_COLOR = "#E3F2FD"
     DARK_TEXT = "#2C3E50"
     LIGHT_TEXT = "#6C757D"
+    SURFACE_COLOR = "#F8F9FA"  # Light gray surface for cards/panels
 
     # Font sizes
     REGULAR_FONT_SIZE = 14

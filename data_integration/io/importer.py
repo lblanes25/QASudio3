@@ -10,6 +10,7 @@ from pathlib import Path
 # Import our connectors
 from ..connectors import get_connector_for_file
 from .data_validator import DataValidator, DataValidationError
+from .date_detector import DateDetector
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,9 @@ class DataImporter:
                   range: Optional[str] = None,
                   validate: Optional[Dict[str, Any]] = None,
                   raise_on_validation_error: bool = False,
+                  detect_dates: bool = True,
+                  date_columns: Optional[List[str]] = None,
+                  date_formats: Optional[List[str]] = None,
                   **kwargs) -> Union[pd.DataFrame, Tuple[pd.DataFrame, Dict[str, Any]]]:
         """
         Load data from a file into a DataFrame using the appropriate connector.
@@ -36,6 +40,9 @@ class DataImporter:
             range: Cell range to load (for Excel files)
             validate: Optional validation rules to apply
             raise_on_validation_error: Whether to raise exception on validation failure
+            detect_dates: Whether to auto-detect and convert date columns (default: True)
+            date_columns: Specific columns to convert to dates (if None, auto-detect)
+            date_formats: Additional date formats to try during detection
             **kwargs: Additional parameters specific to the file type
 
         Returns:
@@ -60,6 +67,33 @@ class DataImporter:
 
             # Close connection
             connector.disconnect()
+
+            # Apply date detection and conversion if enabled
+            if detect_dates or date_columns:
+                logger.info(f"Processing date columns for file: {file_path}")
+                
+                # Create date detector with custom formats if provided
+                detector = DateDetector(additional_formats=date_formats)
+                
+                # Convert date columns
+                df, conversion_report = detector.convert_date_columns(
+                    df, 
+                    columns=date_columns  # None means auto-detect
+                )
+                
+                # Log conversion results
+                for col, report in conversion_report.items():
+                    if report['error_count'] > 0:
+                        logger.warning(
+                            f"Date conversion for column '{col}': "
+                            f"{report['success_count']} successful, "
+                            f"{report['error_count']} errors"
+                        )
+                    else:
+                        logger.info(
+                            f"Successfully converted column '{col}' to datetime "
+                            f"(format: {report['format']})"
+                        )
 
             # Apply validation if specified
             if validate:

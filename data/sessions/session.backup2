@@ -1,6 +1,6 @@
 {
-  "window_geometry": "AdnQywADAAAAAAeA////+AAADv8AAAQHAAAJAwAAAH0AAA2yAAAD+gAAAAECAAAAB4AAAAeAAAAAFwAADv8AAAQH",
-  "splitter_state": "AAAA/wAAAAEAAAACAAACWAAAAZAB/////wEAAAABAA==",
+  "window_geometry": "AdnQywADAAAAAAkSAAAAQAAADcEAAAN+AAAJEgAAAF8AAA3BAAADfgAAAAEAAAAAB4AAAAkSAAAAXwAADcEAAAN+",
+  "splitter_state": "AAAA/wAAAAEAAAACAAAAAAAAAAAB/////wEAAAABAA==",
   "active_mode": 2,
   "last_data_directory": "C:\\Users\\luria\\PycharmProjects\\AuditQAStudio2\\test_data",
   "last_output_directory": "./output",
@@ -29,10 +29,13 @@
   "backup_results": true,
   "session_timeout_minutes": 120,
   "rule_selector_state": {
-    "selected_rule_ids": [],
+    "selected_rule_ids": [
+      "1eff1bb3-8d42-4499-b0a6-161744c5b35c",
+      "ad1682c4-4e93-437a-8228-c844532d547b"
+    ],
     "search_text": "",
-    "category_filter": "Data Quality",
-    "severity_filter": "Medium",
+    "category_filter": "All Categories",
+    "severity_filter": "All Severities",
     "splitter_state": {
       "_qt_type": "bytes",
       "data": "AAAA/wAAAAEAAAACAAAB9AAAAfQB/////wEAAAABAA=="
