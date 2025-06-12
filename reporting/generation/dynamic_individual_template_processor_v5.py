@@ -67,8 +67,12 @@ class DynamicIndividualTemplateProcessorV5:
         # Copy template to output location
         shutil.copy2(self.template_path, output_path)
         
-        # Open the copied template
-        wb = openpyxl.load_workbook(output_path)
+        # Open the copied template with data_only=True to avoid formula issues
+        wb = openpyxl.load_workbook(output_path, data_only=True)
+        
+        # Remove external links to prevent corruption
+        if hasattr(wb, 'external_links') and wb.external_links:
+            wb.external_links.clear()
         ws = wb.active
         
         # Update metadata section
@@ -91,9 +95,13 @@ class DynamicIndividualTemplateProcessorV5:
             ws, responsible_parties, compliance_stats, threshold
         )
         
+        # Sort detailed results by compliance status (DNC, GC, NA, PC order)
+        # This ensures DNC appears first when sorted alphabetically
+        detailed_results_sorted = sorted(detailed_results, key=lambda x: x['compliance'])
+        
         # Create dynamic detailed results section with all enhancements
         self._create_enhanced_detailed_results(
-            ws, rule_result, detailed_results, responsible_party_column, 
+            ws, rule_result, detailed_results_sorted, responsible_party_column, 
             test_columns, detail_start_adjustment
         )
         

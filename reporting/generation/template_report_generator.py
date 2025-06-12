@@ -103,7 +103,13 @@ class TemplateBasedReportGenerator:
             # Create workbook (copy template if available, otherwise create new)
             if self.template_path and self.template_path.exists():
                 shutil.copy2(self.template_path, output_path)
-                workbook = openpyxl.load_workbook(output_path)
+                # Load with data_only=True to avoid formula corruption
+                workbook = openpyxl.load_workbook(output_path, data_only=True)
+                
+                # Remove external links to prevent corruption
+                if hasattr(workbook, 'external_links') and workbook.external_links:
+                    workbook.external_links.clear()
+                
                 logger.info(f"Using template: {self.template_path}")
             else:
                 workbook = openpyxl.Workbook()

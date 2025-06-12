@@ -1,0 +1,73 @@
+# QA Analytics Framework - Requirements File
+# Core application dependencies for Analytics Runner
+
+# GUI Framework - PySide6 for Qt-based interface
+PySide6>=6.5.0
+
+# Data Processing and Analysis
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Excel Integration (Windows-specific)
+pywin32>=306; platform_system=="Windows"
+
+# Data Format Support
+openpyxl>=3.1.0  # Excel file reading/writing without COM
+xlsxwriter>=3.1.0  # Enhanced Excel writing capabilities
+
+# YAML Configuration Support
+PyYAML>=6.0
+
+# Validation and Schema Support
+jsonschema>=4.17.0
+
+# Logging Enhancement
+colorama>=0.4.6  # Cross-platform colored terminal output
+
+# File System Operations
+pathlib2>=2.3.7; python_version<"3.4"  # Backport for older Python
+
+# Threading and Concurrency
+concurrent-futures>=3.1.1; python_version<"3.2"  # Backport for older Python
+
+# Development and Testing Dependencies
+# (Install with: pip install -r requirements.txt -r requirements-dev.txt)
+
+# Optional Dependencies for Enhanced Features
+# Uncomment if you need these capabilities:
+
+# Advanced Data Validation
+# cerberus>=1.3.4
+
+# Database Connectivity (if needed)
+# sqlalchemy>=2.0.0
+# pyodbc>=4.0.39
+
+# API Integration (if needed)
+# requests>=2.31.0
+
+# Enhanced Logging
+# structlog>=23.1.0
+
+# Performance Monitoring
+# psutil>=5.9.0
+
+# Data Visualization (if adding charts)
+# matplotlib>=3.7.0
+# seaborn>=0.12.0
+
+# Configuration Management
+# python-dotenv>=1.0.0
+
+# Date/Time Handling
+# python-dateutil>=2.8.2
+
+# UUID Generation (usually built-in, but for compatibility)
+# uuid>=1.30
+
+# Platform Detection
+# platform>=1.0.8
+
+# File Type Detection
+# python-magic>=0.4.27; platform_system!="Windows"
+# python-magic-bin>=0.4.14; platform_system=="Windows"

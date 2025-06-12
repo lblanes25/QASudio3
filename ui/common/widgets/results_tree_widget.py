@@ -620,7 +620,8 @@ class ResultsTreeWidget(QWidget):
             if file_path:
                 try:
                     if file_path.endswith('.xlsx'):
-                        df.to_excel(file_path, index=False)
+                        # Use xlsxwriter engine to avoid formula corruption
+                        df.to_excel(file_path, index=False, engine='xlsxwriter')
                     else:
                         df.to_csv(file_path, index=False)
                         

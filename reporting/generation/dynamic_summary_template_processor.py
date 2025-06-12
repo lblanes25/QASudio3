@@ -262,6 +262,100 @@ class DynamicSummaryTemplateProcessor:
     # MAIN GENERATION METHOD
     # ==========================================
 
+
+    # ==========================================
+    # TEMPLATE CLEARING METHODS
+    # ==========================================
+    
+    def _clear_template_placeholders(self, ws):
+        """
+        Clear template placeholder content before inserting dynamic data.
+        This prevents duplication of template sections.
+        """
+        logger.info("Clearing template placeholder content")
+        
+        # Specifically clear rows 21-34 which contain the template Section 3
+        # This is based on the actual template structure observed
+        logger.info("Clearing template rows 21-34")
+        for row in range(21, 35):
+            for col in range(1, 20):  # Clear columns A through S
+                cell_ref = f'{get_column_letter(col)}{row}'
+                try:
+                    cell = ws[cell_ref]
+                    if not isinstance(cell, MergedCell):
+                        # Only clear if it contains template-like content
+                        if cell.value:
+                            value_str = str(cell.value)
+                            # Check if this looks like template content
+                            if any(keyword in value_str for keyword in [
+                                "Audit Leader Average Test Results",
+                                "Area",
+                                "IAG-Wide Analytic", 
+                                "Analytic Error Threshold",
+                                "Risk Level",
+                                "Budget",
+                                "Analytic ID",
+                                "Manual Samples",
+                                "Rule 1 Title",
+                                "Etc."
+                            ]):
+                                logger.debug(f"Clearing template content at {cell_ref}: {value_str[:30]}")
+                                cell.value = None
+                except Exception as e:
+                    logger.debug(f"Could not clear {cell_ref}: {e}")
+        
+        # Also clear any "Analytics" placeholders in the 30s rows
+        for row in range(30, 40):
+            for col in range(3, 15):
+                cell_ref = f'{get_column_letter(col)}{row}'
+                try:
+                    cell = ws[cell_ref]
+                    if not isinstance(cell, MergedCell) and cell.value:
+                        if str(cell.value) in ["Analytics", "Not Applicable", "2%", "3"]:
+                            logger.debug(f"Clearing analytics template at {cell_ref}")
+                            cell.value = None
+                except:
+                    pass
+        
+        # Find and clear any remaining "Audit Leader Average Test Results" sections
+        for row in range(20, 50):
+            cell_value = self._safe_read_cell(ws, f'A{row}')
+            if cell_value and "Audit Leader Average Test Results" in str(cell_value):
+                logger.info(f"Found additional template Section 3 at row {row}, clearing it")
+                # Clear this row
+                for col in range(1, 20):
+                    cell_ref = f'{get_column_letter(col)}{row}'
+                    try:
+                        cell = ws[cell_ref]
+                        if not isinstance(cell, MergedCell):
+                            cell.value = None
+                    except:
+                        pass
+        
+        # Clear empty audit leader placeholder rows
+        self._clear_other_template_sections(ws)
+    
+    def _clear_other_template_sections(self, ws):
+        """Clear other template sections that might interfere with dynamic content."""
+        # Clear empty audit leader rows in Section 2
+        for row in range(15, 20):
+            cell_b = self._safe_read_cell(ws, f'B{row}')
+            if cell_b is None or str(cell_b).strip() == "":
+                # This is likely a template placeholder row for audit leaders
+                cell_c = self._safe_read_cell(ws, f'C{row}')
+                if cell_c and "Total Weighted Score" in str(cell_c):
+                    logger.debug(f"Clearing template audit leader row {row}")
+                    # Clear the row but preserve column C's label
+                    for col in [1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]:
+                        cell_ref = f'{get_column_letter(col)}{row}'
+                        try:
+                            cell = ws[cell_ref]
+                            if not isinstance(cell, MergedCell):
+                                cell.value = None
+                        except:
+                            pass
+
+
     def generate_summary_report(self,
                                results: Dict[str, Any],
                                rule_results: Dict[str, Any],
@@ -275,8 +369,16 @@ class DynamicSummaryTemplateProcessor:
 
         # Copy template and load workbook
         shutil.copy2(self.template_path, output_path)
-        wb = openpyxl.load_workbook(output_path)
+        # Load with data_only=True to avoid formula corruption
+        wb = openpyxl.load_workbook(output_path, data_only=True)
+        
+        # Remove external links to prevent corruption
+        if hasattr(wb, 'external_links') and wb.external_links:
+            wb.external_links.clear()
         ws = wb.active
+
+        # IMPORTANT: Clear template placeholders BEFORE adding dynamic content
+        self._clear_template_placeholders(ws)
 
         # Extract dynamic structure from validation data
         rule_names, audit_leaders, leader_rule_matrix = self._extract_dynamic_structure(

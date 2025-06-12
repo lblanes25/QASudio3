@@ -188,11 +188,9 @@ class TemplateIntegrationMixin:
             # Try dynamic summary template processor
             dynamic_summary_available = self._try_import_dynamic_summary_processor()
 
-            if dynamic_summary_available and os.path.exists(self.summary_template_path):
-                from .dynamic_summary_template_processor import DynamicSummaryTemplateProcessor
-                summary_processor = DynamicSummaryTemplateProcessor(self.summary_template_path)
-                generated_path = summary_processor.generate_summary_report(
-                    results=results,
+            if dynamic_summary_available:
+                from .template_free_summary_generator import generate_template_free_summary
+                generated_path = generate_template_free_summary(
                     rule_results=rule_results,
                     output_path=output_path,
                     responsible_party_column=responsible_party_column

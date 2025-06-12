@@ -233,10 +233,10 @@ class RuleEvaluator:
 
         with ExcelFormulaProcessor(visible=self.excel_visible, track_errors=True) as processor:
             result_df = processor.process_formulas(data_df, formula_map)
+            result_df.index = data_df.index  # ✅ Fix: align result index to input
 
         # Convert string "TRUE"/"FALSE" values to boolean for proper handling
         if result_column in result_df.columns:
-            # Handle different result types that might come back from Excel
             def normalize_result(val):
                 if isinstance(val, bool):
                     return val
