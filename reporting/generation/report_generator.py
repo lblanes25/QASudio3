@@ -13,21 +13,38 @@ import xlsxwriter
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# Import template integration if available
+try:
+    from .template_integration import TemplateIntegrationMixin
+    TEMPLATE_AVAILABLE = True
+except ImportError:
+    logger.info("Template integration not available, using standard format only")
+    TemplateIntegrationMixin = object
+    TEMPLATE_AVAILABLE = False
 
-class ReportGenerator:
+
+class ReportGenerator(TemplateIntegrationMixin):
     """
     Generates detailed Excel and HTML reports from validation results.
     Provides transparency into rule evaluations with detailed explanations
     of failures and intermediate calculations.
     """
 
-    def __init__(self, config_path: Optional[str] = None):
+    def __init__(self, config_path: Optional[str] = None, template_path: Optional[str] = None):
         """
         Initialize the report generator with optional configuration.
 
         Args:
             config_path: Path to YAML configuration file
+            template_path: Path to Excel template for individual rule tabs (QA-ID-70 format)
         """
+        # Store template path for later use
+        self.template_path = template_path
+        self.use_template_for_rules = template_path is not None and TEMPLATE_AVAILABLE
+
+        if self.use_template_for_rules:
+            logger.info(f"Template integration enabled for individual rule tabs: {template_path}")
+
         # Default configuration
         self.config = {
             'test_weights': {},  # Maps test IDs to weights
@@ -56,7 +73,7 @@ class ReportGenerator:
                 'max_failures_per_rule': 1000,
                 'show_formula_on_sheets': True,
                 'enable_conditional_formatting': True,
-                'include_explanation_section': True,
+                'include_explanation_section': False,  # No troubleshooting guide
                 'show_intermediate_calculations': True
             }
         }
@@ -64,6 +81,10 @@ class ReportGenerator:
         # Load configuration if provided
         if config_path:
             self._load_config(config_path)
+
+        # Initialize template integration if available
+        if TEMPLATE_AVAILABLE:
+            super().__init__()
 
     def _load_config(self, config_path: str) -> None:
         """
@@ -96,6 +117,7 @@ class ReportGenerator:
                        output_path: str, group_by: Optional[str] = None) -> str:
         """
         Generate comprehensive Excel report based on validation results.
+        Uses template-based generation if available, falls back to programmatic generation.
 
         Args:
             results: Validation results summary dictionary
@@ -106,6 +128,17 @@ class ReportGenerator:
         Returns:
             Path to the generated Excel file
         """
+        # Try template-based generation first if available
+        if hasattr(self, 'use_templates') and self.use_templates and hasattr(self, 'template_generator') and self.template_generator:
+            try:
+                logger.info(f"Attempting template-based Excel generation at {output_path}")
+                template_path = self.generate_excel_with_template(results, rule_results, output_path, group_by)
+                return template_path
+            except Exception as e:
+                logger.error(f"Template-based generation failed: {e}")
+                logger.info("Falling back to programmatic Excel generation")
+
+        # Fall back to original programmatic generation
         try:
             import xlsxwriter
         except ImportError:
@@ -114,7 +147,7 @@ class ReportGenerator:
                 f.write('Excel report generation failed: xlsxwriter not installed')
             return output_path
 
-        logger.info(f"Generating Excel report at {output_path}")
+        logger.info(f"Generating Excel report (programmatic) at {output_path}")
 
         # Create output directory if it doesn't exist
         os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
@@ -582,6 +615,7 @@ class ReportGenerator:
                                formats: Dict[str, Any]) -> None:
         """
         Create individual sheets for each analytic/rule with detailed failure analysis.
+        Uses QA-ID-70 template format if enabled, otherwise standard format.
 
         Args:
             workbook: xlsxwriter workbook object
@@ -589,6 +623,22 @@ class ReportGenerator:
             rule_results: Dictionary of rule evaluation results
             group_by: Column name for grouping results
             formats: Dictionary of Excel formats
+        """
+        # Check if we should use template format for individual rule tabs
+        if self.use_template_for_rules and hasattr(self, 'create_template_based_rule_tab'):
+            logger.info("Creating individual rule tabs using QA-ID-70 template format")
+            # Need to convert xlsxwriter workbook to openpyxl for template integration
+            # For now, we'll create tabs in standard format and note this for future enhancement
+            logger.warning("Template integration requires openpyxl workbook - using standard format")
+            self._create_standard_analytic_sheets(workbook, results, rule_results, group_by, formats)
+        else:
+            self._create_standard_analytic_sheets(workbook, results, rule_results, group_by, formats)
+
+    def _create_standard_analytic_sheets(self, workbook, results: Dict[str, Any],
+                                       rule_results: Dict[str, Any], group_by: Optional[str],
+                                       formats: Dict[str, Any]) -> None:
+        """
+        Create individual sheets using standard format (original implementation).
         """
         # Process each rule
         for rule_id, result in rule_results.items():
@@ -599,7 +649,9 @@ class ReportGenerator:
 
                 # Create sheet for this rule
                 # Use safe name that fits Excel's 31-character limit
-                sheet_name = self._safe_sheet_name(rule_name)
+                # Format as "Rule ID - Name"
+                display_name = f"{rule_id} - {rule_name}"
+                sheet_name = self._safe_sheet_name(display_name)
                 worksheet = workbook.add_worksheet(sheet_name)
 
                 # Set column widths based on content
@@ -625,12 +677,14 @@ class ReportGenerator:
                     description = "No description available."
 
                 worksheet.write(row, 0, 'Description:', formats['subheader'])
-                worksheet.merge_range(f'B{row + 1}:H{row + 1}', description, formats['normal'])
+                self._safe_merge_range(worksheet, f'B{row + 1}:H{row + 1}', description, formats['normal'])
                 row += 1
 
-                # Rule formula
+                # Rule formula - prefix with apostrophe to prevent Excel from interpreting as formula
                 worksheet.write(row, 0, 'Formula:', formats['subheader'])
-                worksheet.merge_range(f'B{row + 1}:H{row + 1}', formula, formats['formula'])
+                # Escape formula by prefixing with apostrophe if it starts with =
+                escaped_formula = f"'{formula}" if formula.startswith('=') else formula
+                self._safe_merge_range(worksheet, f'B{row + 1}:H{row + 1}', escaped_formula, formats['formula'])
                 row += 1
 
                 # Rule complexity and components
@@ -643,9 +697,8 @@ class ReportGenerator:
                 # Referenced columns
                 if formula_components['referenced_columns']:
                     worksheet.write(row, 0, 'Referenced Columns:', formats['subheader'])
-                    worksheet.merge_range(f'B{row + 1}:H{row + 1}',
-                                          ', '.join(formula_components['referenced_columns']),
-                                          formats['normal'])
+                    ref_columns_text = ', '.join(formula_components['referenced_columns'])
+                    self._safe_merge_range(worksheet, f'B{row + 1}:H{row + 1}', ref_columns_text, formats['normal'])
                     row += 1
 
                 # Add compliance metrics
@@ -735,27 +788,51 @@ class ReportGenerator:
                         worksheet.write(row, 6, party_status, status_fmt)
                         row += 1
 
-                # Add failure details if there are any
-                if hasattr(result, 'get_failing_items'):
-                    failure_df = result.get_failing_items()
+                # Add test results for all rows (not just failures)
+                if hasattr(result, 'result_df') and result.result_df is not None:
+                    all_data_df = result.result_df.copy()
 
-                    if not failure_df.empty:
+                    if not all_data_df.empty:
                         row += 2
-                        worksheet.merge_range(f'A{row + 1}:H{row + 1}', 'Failure Details', formats['header'])
+                        worksheet.merge_range(f'A{row + 1}:H{row + 1}', 'Test Results (All Rows)', formats['header'])
                         row += 1
 
-                        # Limit failures to configured maximum
-                        max_failures = self.config['display_options'].get('max_failures_per_rule', 1000)
-                        if len(failure_df) > max_failures:
-                            original_count = len(failure_df)
-                            failure_df = failure_df.head(max_failures)
-                            worksheet.merge_range(f'A{row + 1}:H{row + 1}',
-                                                  f"Showing first {max_failures} of {original_count} failures",
-                                                  formats['normal'])
-                            row += 1
+                        # Get failure count for display based on result column values
+                        failure_count = 0
+                        if hasattr(result, 'result_column') and result.result_column in all_data_df.columns:
+                            result_col = all_data_df[result.result_column]
+                            # Count failures (0, False, 'DNC', 'PC')
+                            is_failing = (
+                                (result_col == 0) | (result_col == '0') |
+                                (result_col == False) | (result_col == 'False') | (result_col == 'FALSE') |
+                                (result_col == 'DNC') | (result_col == 'PC')
+                            )
+                            failure_count = is_failing.sum()
+                        pass_count = len(all_data_df) - failure_count
+
+                        # Add summary of pass/fail
+                        worksheet.merge_range(f'A{row + 1}:H{row + 1}',
+                                              f"Total Rows: {len(all_data_df)} | Passed: {pass_count} | Failed: {failure_count}",
+                                              formats['normal'])
+                        row += 1
 
                         # Create enhanced DataFrame with calculation explanations
-                        enhanced_df = self._add_calculation_columns(failure_df, result)
+                        enhanced_df = self._add_calculation_columns(all_data_df, result)
+
+                        # Sort data to show failures first, then passes
+                        # Create a sort key based on the result column
+                        if result.result_column in enhanced_df.columns:
+                            # Create sort order: DNC/False/0 = 0, PC = 1, GC/True/1 = 2
+                            def get_sort_key(val):
+                                if val is False or val == 'False' or val == 'FALSE' or val == 'DNC' or val == 0 or val == '0':
+                                    return 0
+                                elif val == 'PC':
+                                    return 1
+                                else:  # GC/True/1
+                                    return 2
+
+                            enhanced_df['_sort_key'] = enhanced_df[result.result_column].apply(get_sort_key)
+                            enhanced_df = enhanced_df.sort_values('_sort_key').drop('_sort_key', axis=1)
 
                         # Determine columns to display
                         display_columns = self._organize_display_columns(
@@ -767,7 +844,9 @@ class ReportGenerator:
 
                         # Write column headers
                         for col, column_name in enumerate(display_columns):
-                            worksheet.write(row, col, column_name, formats['subheader'])
+                            # Rename result column to "Test Result" for clarity
+                            display_name = "Test Result" if column_name == result.result_column else column_name
+                            worksheet.write(row, col, display_name, formats['subheader'])
                         row += 1
 
                         # Write data rows
@@ -782,10 +861,10 @@ class ReportGenerator:
                                     # Handle special column types
                                     if column_name == result.result_column:
                                         # Result column gets GC/PC/DNC formatting
-                                        if value is True or value == 'True' or value == 'TRUE':
+                                        if value is True or value == 'True' or value == 'TRUE' or value == 1 or value == '1':
                                             cell_format = formats['gc']
                                             value = 'GC'
-                                        elif value is False or value == 'False' or value == 'FALSE':
+                                        elif value is False or value == 'False' or value == 'FALSE' or value == 0 or value == '0':
                                             cell_format = formats['dnc']
                                             value = 'DNC'
                                         else:
@@ -797,6 +876,9 @@ class ReportGenerator:
                                                     cell_format = formats['pc']
                                                 elif 'DNC' in value:
                                                     cell_format = formats['dnc']
+                                            else:
+                                                # Default for any other value
+                                                cell_format = formats['normal']
                                     elif column_name.startswith('Calc_') or column_name.startswith('Reason_'):
                                         # Calculation or reason columns get special formatting
                                         cell_format = formats['failure_reason']
@@ -823,12 +905,14 @@ class ReportGenerator:
 
                     # Get explanation of rule
                     explanation = self._get_rule_explanation(rule)
-                    worksheet.merge_range(f'A{row + 1}:H{row + 1}', explanation, formats['explanation'])
+                    safe_explanation = self._safe_cell_content(explanation)
+                    worksheet.merge_range(f'A{row + 1}:H{row + 1}', safe_explanation, formats['explanation'])
                     row += 1
 
                     # Add specific troubleshooting tips
                     tips = self._get_troubleshooting_tips(result)
-                    worksheet.merge_range(f'A{row + 1}:H{row + 1}', "Tips: " + tips, formats['explanation'])
+                    safe_tips = self._safe_cell_content("Tips: " + tips)
+                    worksheet.merge_range(f'A{row + 1}:H{row + 1}', safe_tips, formats['explanation'])
 
             except Exception as e:
                 # Log error and continue with next rule
@@ -857,6 +941,94 @@ class ReportGenerator:
 
         return safe_name
 
+    def _safe_cell_content(self, content: str) -> str:
+        """
+        Sanitize content for safe writing to Excel cells.
+
+        Args:
+            content: Original content string
+
+        Returns:
+            Sanitized content safe for Excel
+        """
+        if not isinstance(content, str):
+            return str(content) if content is not None else ""
+
+        # Remove or replace characters that can cause XML corruption
+        # Excel's XML format doesn't handle these well
+        safe_content = content
+
+        # Replace control characters (except tab, newline, carriage return)
+        import re
+        safe_content = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', safe_content)
+
+        # Handle special XML characters that might not be properly escaped
+        # xlsxwriter usually handles these, but in some cases they can cause issues
+        replacements = {
+            '\x00': '',  # Null character
+            '\x01': '',  # Start of heading
+            '\x02': '',  # Start of text
+            '\x03': '',  # End of text
+            '\x04': '',  # End of transmission
+            '\x05': '',  # Enquiry
+            '\x06': '',  # Acknowledge
+            '\x07': '',  # Bell
+            '\x08': '',  # Backspace
+            '\x0B': '',  # Vertical tab
+            '\x0C': '',  # Form feed
+            '\x0E': '',  # Shift out
+            '\x0F': '',  # Shift in
+        }
+
+        for char, replacement in replacements.items():
+            safe_content = safe_content.replace(char, replacement)
+
+        # Limit length to prevent extremely long cells
+        if len(safe_content) > 32767:  # Excel's cell content limit
+            safe_content = safe_content[:32764] + "..."
+
+        return safe_content
+
+    def _safe_merge_range(self, worksheet, range_str: str, content: str, format_obj=None):
+        """
+        Safely write to a merge range with validation.
+
+        Args:
+            worksheet: xlsxwriter worksheet object
+            range_str: Excel range string (e.g., 'A1:H1')
+            content: Content to write
+            format_obj: Format object to apply
+        """
+        try:
+            # Validate that the range makes sense
+            if ':' not in range_str:
+                logger.warning(f"Invalid range format: {range_str}")
+                return
+
+            start_cell, end_cell = range_str.split(':')
+
+            # Basic validation - check for negative row numbers or invalid cells
+            import re
+            if re.search(r'[A-Z]+0|[A-Z]+-', range_str):
+                logger.warning(f"Invalid cell reference in range: {range_str}")
+                return
+
+            # Sanitize content
+            safe_content = self._safe_cell_content(str(content)) if content is not None else ""
+
+            # Write with merge_range
+            worksheet.merge_range(range_str, safe_content, format_obj)
+
+        except Exception as e:
+            logger.error(f"Error writing merge range {range_str}: {str(e)}")
+            # Fallback: try to write to first cell of range
+            try:
+                start_cell = range_str.split(':')[0]
+                safe_content = self._safe_cell_content(str(content)) if content is not None else ""
+                worksheet.write(start_cell, safe_content, format_obj)
+            except Exception as fallback_e:
+                logger.error(f"Fallback write also failed: {str(fallback_e)}")
+
     def _add_calculation_columns(self, df: pd.DataFrame, result) -> pd.DataFrame:
         """
         Add calculation columns to show how the rule was evaluated.
@@ -881,41 +1053,81 @@ class ReportGenerator:
         # Analyze formula structure
         components = self._analyze_formula_components(formula)
 
-        # Generate row-specific explanations
-        explanations = self._generate_row_explanations(df, result)
-        if explanations is not None and len(explanations) == len(df):
-            enhanced_df['Reason_Failure'] = explanations
+        # Generate row-specific explanations ONLY for failing rows
+        if hasattr(result, 'result_column') and result.result_column in df.columns:
+            # Create mask for failing rows (0, False, 'DNC', 'PC')
+            result_col = df[result.result_column]
+            is_failing = (
+                (result_col == 0) | (result_col == '0') |
+                (result_col == False) | (result_col == 'False') | (result_col == 'FALSE') |
+                (result_col == 'DNC') | (result_col == 'PC')
+            )
 
-        # Add calculation columns based on formula type
-        if 'AND' in components['logical_operators']:
-            # For AND formulas, show individual condition evaluations
-            conditions = self._extract_and_conditions(formula)
-            for i, condition in enumerate(conditions):
-                column_name = f"Calc_Condition_{i + 1}"
-                enhanced_df[column_name] = self._explain_condition(condition, df)
+            # Only generate explanations for failing rows
+            if is_failing.any():
+                explanations = self._generate_row_explanations(df, result)
+                if explanations is not None and len(explanations) == len(df):
+                    # Initialize column with empty strings
+                    enhanced_df['Reason_Failure'] = ''
+                    # Only populate explanations for failing rows
+                    enhanced_df.loc[is_failing, 'Reason_Failure'] = explanations[is_failing]
 
-        elif 'OR' in components['logical_operators']:
-            # For OR formulas, show individual condition evaluations
-            conditions = self._extract_or_conditions(formula)
-            for i, condition in enumerate(conditions):
-                column_name = f"Calc_Condition_{i + 1}"
-                enhanced_df[column_name] = self._explain_condition(condition, df)
+        # Add calculation columns based on formula type - ONLY for failing rows
+        if hasattr(result, 'result_column') and result.result_column in df.columns:
+            # Use the same failing mask from above
+            result_col = df[result.result_column]
+            is_failing = (
+                (result_col == 0) | (result_col == '0') |
+                (result_col == False) | (result_col == 'False') | (result_col == 'FALSE') |
+                (result_col == 'DNC') | (result_col == 'PC')
+            )
 
-        elif 'IF' in components['logical_operators']:
-            # For IF formulas, explain the conditions
-            enhanced_df['Calc_IF_Condition'] = self._explain_if_condition(formula, df)
+            if 'AND' in components['logical_operators']:
+                # For AND formulas, show individual condition evaluations
+                conditions = self._extract_and_conditions(formula)
+                for i, condition in enumerate(conditions):
+                    column_name = f"Calc_Condition_{i + 1}"
+                    explanations = self._explain_condition(condition, df)
+                    enhanced_df[column_name] = ''
+                    if is_failing.any():
+                        enhanced_df.loc[is_failing, column_name] = explanations[is_failing]
 
-        elif components['comparisons']:
-            # For comparison formulas, explain the comparison
-            enhanced_df['Calc_Comparison'] = self._explain_comparison(formula, df)
+            elif 'OR' in components['logical_operators']:
+                # For OR formulas, show individual condition evaluations
+                conditions = self._extract_or_conditions(formula)
+                for i, condition in enumerate(conditions):
+                    column_name = f"Calc_Condition_{i + 1}"
+                    explanations = self._explain_condition(condition, df)
+                    enhanced_df[column_name] = ''
+                    if is_failing.any():
+                        enhanced_df.loc[is_failing, column_name] = explanations[is_failing]
 
-        elif 'DATEDIF' in components['functions']:
-            # For date formulas, explain date difference calculation
-            enhanced_df['Calc_DateDiff'] = self._explain_date_diff(formula, df)
+            elif 'IF' in components['logical_operators']:
+                # For IF formulas, explain the conditions
+                explanations = self._explain_if_condition(formula, df)
+                enhanced_df['Calc_IF_Condition'] = ''
+                if is_failing.any():
+                    enhanced_df.loc[is_failing, 'Calc_IF_Condition'] = explanations[is_failing]
 
-        else:
-            # Generic calculation column for other formula types
-            enhanced_df['Calc_Explanation'] = f"Failed validation: {formula}"
+            elif components['comparisons']:
+                # For comparison formulas, explain the comparison
+                explanations = self._explain_comparison(formula, df)
+                enhanced_df['Calc_Comparison'] = ''
+                if is_failing.any():
+                    enhanced_df.loc[is_failing, 'Calc_Comparison'] = explanations[is_failing]
+
+            elif 'DATEDIF' in components['functions']:
+                # For date formulas, explain date difference calculation
+                explanations = self._explain_date_diff(formula, df)
+                enhanced_df['Calc_DateDiff'] = ''
+                if is_failing.any():
+                    enhanced_df.loc[is_failing, 'Calc_DateDiff'] = explanations[is_failing]
+
+            else:
+                # Generic calculation column for other formula types - only for failing rows
+                enhanced_df['Calc_Explanation'] = ''
+                if is_failing.any():
+                    enhanced_df.loc[is_failing, 'Calc_Explanation'] = f"Failed validation: {formula}"
 
         return enhanced_df
 
@@ -1431,7 +1643,7 @@ class ReportGenerator:
             if error_count > 0:
                 issues.append(f"Formula evaluation errors ({error_count} occurrences)")
 
-        # Join issues 
+        # Join issues
         if issues:
             tips += "\n- " + "\n- ".join(issues)
         else:
@@ -2380,7 +2592,9 @@ class ReportGenerator:
 
                                 if rule_formula:
                                     rule_sheet.write(3, 0, 'Formula:', formats['subheader'])
-                                    rule_sheet.merge_range('B4:G4', rule_formula, formats['formula'])
+                                    # Escape formula by prefixing with apostrophe if it starts with =
+                                    escaped_formula = f"'{rule_formula}" if rule_formula.startswith('=') else rule_formula
+                                    rule_sheet.merge_range('B4:G4', escaped_formula, formats['formula'])
 
                                     # Write failure data
                                     self._write_dataframe_to_worksheet(rule_sheet, leader_failures,
@@ -2638,7 +2852,8 @@ class ReportGenerator:
 
         # Write headers
         for col_idx, col_name in enumerate(df.columns):
-            worksheet.write(start_row, col_idx, col_name,
+            safe_col_name = self._safe_cell_content(str(col_name))
+            worksheet.write(start_row, col_idx, safe_col_name,
                             formats.get('header', None) if formats else None)
 
             # Update column width based on header (if auto_width enabled)
@@ -2694,6 +2909,10 @@ class ReportGenerator:
                 # Handle None/NaN values
                 if pd.isna(value):
                     value = ''
+
+                # Sanitize content for safe Excel writing
+                if isinstance(value, str):
+                    value = self._safe_cell_content(value)
 
                 # Write to worksheet with appropriate format
                 worksheet.write(row_idx, col_idx, value, fmt)

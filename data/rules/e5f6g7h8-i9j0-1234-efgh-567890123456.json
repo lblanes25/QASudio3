@@ -1,0 +1,22 @@
+{
+  "rule_id": "QA-ID-5",
+  "name": "DDAP_Type_If_Used",
+  "formula": "=IF([WasADataDrivenAuditingProcedureUtilized]=\"Yes\",NOT(ISBLANK([DDAPTypeUtilized])),TRUE)",
+  "description": "If DDAP was used, then DDAP type must be specified",
+  "threshold": 0.01,
+  "metadata": {
+    "severity": "high",
+    "category": "completeness",
+    "tags": ["business_monitoring", "ddap", "conditional", "BM"],
+    "title": "DDAP Type Must Be Provided if DDAP Was Used",
+    "created_at": "2025-05-24T12:00:00.000000",
+    "modified_at": "2025-05-24T12:00:00.000000",
+    "column_name": "DDAPTypeUtilized",
+    "condition_column": "WasADataDrivenAuditingProcedureUtilized",
+    "condition_value": "Yes",
+    "error_message": "Specify the DDAP type if DDAP was used.",
+    "business_rule": "DDAP Type Must Be Provided if DDAP Was Used",
+    "responsible_party_column": "AuditLeader",
+    "analytic_id": "BM_COMPLETENESS_2024"
+  }
+}

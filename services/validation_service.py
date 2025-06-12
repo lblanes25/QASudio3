@@ -82,17 +82,22 @@ class ValidationPipeline:
             self._load_rule_configurations()
 
         # Initialize report generator with proper error handling
+        # Look for template file for individual rule tabs
+        template_path = None
+        if self.output_dir.parent / "templates" / "qa_report_template.xlsx":
+            template_path = str(self.output_dir.parent / "templates" / "qa_report_template.xlsx")
+        
         if report_config_path:
             if os.path.exists(report_config_path):
                 logger.info(f"Initializing report generator with configuration: {report_config_path}")
-                self.report_generator = ReportGenerator(report_config_path)
+                self.report_generator = ReportGenerator(report_config_path, template_path=template_path)
             else:
                 logger.warning(f"Report configuration file not found: {report_config_path}")
                 logger.info("Using default report configuration")
-                self.report_generator = ReportGenerator()
+                self.report_generator = ReportGenerator(template_path=template_path)
         else:
             logger.info("Initializing report generator with default configuration")
-            self.report_generator = ReportGenerator()
+            self.report_generator = ReportGenerator(template_path=template_path)
 
     def validate_data_source(self,
                              data_source: Union[str, pd.DataFrame],
@@ -107,7 +112,8 @@ class ValidationPipeline:
                              expected_schema: Optional[Union[List[str], str]] = None,
                              use_parallel: bool = False,
                              report_config: Optional[str] = None,
-                             use_all_rules: bool = False) -> Dict[str, Any]:
+                             use_all_rules: bool = False,
+                             analytic_title: Optional[str] = None) -> Dict[str, Any]:
         """
         Run validation process on a data source.
 
@@ -125,6 +131,7 @@ class ValidationPipeline:
             use_parallel: Whether to evaluate rules in parallel
             report_config: Optional path to report configuration YAML file
             use_all_rules: If True, use all available rules regardless of analytic_id
+            analytic_title: Optional title for the analytic report (used in template reports)
 
         Returns:
             Dictionary with validation results
@@ -225,7 +232,8 @@ class ValidationPipeline:
 
             # Generate outputs in requested formats
             if output_formats:
-                output_paths = self._generate_outputs(results, rule_results, data_df, output_formats)
+                output_paths = self._generate_outputs(results, rule_results, data_df, output_formats, 
+                                                     analytic_title, responsible_party_column)
                 results['output_files'].extend(output_paths)
 
                 # Archive outputs if archive directory is configured
@@ -904,7 +912,9 @@ class ValidationPipeline:
                           results: Dict[str, Any],
                           rule_results: Dict[str, RuleEvaluationResult],
                           data_df: pd.DataFrame,
-                          output_formats: List[str]) -> List[str]:
+                          output_formats: List[str],
+                          analytic_title: Optional[str] = None,
+                          responsible_party_column: Optional[str] = None) -> List[str]:
         """
         Generate output files in requested formats.
 
@@ -925,6 +935,44 @@ class ValidationPipeline:
 
         # Generate outputs in each requested format
         for format in output_formats:
+            if format.lower() == 'excel_template':
+                # Generate using template-based report generator
+                excel_path = self.output_dir / f"{analytic_id}_{timestamp}_template_report.xlsx"
+                
+                try:
+                    # Initialize template generator if not already done
+                    if not hasattr(self, 'template_report_generator'):
+                        from reporting.generation.template_report_generator import TemplateBasedReportGenerator
+                        template_path = self.output_dir.parent / "templates" / "qa_report_template.xlsx"
+                        self.template_report_generator = TemplateBasedReportGenerator(template_path)
+                    
+                    # Use responsible_party_column if provided, otherwise try to detect
+                    group_by = responsible_party_column
+                    if not group_by:
+                        # Try to get from rule metadata
+                        for result in rule_results.values():
+                            if hasattr(result.rule, 'metadata') and 'responsible_party_column' in result.rule.metadata:
+                                group_by = result.rule.metadata['responsible_party_column']
+                                break
+                    
+                    logger.info(f"Generating template-based Excel report: {excel_path}")
+                    report_path = self.template_report_generator.generate_excel_from_template(
+                        results=results,
+                        rule_results=rule_results,
+                        output_path=str(excel_path),
+                        analytic_id=analytic_id,
+                        analytic_title=analytic_title,
+                        group_by=group_by
+                    )
+                    output_paths.append(report_path)
+                    logger.info(f"Template-based Excel report generated successfully")
+                    
+                except Exception as e:
+                    logger.error(f"Error generating template report: {str(e)}", exc_info=True)
+                    # Fall back to regular Excel generation
+                    logger.info("Falling back to standard Excel report")
+                    format = 'excel'  # Process as regular Excel
+                    
             if format.lower() == 'json':
                 # Export results to JSON
                 json_path = self.output_dir / f"{analytic_id}_{timestamp}_results.json"
@@ -933,7 +981,7 @@ class ValidationPipeline:
                 output_paths.append(str(json_path))
 
             elif format.lower() == 'excel':
-                # Create filename for detailed Excel report
+                # Generate standard Excel report
                 excel_path = self.output_dir / f"{analytic_id}_{timestamp}_detailed_report.xlsx"
 
                 # Determine group_by column for responsible party aggregation
@@ -1451,3 +1499,142 @@ class ValidationPipeline:
             sort_leaders=True,  # Always sort leaders for consistency
             suppress_logs=suppress_logs  # Pass through log suppression flag
         )
+    
+    def generate_iag_summary_report(
+        self,
+        results: Dict[str, Any],
+        rule_results: Dict[str, Any],
+        responsible_party_column: str,
+        output_path: Optional[Union[str, Path]] = None,
+        **kwargs
+    ) -> Union[Path, Dict[str, Any]]:
+        """
+        Generate IAG and AL Results and Ratings Summary report.
+        
+        Args:
+            results: Validation results from validate_data_source()
+            rule_results: Rule evaluation results dictionary
+            responsible_party_column: Column for audit leader grouping
+            output_path: Optional output path (auto-generated if None)
+            **kwargs: Additional options passed to IAGSummaryGenerator:
+                - review_year_name: Header text (e.g., "2024 Q3 Compliance Review")
+                - analytics_metadata: Dict with error thresholds, risk levels, etc.
+                - manual_overrides: Dict for manual rating overrides
+                
+        Returns:
+            Path to generated IAG summary Excel file, or error dict if failed
+        """
+        try:
+            # Generate default output path if not provided
+            if not output_path:
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                analytic_id = results.get('analytic_id', 'validation')
+                output_path = self.output_dir / f"{analytic_id}_{timestamp}_IAG_Summary.xlsx"
+            
+            # Ensure output_path is a Path object
+            output_path = Path(output_path)
+            
+            # Log generation start
+            logger.info(f"Generating IAG summary report for {len(rule_results)} rules")
+            
+            # Check if report_generator is available
+            if not hasattr(self, 'report_generator'):
+                self.report_generator = ReportGenerator()
+            
+            # Generate the IAG summary report
+            report_path = self.report_generator.generate_iag_summary_excel(
+                results=results,
+                rule_results=rule_results,
+                output_path=output_path,
+                responsible_party_column=responsible_party_column,
+                **kwargs
+            )
+            
+            logger.info(f"IAG summary report generated successfully: {report_path}")
+            return report_path
+            
+        except Exception as e:
+            error_msg = f"Failed to generate IAG summary report: {str(e)}"
+            logger.error(error_msg, exc_info=True)
+            return {
+                "success": False,
+                "error": error_msg
+            }
+    
+    def generate_comprehensive_iag_report(
+        self,
+        results: Dict[str, Any],
+        rule_results: Dict[str, Any],
+        responsible_party_column: str,
+        output_path: Optional[Union[str, Path]] = None,
+        **kwargs
+    ) -> Union[Path, Dict[str, Any]]:
+        """
+        Generate comprehensive IAG report with summary and individual analytic tabs.
+        
+        This method generates a complete Excel workbook containing:
+        1. IAG Summary tab with overall results and ratings
+        2. Individual analytic tabs for each rule (QA-ID format)
+        
+        Args:
+            results: Validation results from validate_data_source()
+            rule_results: Rule evaluation results dictionary
+            responsible_party_column: Column for audit leader grouping
+            output_path: Optional output path (auto-generated if None)
+            **kwargs: Additional options for report generation
+                
+        Returns:
+            Path to generated comprehensive IAG Excel file, or error dict if failed
+        """
+        try:
+            # Generate default output path if not provided
+            if not output_path:
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                analytic_id = results.get('analytic_id', 'validation')
+                output_path = self.output_dir / f"{analytic_id}_{timestamp}_Comprehensive_IAG.xlsx"
+            
+            # Ensure output_path is a Path object
+            output_path = Path(output_path)
+            
+            # Get source data for detailed results
+            data_source = results.get('data_source')
+            if isinstance(data_source, str):
+                # Load the data file
+                source_data = self.data_importer.load_file(data_source)
+            elif isinstance(data_source, pd.DataFrame):
+                source_data = data_source
+            else:
+                # Try to get from first rule result
+                first_result = next(iter(rule_results.values()))
+                if hasattr(first_result, 'result_df'):
+                    source_data = first_result.result_df
+                else:
+                    raise ValueError("Could not determine source data for detailed results")
+            
+            # Log generation start
+            logger.info(f"Generating comprehensive IAG report with {len(rule_results)} individual analytic tabs")
+            
+            # Check if report_generator is available
+            if not hasattr(self, 'report_generator'):
+                self.report_generator = ReportGenerator()
+            
+            # Generate the comprehensive report
+            report_path = self.report_generator.generate_comprehensive_iag_workbook(
+                results=results,
+                rule_results=rule_results,
+                source_data=source_data,
+                responsible_party_column=responsible_party_column,
+                output_path=str(output_path),
+                **kwargs
+            )
+            
+            logger.info(f"Comprehensive IAG report generated successfully: {report_path}")
+            return Path(report_path)
+            
+        except Exception as e:
+            error_msg = f"Failed to generate comprehensive IAG report: {str(e)}"
+            logger.error(error_msg, exc_info=True)
+            return {
+                "success": False,
+                "error": error_msg
+            }

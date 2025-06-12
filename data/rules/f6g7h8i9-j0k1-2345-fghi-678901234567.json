@@ -1,0 +1,22 @@
+{
+  "rule_id": "QA-ID-6",
+  "name": "Impact_Description_If_Impact",
+  "formula": "=IF(LEFT([ImpactOccurred],3)=\"Yes\",LEN(TRIM([ImpactDescription]))>0,TRUE)",
+  "description": "If impact occurred, then impact description must be provided",
+  "threshold": 0.05,
+  "metadata": {
+    "severity": "medium",
+    "category": "completeness",
+    "tags": ["business_monitoring", "impact", "conditional", "BM"],
+    "title": "Impact Description Required if Impact Occurred",
+    "created_at": "2025-05-24T12:00:00.000000",
+    "modified_at": "2025-05-24T12:00:00.000000",
+    "column_name": "ImpactDescription",
+    "condition_column": "ImpactOccurred",
+    "condition_logic": "starts_with_yes",
+    "error_message": "Describe the impact if one occurred.",
+    "business_rule": "Impact Description Required if Impact Occurred",
+    "responsible_party_column": "AuditLeader",
+    "analytic_id": "BM_COMPLETENESS_2024"
+  }
+}

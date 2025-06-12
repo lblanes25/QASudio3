@@ -19,7 +19,7 @@ from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QFont
 
 from ui.common.stylesheet import AnalyticsRunnerStylesheet
-from data_source_registry import DataSourceRegistry, DataSourceMetadata, DataSourceType
+from ui.analytics_runner.data_source_registry import DataSourceRegistry, DataSourceMetadata, DataSourceType
 
 logger = logging.getLogger(__name__)
 

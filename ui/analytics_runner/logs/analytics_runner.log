@@ -518,4 +518,4 @@ data_integration.errors.error_handler.DataIntegrationError: Error executing read
 2025-05-23 11:35:42,477 - __main__ - INFO - Analytics Runner application initialized successfully
 2025-05-23 11:35:44,860 - __main__ - INFO - Application closing
 2025-05-23 11:35:44,863 - error_handler - CRITICAL - TypeError: Object of type QByteArray is not JSON serializable
-2025-05-23 11:36:22,243 - __main__ - ERROR - ERROR: Object of type QByteArray is not JSON serializable
+## 2025-05-23 11:36:22,243 - __main__ - ERROR - ERROR: Object of type QByteArray is not JSON serializable

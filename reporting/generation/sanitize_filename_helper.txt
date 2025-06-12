@@ -1,0 +1,10 @@
+import re
+
+def sanitize_filename(name: str) -> str:
+    """Clean a string to make it safe for use as a Windows filename."""
+    # Replace invalid characters with underscores
+    return re.sub(r'[<>:"/\\|?*\n\r]+', '_', name).strip()
+
+# Usage in your script:
+# safe_leader_name = sanitize_filename(audit_leader)
+# output_filename = f"{base_name} - {safe_leader_name}.xlsx"

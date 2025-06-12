@@ -1,0 +1,20 @@
+{
+  "rule_id": "QA-ID-3",
+  "name": "Summary_Results_Required",
+  "formula": "=NOT(ISBLANK([SummaryOfResults]))",
+  "description": "Validates that summary of results field is not blank",
+  "threshold": 0.01,
+  "metadata": {
+    "severity": "high",
+    "category": "completeness",
+    "tags": ["business_monitoring", "summary", "required", "BM"],
+    "title": "Summary of Results Required",
+    "created_at": "2025-05-24T12:00:00.000000",
+    "modified_at": "2025-05-24T12:00:00.000000",
+    "column_name": "SummaryOfResults",
+    "error_message": "Summary of results is missing.",
+    "business_rule": "Summary of Results Required",
+    "responsible_party_column": "AuditLeader",
+    "analytic_id": "BM_COMPLETENESS_2024"
+  }
+}

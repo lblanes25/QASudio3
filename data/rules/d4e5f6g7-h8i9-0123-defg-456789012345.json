@@ -1,0 +1,20 @@
+{
+  "rule_id": "QA-ID-4",
+  "name": "DDAP_Indicator_Required",
+  "formula": "=NOT(ISBLANK([WasADataDrivenAuditingProcedureUtilized]))",
+  "description": "Validates that DDAP usage indicator field is not blank",
+  "threshold": 0.01,
+  "metadata": {
+    "severity": "high",
+    "category": "completeness",
+    "tags": ["business_monitoring", "ddap", "required", "BM"],
+    "title": "Must Indicate Whether DDAP Was Used",
+    "created_at": "2025-05-24T12:00:00.000000",
+    "modified_at": "2025-05-24T12:00:00.000000",
+    "column_name": "WasADataDrivenAuditingProcedureUtilized",
+    "error_message": "Must indicate whether a DDAP was used.",
+    "business_rule": "Must Indicate Whether DDAP Was Used",
+    "responsible_party_column": "AuditLeader",
+    "analytic_id": "BM_COMPLETENESS_2024"
+  }
+}

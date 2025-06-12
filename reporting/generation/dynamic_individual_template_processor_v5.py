@@ -97,12 +97,8 @@ class DynamicIndividualTemplateProcessorV5:
             test_columns, detail_start_adjustment
         )
         
-        # Clean up extra formatting after all data is populated
-        # Find where QA Comments column ends in the detail section
-        detail_start_row = 60 + detail_start_adjustment
-        # QA Comments is at comment_col_idx (result_col_idx + 1), so 3 columns after that
-        qa_comments_col = len(self._determine_columns_for_detailed_results(detailed_results[0]['row_data'] if detailed_results else {}, responsible_party_column)) + 3
-        self._cleanup_extra_formatting(ws, qa_comments_col + 1)  # Start cleanup after QA Comments
+        # Skip cleanup to preserve formatting and avoid Fill errors
+        # self._cleanup_extra_formatting(ws, qa_comments_col + 1)
         
         # Save the workbook
         wb.save(output_path)
