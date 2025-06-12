@@ -1,0 +1,20 @@
+{
+  "rule_id": "QA-ID-2",
+  "name": "Attendees_Required",
+  "formula": "=NOT(ISBLANK([Attendees]))",
+  "description": "Validates that attendees field is not blank",
+  "threshold": 0.05,
+  "metadata": {
+    "severity": "high",
+    "category": "completeness",
+    "tags": ["business_monitoring", "attendees", "required", "BM"],
+    "title": "Attendees Must Be Listed",
+    "created_at": "2025-05-24T12:00:00.000000",
+    "modified_at": "2025-05-24T12:00:00.000000",
+    "column_name": "Attendees",
+    "error_message": "Attendees must be specified.",
+    "business_rule": "Attendees Must Be Listed",
+    "responsible_party_column": "AuditLeader",
+    "analytic_id": "BM_COMPLETENESS_2024"
+  }
+}

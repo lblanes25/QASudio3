@@ -179,11 +179,17 @@ class ComplianceDeterminer:
 
         # Calculate compliance for each group
         for party, group_df in grouped:
+            # Convert party to string if it's a Timestamp to avoid dictionary key error
+            if pd.api.types.is_datetime64_any_dtype(type(party)):
+                party_key = str(party)
+            else:
+                party_key = party
+                
             status, metrics = self.determine_overall_compliance(
                 group_df, compliance_column, rule_threshold
             )
 
-            results[party] = {
+            results[party_key] = {
                 "status": status,
                 "metrics": metrics
             }

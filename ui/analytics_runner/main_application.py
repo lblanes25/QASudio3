@@ -10,12 +10,12 @@ import logging
 import datetime
 import pandas as pd
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QVBoxLayout, QHBoxLayout,
     QWidget, QSplitter, QTabWidget, QStatusBar, QMenuBar,
-    QToolBar, QTextEdit, QLabel, QPushButton, QProgressBar,
+    QTextEdit, QLabel, QPushButton, QProgressBar,
     QMessageBox, QFileDialog, QCheckBox, QScrollArea, QLineEdit,
     QComboBox, QFrame, QTableWidget, QStackedWidget, QHeaderView, QTableWidgetItem
 )
@@ -26,12 +26,13 @@ from PySide6.QtGui import QAction, QIcon, QFont
 from ui.common.session_manager import SessionManager
 from ui.common.stylesheet import AnalyticsRunnerStylesheet
 from ui.common.error_handler import initialize_error_handler, get_error_handler, set_debug_mode
+from ui.common.workflow_state import WorkflowStateManager, WorkflowState
 from ui.analytics_runner.dialogs.debug_panel import DebugPanel
-from data_source_panel import DataSourcePanel
-from data_source_registry import DataSourceRegistry
+from ui.analytics_runner.data_source_panel import DataSourcePanel
+from ui.analytics_runner.data_source_registry import DataSourceRegistry
 from ui.analytics_runner.dialogs.save_data_source_dialog import SaveDataSourceDialog
-# from services.progress_tracking_pipeline import ProgressTrackingPipeline
-from rule_selector_panel import RuleSelectorPanel
+from services.progress_tracking_pipeline import ProgressTrackingPipeline
+from ui.analytics_runner.rule_selector_panel import RuleSelectorPanel
 from ui.analytics_runner.cancellable_validation_worker import (
     CancellableValidationWorker, CancellableWorkerSignals, ExecutionStatus
 )
@@ -112,7 +113,7 @@ class ValidationWorker(QRunnable):
             # Prepare validation parameters
             validation_params = {
                 'data_source_path': self.data_source,
-                'source_type': 'excel' if self.data_source.endswith(('.xlsx', '.xls')) else 'csv',
+                'source_type': 'excel' if str(self.data_source).endswith(('.xlsx', '.xls')) else 'csv',
                 'rule_ids': self.rule_ids,
                 'selected_sheet': self.sheet_name,
                 'analytic_id': self.analytic_id,
@@ -147,8 +148,9 @@ class ValidationWorker(QRunnable):
                     output_dir=self.output_dir
                 )
 
-            # Run validation directly with the pipeline
-            results = self.pipeline.validate_data_source(**validation_params)
+            # Create progress tracking wrapper and run validation
+            progress_pipeline = ProgressTrackingPipeline(self.pipeline)
+            results = progress_pipeline.validate_data_source_with_progress(**validation_params)
 
             self.signals.progress.emit(90, "Processing results...")
             
@@ -207,6 +209,11 @@ class AnalyticsRunnerApp(QMainWindow):
         # Initialize core systems
         self.session = SessionManager()
         self.threadpool = QThreadPool()
+        
+        # Initialize workflow state manager
+        self.workflow_state = WorkflowStateManager(self)
+        self.workflow_state.sectionVisibilityChanged.connect(self._on_section_visibility_changed)
+        self.workflow_state.statusMessage.connect(self._on_workflow_status_message)
 
         # Initialize data source registry
         self.data_source_registry = DataSourceRegistry(session_manager=self.session)
@@ -270,9 +277,6 @@ class AnalyticsRunnerApp(QMainWindow):
         # Create menu bar
         self.create_menu_bar()
 
-        # Create toolbar
-        self.create_toolbar()
-
         # Create status bar
         self.create_status_bar()
 
@@ -281,54 +285,66 @@ class AnalyticsRunnerApp(QMainWindow):
         self.data_source_panel.previewUpdated.connect(self._update_rule_editor_columns)
 
     def create_main_panel(self):
-        """Create the main workflow panel with tabs and scrolling support."""
-        # Create scroll area for main content
-        self.main_scroll_area = QScrollArea()
-        self.main_scroll_area.setWidgetResizable(True)
-        self.main_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        self.main_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        """Create the main workflow panel with sticky tabs and scrolling support."""
+        # Create a container widget for the left panel
+        left_panel_container = QWidget()
+        left_panel_layout = QVBoxLayout(left_panel_container)
+        left_panel_layout.setContentsMargins(0, 0, 0, 0)
+        left_panel_layout.setSpacing(0)
+        
+        # Create sticky tab widget that stays at the top
+        self.mode_tabs = QTabWidget()
+        self.mode_tabs.setStyleSheet(f"""
+            QTabWidget::pane {{
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                background-color: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
+                border-top: none;
+            }}
+            QTabBar::tab {{
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+                color: {AnalyticsRunnerStylesheet.DARK_TEXT};
+                padding: 8px 16px;
+                margin-right: 2px;
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-bottom: none;
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+            }}
+            QTabBar::tab:selected {{
+                background-color: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
+                font-weight: bold;
+            }}
+            QTabBar::tab:hover:!selected {{
+                background-color: {AnalyticsRunnerStylesheet.ACCENT_COLOR};
+            }}
+        """)
+        
+        # Add tab widget to the top of the container (not scrollable)
+        left_panel_layout.addWidget(self.mode_tabs)
+        
+        # Add the container to the splitter
+        self.main_splitter.addWidget(left_panel_container)
 
-        # Set scroll area styling to minimize visual clutter
-        self.main_scroll_area.setStyleSheet(f"""
+        # Create tabs with scroll areas inside each
+        self.create_simple_mode_tab()
+        self.create_results_reports_tab()
+        self.create_rule_selection_mode_tab()
+
+    def create_simple_mode_tab(self):
+        """Create the simple mode tab with progressive disclosure workflow."""
+        # Create scroll area for the tab content
+        simple_scroll = QScrollArea()
+        simple_scroll.setWidgetResizable(True)
+        simple_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        simple_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        simple_scroll.setStyleSheet(f"""
             QScrollArea {{
                 border: none;
                 background-color: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
             }}
-            QScrollArea > QWidget > QWidget {{
-                background-color: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
-            }}
         """)
-
-        # Create the main content widget
-        self.main_widget = QWidget()
-        self.main_layout = QVBoxLayout(self.main_widget)
-        self.main_layout.setContentsMargins(8, 8, 8, 8)  # Reduced margins
-        self.main_layout.setSpacing(12)  # Consistent spacing
-
-        # Create tab widget for different modes
-        self.mode_tabs = QTabWidget()
-        self.main_layout.addWidget(self.mode_tabs)
-
-        # Simple Mode tab (updated with better spacing)
-        self.create_simple_mode_tab()
-
-        # Results & Reports tab
-        self.create_results_reports_tab()
-
-        # Rule Management tab
-        self.create_rule_selection_mode_tab()
-
-        # Add stretch to push content to top and allow natural expansion
-        self.main_layout.addStretch()
-
-        # Set the content widget in the scroll area
-        self.main_scroll_area.setWidget(self.main_widget)
-
-        # Add scroll area to splitter
-        self.main_splitter.addWidget(self.main_scroll_area)
-
-    def create_simple_mode_tab(self):
-        """Create the simple mode tab with save data source integration."""
+        
+        # Create content widget
         self.simple_mode_widget = QWidget()
         simple_layout = QVBoxLayout(self.simple_mode_widget)
 
@@ -336,19 +352,31 @@ class AnalyticsRunnerApp(QMainWindow):
         simple_layout.setSpacing(16)  # Increased spacing between major sections
         simple_layout.setContentsMargins(16, 16, 16, 16)  # Balanced padding
 
-        # Data source panel (with registry integration)
+        # Data source panel (always visible)
         self.data_source_panel = DataSourcePanel(session_manager=self.session)
         self.data_source_panel.dataSourceChanged.connect(self._on_data_source_changed)
         self.data_source_panel.dataSourceValidated.connect(self._on_data_source_validated)
         self.data_source_panel.previewUpdated.connect(self._on_data_preview_updated)
+        self.data_source_panel.columnsDetected.connect(self._on_columns_detected)
 
         # Connect to data source registry for integration
         self.data_source_panel.data_source_registry = self.data_source_registry
 
         simple_layout.addWidget(self.data_source_panel)
+        
+        # Responsible Party Selection Section (hidden initially)
+        self.responsible_party_section = self._create_responsible_party_section()
+        self.responsible_party_section.hide()  # Hidden until data is loaded
+        simple_layout.addWidget(self.responsible_party_section)
+        
+        # Rule Selection Section (hidden initially)
+        self.rule_selection_section = self._create_rule_selection_section()
+        self.rule_selection_section.hide()  # Hidden until column is selected
+        simple_layout.addWidget(self.rule_selection_section)
 
-        # Report Generation Options section
+        # Report Generation Options section (hidden initially)
         report_section = QWidget()
+        self.report_section = report_section  # Store reference for visibility control
         report_section.setStyleSheet(f"""
             QWidget {{
                 background-color: {AnalyticsRunnerStylesheet.ACCENT_COLOR};
@@ -433,10 +461,12 @@ class AnalyticsRunnerApp(QMainWindow):
 
         report_layout.addWidget(output_dir_frame)
 
+        report_section.hide()  # Hidden initially
         simple_layout.addWidget(report_section)
 
-        # Progress tracking section
+        # Progress tracking section (hidden initially)
         progress_section = QWidget()
+        self.progress_section = progress_section  # Already stored, but ensure it's accessible
         progress_section.setStyleSheet(f"""
             QWidget {{
                 background-color: {AnalyticsRunnerStylesheet.ACCENT_COLOR};
@@ -498,8 +528,9 @@ class AnalyticsRunnerApp(QMainWindow):
         self.progress_section = progress_section
         self.progress_section.setVisible(False)  # Hidden by default
 
-        # Execution Management section
+        # Execution Management section (hidden initially)
         execution_section = QWidget()
+        self.execution_section = execution_section  # Store reference for visibility control
         execution_section.setStyleSheet(f"""
             QWidget {{
                 background-color: {AnalyticsRunnerStylesheet.ACCENT_COLOR};
@@ -636,71 +667,7 @@ class AnalyticsRunnerApp(QMainWindow):
         
         params_layout.addLayout(row1_layout)
         
-        # Row 2: Responsible Party Column
-        row2_layout = QHBoxLayout()
-        row2_layout.setSpacing(12)
-        
-        party_label = QLabel("Responsible Party Column:")
-        party_label.setStyleSheet("background-color: transparent;")
-        row2_layout.addWidget(party_label)
-        
-        self.responsible_party_combo = QComboBox()
-        self.responsible_party_combo.addItem("None")
-        self.responsible_party_combo.setEnabled(False)  # Disabled until data is loaded
-        self.responsible_party_combo.setToolTip("Select column containing responsible party information")
-        self.responsible_party_combo.setStyleSheet(f"""
-            QComboBox {{
-                background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
-                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
-                border-radius: 4px;
-                padding: 6px 10px;
-                min-height: 20px;
-                color: {AnalyticsRunnerStylesheet.DARK_TEXT};
-            }}
-            QComboBox:hover:enabled {{
-                border-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
-            }}
-            QComboBox:disabled {{
-                background-color: {AnalyticsRunnerStylesheet.DISABLED_COLOR};
-                color: #999999;
-            }}
-            QComboBox::drop-down {{
-                border: none;
-                padding-right: 8px;
-            }}
-            QComboBox::down-arrow {{
-                image: none;
-                border-left: 5px solid transparent;
-                border-right: 5px solid transparent;
-                border-top: 5px solid {AnalyticsRunnerStylesheet.DARK_TEXT};
-                margin-right: 5px;
-            }}
-            QComboBox::down-arrow:disabled {{
-                border-top: 5px solid #999999;
-            }}
-            QComboBox QAbstractItemView {{
-                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
-                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
-                selection-background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
-                selection-color: white;
-                outline: none;
-                padding: 4px;
-            }}
-            QComboBox QAbstractItemView::item {{
-                min-height: 30px;
-                padding: 4px 8px;
-                color: {AnalyticsRunnerStylesheet.DARK_TEXT};
-            }}
-            QComboBox QAbstractItemView::item:hover {{
-                background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
-            }}
-        """)
-        self.responsible_party_combo.currentIndexChanged.connect(self._on_responsible_party_changed)
-        row2_layout.addWidget(self.responsible_party_combo, 2)
-        
-        row2_layout.addStretch()
-        
-        params_layout.addLayout(row2_layout)
+        # Remove responsible party from here - it's now in its own section
         
         execution_layout.addWidget(params_widget)
         
@@ -785,17 +752,234 @@ class AnalyticsRunnerApp(QMainWindow):
         
         execution_layout.addLayout(controls_layout)
         
+        execution_section.hide()  # Hidden initially
         simple_layout.addWidget(execution_section)
 
         # Let content naturally size without forcing stretch
-        self.mode_tabs.addTab(self.simple_mode_widget, "Validation")
+        simple_layout.addStretch()
+        
+        # Set content in scroll area
+        simple_scroll.setWidget(self.simple_mode_widget)
+        
+        # Add scroll area to tab
+        self.mode_tabs.addTab(simple_scroll, "Validation")
+    
+    def _create_responsible_party_section(self) -> QWidget:
+        """Create the responsible party column selection section."""
+        section = QWidget()
+        section.setStyleSheet(f"""
+            QWidget {{
+                background-color: {AnalyticsRunnerStylesheet.ACCENT_COLOR};
+                border: 1px solid {AnalyticsRunnerStylesheet.PRIMARY_COLOR}40;
+                border-radius: 6px;
+                padding: {AnalyticsRunnerStylesheet.STANDARD_SPACING}px;
+            }}
+        """)
+        
+        layout = QVBoxLayout(section)
+        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setSpacing(8)
+        
+        # Section header
+        header = QLabel("Responsible Party Column")
+        header.setFont(AnalyticsRunnerStylesheet.get_fonts()['header'])
+        header.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.DARK_TEXT}; background-color: transparent;")
+        layout.addWidget(header)
+        
+        # Description
+        desc = QLabel("Select a column to group validation results by responsible party (optional)")
+        desc.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.LIGHT_TEXT}; background-color: transparent; font-size: 12px;")
+        desc.setWordWrap(True)
+        layout.addWidget(desc)
+        
+        # Column selection layout
+        select_layout = QHBoxLayout()
+        select_layout.setSpacing(12)
+        
+        select_label = QLabel("Column:")
+        select_label.setStyleSheet("background-color: transparent;")
+        select_layout.addWidget(select_label)
+        
+        # Move responsible party combo to this section
+        self.responsible_party_combo = QComboBox()
+        self.responsible_party_combo.addItem("None")
+        self.responsible_party_combo.setToolTip("Select column containing responsible party information")
+        self.responsible_party_combo.setStyleSheet(f"""
+            QComboBox {{
+                background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 4px;
+                padding: 6px 10px;
+                min-height: 20px;
+                color: {AnalyticsRunnerStylesheet.DARK_TEXT};
+            }}
+            QComboBox:hover {{
+                border-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+            }}
+            QComboBox::drop-down {{
+                border: none;
+                padding-right: 8px;
+            }}
+            QComboBox::down-arrow {{
+                image: none;
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 5px solid {AnalyticsRunnerStylesheet.DARK_TEXT};
+                margin-right: 5px;
+            }}
+            QComboBox QAbstractItemView {{
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                selection-background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                selection-color: white;
+                outline: none;
+                padding: 4px;
+            }}
+            QComboBox QAbstractItemView::item {{
+                min-height: 30px;
+                padding: 4px 8px;
+                color: {AnalyticsRunnerStylesheet.DARK_TEXT};
+            }}
+            QComboBox QAbstractItemView::item:hover {{
+                background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
+            }}
+        """)
+        self.responsible_party_combo.currentIndexChanged.connect(self._on_responsible_party_changed)
+        select_layout.addWidget(self.responsible_party_combo, 1)
+        
+        select_layout.addStretch()
+        layout.addLayout(select_layout)
+        
+        return section
+    
+    def _create_rule_selection_section(self) -> QWidget:
+        """Create a simplified test selection section for Simple Mode."""
+        section = QWidget()
+        section.setStyleSheet(f"""
+            QWidget {{
+                background-color: {AnalyticsRunnerStylesheet.ACCENT_COLOR};
+                border: 1px solid {AnalyticsRunnerStylesheet.PRIMARY_COLOR}40;
+                border-radius: 6px;
+                padding: {AnalyticsRunnerStylesheet.STANDARD_SPACING}px;
+            }}
+        """)
+        
+        layout = QVBoxLayout(section)
+        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setSpacing(8)
+        
+        # Section header
+        header = QLabel("Validation Tests")
+        header.setFont(AnalyticsRunnerStylesheet.get_fonts()['header'])
+        header.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.DARK_TEXT}; background-color: transparent;")
+        layout.addWidget(header)
+        
+        # Description
+        desc = QLabel("Select which validation tests to apply to your dataset. Some tests may only apply under certain conditions.")
+        desc.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.LIGHT_TEXT}; background-color: transparent; font-size: 12px;")
+        desc.setWordWrap(True)
+        layout.addWidget(desc)
+        
+        # Rule selection controls
+        controls_layout = QHBoxLayout()
+        controls_layout.setSpacing(8)
+        
+        # Quick select buttons
+        self.select_all_rules_btn = QPushButton("Select All Tests")
+        self.select_all_rules_btn.setProperty("buttonStyle", "secondary")
+        self.select_all_rules_btn.clicked.connect(self._select_all_rules)
+        controls_layout.addWidget(self.select_all_rules_btn)
+        
+        self.clear_rules_btn = QPushButton("Clear All")
+        self.clear_rules_btn.setProperty("buttonStyle", "secondary")
+        self.clear_rules_btn.clicked.connect(self._clear_all_rules)
+        controls_layout.addWidget(self.clear_rules_btn)
+        
+        controls_layout.addStretch()
+        
+        # Test count label
+        self.rule_count_label = QLabel("0 tests selected")
+        self.rule_count_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.LIGHT_TEXT}; background-color: transparent;")
+        controls_layout.addWidget(self.rule_count_label)
+        
+        layout.addLayout(controls_layout)
+        
+        # Simple test list (checkboxes)
+        self.rule_list_widget = QWidget()
+        self.rule_list_layout = QVBoxLayout(self.rule_list_widget)
+        self.rule_list_layout.setContentsMargins(8, 8, 8, 8)
+        self.rule_list_layout.setSpacing(8)  # Increased spacing for better visibility
+        
+        # Scroll area for tests
+        rule_scroll = QScrollArea()
+        rule_scroll.setWidgetResizable(True)
+        rule_scroll.setMaximumHeight(300)  # Increased height for better visibility
+        rule_scroll.setWidget(self.rule_list_widget)
+        rule_scroll.setStyleSheet(f"""
+            QScrollArea {{
+                background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 4px;
+            }}
+            QScrollBar:vertical {{
+                width: 12px;
+                background: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
+                border-radius: 6px;
+            }}
+            QScrollBar::handle:vertical {{
+                background: {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 6px;
+                min-height: 20px;
+            }}
+            QScrollBar::handle:vertical:hover {{
+                background: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+            }}
+        """)
+        
+        layout.addWidget(rule_scroll)
+        
+        # Advanced button to switch to Test Management tab
+        advanced_btn = QPushButton("Advanced Test Management →")
+        advanced_btn.setProperty("buttonStyle", "secondary")
+        advanced_btn.clicked.connect(lambda: self.mode_tabs.setCurrentIndex(2))  # Switch to Rule Management tab
+        advanced_btn.setToolTip("Switch to Test Management tab for advanced test editing and configuration")
+        layout.addWidget(advanced_btn)
+        
+        # Store references
+        self.simple_rule_checkboxes = []
+        
+        return section
 
     def create_rule_selection_mode_tab(self):
         """Create the enhanced rule selection mode tab with integrated editor."""
+        # Create scroll area for rule selection content
+        rule_scroll_area = QScrollArea()
+        rule_scroll_area.setWidgetResizable(True)
+        # FIX: Set horizontal scrollbar to never appear to allow splitter resizing
+        rule_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        rule_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        
+        # Set scroll area styling to match main panel
+        rule_scroll_area.setStyleSheet(f"""
+            QScrollArea {{
+                border: none;
+                background-color: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
+            }}
+            QScrollArea > QWidget > QWidget {{
+                background-color: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
+            }}
+        """)
+        
+        # Create content widget
         self.rule_selection_widget = QWidget()
         rule_selection_layout = QVBoxLayout(self.rule_selection_widget)
         rule_selection_layout.setContentsMargins(0, 0, 0, 0)
         rule_selection_layout.setSpacing(0)
+        
+        # Debug: Log wrapper layout settings
+        logger.debug("=== RULE TAB WRAPPER ===")
+        logger.debug(f"Wrapper layout margins: {rule_selection_layout.contentsMargins()}")
+        logger.debug(f"Wrapper layout spacing: {rule_selection_layout.spacing()}")
 
         # Create rule selector panel with integrated editor
         self.rule_selector_panel = RuleSelectorPanel(session_manager=self.session)
@@ -804,9 +988,23 @@ class AnalyticsRunnerApp(QMainWindow):
         self.rule_selector_panel.rulesSelectionChanged.connect(self._on_rules_selection_changed)
 
         rule_selection_layout.addWidget(self.rule_selector_panel)
+        
+        # Set the content widget in the scroll area
+        rule_scroll_area.setWidget(self.rule_selection_widget)
+        
+        # Debug: Monitor scroll area viewport changes
+        def debug_viewport_resize():
+            viewport = rule_scroll_area.viewport()
+            logger.debug(f"=== SCROLL AREA VIEWPORT RESIZED ===")
+            logger.debug(f"Viewport size: {viewport.size()}")
+            logger.debug(f"Content widget size: {self.rule_selection_widget.size()}")
+            logger.debug(f"RuleSelectorPanel size: {self.rule_selector_panel.size()}")
+            
+        rule_scroll_area.viewport().installEventFilter(self)
+        self._rule_scroll_area = rule_scroll_area  # Store reference for event filter
 
-        # Add tab to mode tabs
-        self.mode_tabs.addTab(self.rule_selection_widget, "Rule Management")
+        # Add scroll area to tab instead of widget directly
+        self.mode_tabs.addTab(rule_scroll_area, "Test Management")
 
     def _update_rule_editor_columns(self, preview_df):
         """Update rule editor with available columns from data preview."""
@@ -818,6 +1016,19 @@ class AnalyticsRunnerApp(QMainWindow):
 
     def create_results_reports_tab(self):
         """Create the Results & Reports tab with sub-tabs"""
+        # Create scroll area for the tab content
+        results_scroll = QScrollArea()
+        results_scroll.setWidgetResizable(True)
+        results_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        results_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        results_scroll.setStyleSheet(f"""
+            QScrollArea {{
+                border: none;
+                background-color: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
+            }}
+        """)
+        
+        # Create content widget
         self.results_reports_widget = QWidget()
         results_layout = QVBoxLayout(self.results_reports_widget)
         results_layout.setSpacing(AnalyticsRunnerStylesheet.SECTION_SPACING)
@@ -921,19 +1132,19 @@ class AnalyticsRunnerApp(QMainWindow):
         # Create Summary tab
         self.create_summary_tab()
         
-        # Create Rule Details tab
+        # Create Test Details tab
         self.create_rule_details_tab()
-        
-        # Create Failed Items tab
-        self.create_failed_items_tab()
         
         # Create Reports tab
         self.create_reports_tab()
         
         results_layout.addWidget(self.results_reports_tabs)
         
-        # Add the tab to main tabs
-        self.mode_tabs.addTab(self.results_reports_widget, "Results & Reports")
+        # Set content in scroll area
+        results_scroll.setWidget(self.results_reports_widget)
+        
+        # Add scroll area to tab
+        self.mode_tabs.addTab(results_scroll, "Results & Reports")
     
     def create_summary_tab(self):
         """Create the Summary sub-tab with compact layout"""
@@ -1038,7 +1249,7 @@ class AnalyticsRunnerApp(QMainWindow):
         self.timestamp_label = self._create_detail_label("Timestamp", "--")
         left_details.addWidget(self.timestamp_label)
         
-        self.rules_count_label = self._create_detail_label("Rules Applied", "--")
+        self.rules_count_label = self._create_detail_label("Tests Applied", "--")
         left_details.addWidget(self.rules_count_label)
         
         details_grid.addLayout(left_details)
@@ -1152,7 +1363,7 @@ class AnalyticsRunnerApp(QMainWindow):
         return frame
     
     def create_rule_details_tab(self):
-        """Create the Rule Details sub-tab"""
+        """Create the Test Details sub-tab"""
         self.rule_details_widget = QWidget()
         rule_details_layout = QVBoxLayout(self.rule_details_widget)
         rule_details_layout.setContentsMargins(16, 16, 16, 16)
@@ -1162,7 +1373,7 @@ class AnalyticsRunnerApp(QMainWindow):
         header_layout = QHBoxLayout()
         
         # Title
-        title = QLabel("Rule Execution Details")
+        title = QLabel("Test Execution Details")
         title.setFont(AnalyticsRunnerStylesheet.get_fonts()['header'])
         title.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.DARK_TEXT};")
         header_layout.addWidget(title)
@@ -1213,13 +1424,16 @@ class AnalyticsRunnerApp(QMainWindow):
         self.rule_cards_layout.setContentsMargins(8, 8, 8, 8)
         
         # Placeholder when no results
-        self.rule_details_placeholder = QLabel("No validation results to display")
+        self.rule_details_placeholder = QLabel("No test execution details available.\nRun validation to see individual test results.")
         self.rule_details_placeholder.setAlignment(Qt.AlignCenter)
         self.rule_details_placeholder.setStyleSheet(f"""
             QLabel {{
                 color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};
                 font-style: italic;
                 padding: 40px;
+                background-color: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
+                border: 2px dashed {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 8px;
             }}
         """)
         self.rule_cards_layout.addWidget(self.rule_details_placeholder)
@@ -1227,105 +1441,8 @@ class AnalyticsRunnerApp(QMainWindow):
         scroll_area.setWidget(self.rule_cards_container)
         rule_details_layout.addWidget(scroll_area)
         
-        self.results_reports_tabs.addTab(self.rule_details_widget, "Rule Details")
+        self.results_reports_tabs.addTab(self.rule_details_widget, "Test Details")
     
-    def create_failed_items_tab(self):
-        """Create the Failed Items sub-tab"""
-        self.failed_items_widget = QWidget()
-        failed_items_layout = QVBoxLayout(self.failed_items_widget)
-        failed_items_layout.setContentsMargins(16, 16, 16, 16)
-        failed_items_layout.setSpacing(12)
-        
-        # Header with controls
-        header_layout = QHBoxLayout()
-        
-        # Title
-        title = QLabel("Failed Validation Items")
-        title.setFont(AnalyticsRunnerStylesheet.get_fonts()['header'])
-        title.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.DARK_TEXT};")
-        header_layout.addWidget(title)
-        
-        header_layout.addStretch()
-        
-        # Export button
-        export_button = QPushButton("Export to CSV")
-        export_button.setIcon(QIcon.fromTheme("document-save"))
-        export_button.clicked.connect(self._export_failed_items)
-        export_button.setEnabled(False)  # Disabled until we have results
-        self.failed_items_export_btn = export_button
-        header_layout.addWidget(export_button)
-        
-        failed_items_layout.addLayout(header_layout)
-        
-        # Table for failed items
-        self.failed_items_table = QTableWidget()
-        self.failed_items_table.setAlternatingRowColors(True)
-        self.failed_items_table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.failed_items_table.setSortingEnabled(True)
-        self.failed_items_table.setStyleSheet(f"""
-            QTableWidget {{
-                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
-                border-radius: 4px;
-                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
-            }}
-            QTableWidget::item {{
-                padding: 4px 8px;
-                border: none;
-            }}
-            QTableWidget::item:selected {{
-                background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
-                color: white;
-            }}
-            QHeaderView::section {{
-                background-color: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
-                padding: 6px;
-                border: none;
-                border-bottom: 2px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
-                font-weight: bold;
-                color: {AnalyticsRunnerStylesheet.DARK_TEXT};
-            }}
-            QTableWidget::item:alternate {{
-                background-color: {AnalyticsRunnerStylesheet.BACKGROUND_COLOR};
-            }}
-        """)
-        
-        # Set default columns
-        self.failed_items_table.setColumnCount(5)
-        self.failed_items_table.setHorizontalHeaderLabels([
-            "Rule Name", "Column", "Row", "Value", "Reason"
-        ])
-        
-        # Configure column widths
-        header = self.failed_items_table.horizontalHeader()
-        header.setStretchLastSection(True)
-        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(2, QHeaderView.Fixed)
-        header.setSectionResizeMode(3, QHeaderView.Interactive)
-        header.setSectionResizeMode(4, QHeaderView.Stretch)
-        
-        self.failed_items_table.setColumnWidth(2, 80)  # Row column
-        
-        # Placeholder when no failures
-        self.failed_items_placeholder = QLabel("No failed items to display")
-        self.failed_items_placeholder.setAlignment(Qt.AlignCenter)
-        self.failed_items_placeholder.setStyleSheet(f"""
-            QLabel {{
-                color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};
-                font-style: italic;
-                padding: 40px;
-            }}
-        """)
-        
-        # Stack widget to switch between table and placeholder
-        self.failed_items_stack = QStackedWidget()
-        self.failed_items_stack.addWidget(self.failed_items_placeholder)
-        self.failed_items_stack.addWidget(self.failed_items_table)
-        self.failed_items_stack.setCurrentIndex(0)  # Show placeholder initially
-        
-        failed_items_layout.addWidget(self.failed_items_stack)
-        
-        self.results_reports_tabs.addTab(self.failed_items_widget, "Failed Items")
     
     def create_reports_tab(self):
         """Create the Reports sub-tab"""
@@ -1494,30 +1611,65 @@ class AnalyticsRunnerApp(QMainWindow):
     def _disconnect_widget_signals(self, widget):
         """Recursively disconnect all signals from a widget and its children to prevent orphaned connections"""
         try:
-            # Disconnect signals from the widget itself if it has any
-            if hasattr(widget, 'clicked'):
-                widget.clicked.disconnect()
-            if hasattr(widget, 'textChanged'):
-                widget.textChanged.disconnect()
-            if hasattr(widget, 'currentIndexChanged'):
-                widget.currentIndexChanged.disconnect()
-            if hasattr(widget, 'toggled'):
-                widget.toggled.disconnect()
+            # Check if widget is valid before proceeding
+            if not widget or not isinstance(widget, QWidget):
+                return
+                
+            # Try to disconnect signals from the widget itself if it has any
+            try:
+                if hasattr(widget, 'clicked'):
+                    widget.clicked.disconnect()
+            except (RuntimeError, TypeError):
+                pass  # Signal was already disconnected or widget deleted
+                
+            try:
+                if hasattr(widget, 'textChanged'):
+                    widget.textChanged.disconnect()
+            except (RuntimeError, TypeError):
+                pass
+                
+            try:
+                if hasattr(widget, 'currentIndexChanged'):
+                    widget.currentIndexChanged.disconnect()
+            except (RuntimeError, TypeError):
+                pass
+                
+            try:
+                if hasattr(widget, 'toggled'):
+                    widget.toggled.disconnect()
+            except (RuntimeError, TypeError):
+                pass
             
             # Recursively disconnect signals from all children
-            for child in widget.findChildren(QPushButton):
-                if hasattr(child, 'clicked'):
-                    child.clicked.disconnect()
-            
-            for child in widget.findChildren(QComboBox):
-                if hasattr(child, 'currentIndexChanged'):
-                    child.currentIndexChanged.disconnect()
-                if hasattr(child, 'currentTextChanged'):
-                    child.currentTextChanged.disconnect()
-            
-            for child in widget.findChildren(QCheckBox):
-                if hasattr(child, 'toggled'):
-                    child.toggled.disconnect()
+            try:
+                for child in widget.findChildren(QPushButton):
+                    try:
+                        if hasattr(child, 'clicked'):
+                            child.clicked.disconnect()
+                    except (RuntimeError, TypeError):
+                        pass
+                
+                for child in widget.findChildren(QComboBox):
+                    try:
+                        if hasattr(child, 'currentIndexChanged'):
+                            child.currentIndexChanged.disconnect()
+                    except (RuntimeError, TypeError):
+                        pass
+                    try:
+                        if hasattr(child, 'currentTextChanged'):
+                            child.currentTextChanged.disconnect()
+                    except (RuntimeError, TypeError):
+                        pass
+                
+                for child in widget.findChildren(QCheckBox):
+                    try:
+                        if hasattr(child, 'toggled'):
+                            child.toggled.disconnect()
+                    except (RuntimeError, TypeError):
+                        pass
+            except RuntimeError:
+                # Widget was deleted while iterating through children
+                pass
                     
         except Exception as e:
             # If disconnection fails, just log it but don't crash
@@ -1573,7 +1725,7 @@ class AnalyticsRunnerApp(QMainWindow):
         
         # Rules count
         rules_applied = len(results.get('rules_applied', []))
-        self.rules_count_label.setText(f"<b>Rules Applied:</b> {rules_applied}")
+        self.rules_count_label.setText(f"<b>Tests Applied:</b> {rules_applied}")
         
         # Execution time
         exec_time = results.get('execution_time', 0)
@@ -1609,13 +1761,14 @@ class AnalyticsRunnerApp(QMainWindow):
             # Add report cards
             for file_path in output_files:
                 # Determine file type
-                if file_path.endswith('.xlsx'):
+                file_path_str = str(file_path)
+                if file_path_str.endswith('.xlsx'):
                     file_type = "Excel"
-                elif file_path.endswith('.html'):
+                elif file_path_str.endswith('.html'):
                     file_type = "HTML"
-                elif file_path.endswith('.json'):
+                elif file_path_str.endswith('.json'):
                     file_type = "JSON"
-                elif file_path.endswith('.zip'):
+                elif file_path_str.endswith('.zip'):
                     file_type = "ZIP"
                 else:
                     file_type = "File"
@@ -1639,7 +1792,7 @@ class AnalyticsRunnerApp(QMainWindow):
         self.reports_container_layout.addStretch()
         
     def _update_rule_details_tab(self, results: dict):
-        """Update the Rule Details tab with rule execution information"""
+        """Update the Test Details tab with test execution information"""
         # Clear existing rule cards - properly disconnect signals first
         while self.rule_cards_layout.count():
             item = self.rule_cards_layout.takeAt(0)
@@ -1649,26 +1802,41 @@ class AnalyticsRunnerApp(QMainWindow):
                 self._disconnect_widget_signals(widget)
                 widget.deleteLater()
         
-        # Get rule details from results
-        rule_details = results.get('rule_details', [])
-        rules_applied = results.get('rules_applied', [])
+        # Get rule results from the validation results
+        rule_results = results.get('rule_results', {})
         
-        if rule_details or rules_applied:
+        if rule_results:
             # Hide placeholder
             self.rule_details_placeholder.hide()
             
-            # Create a card for each rule
-            for i, rule_detail in enumerate(rule_details if rule_details else rules_applied):
-                if isinstance(rule_detail, dict):
-                    rule_name = rule_detail.get('name', f'Rule {i+1}')
-                    status = rule_detail.get('status', 'Unknown')
-                    passed = rule_detail.get('passed', 0)
-                    failed = rule_detail.get('failed', 0)
-                    errors = rule_detail.get('errors', 0)
+            # Create a card for each rule result
+            for rule_id, rule_result in rule_results.items():
+                # Extract rule information
+                if isinstance(rule_result, dict):
+                    rule_name = rule_result.get('rule_name', rule_id)
+                    compliance_status = rule_result.get('compliance_status', 'Unknown')
+                    total_items = rule_result.get('total_items', 0)
+                    gc_count = rule_result.get('gc_count', 0)
+                    pc_count = rule_result.get('pc_count', 0)
+                    dnc_count = rule_result.get('dnc_count', 0)
+                    error_count = rule_result.get('error_count', 0)
+                    
+                    # Calculate passed/failed counts
+                    passed = gc_count
+                    failed = pc_count + dnc_count
+                    errors = error_count
+                    
+                    # Map compliance status to simple status
+                    if compliance_status == 'GC':
+                        status = 'Passed'
+                    elif compliance_status in ['PC', 'DNC']:
+                        status = 'Failed'
+                    else:
+                        status = compliance_status
                 else:
-                    # If we only have rule names, create minimal cards
-                    rule_name = str(rule_detail)
-                    status = 'Applied'
+                    # Fallback if we get unexpected format
+                    rule_name = rule_id
+                    status = 'Unknown'
                     passed = 0
                     failed = 0
                     errors = 0
@@ -1734,12 +1902,26 @@ class AnalyticsRunnerApp(QMainWindow):
         
         # Passed
         passed_label = QLabel(f"✓ {passed:,}")
-        passed_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.SUCCESS_COLOR}; font-weight: bold;")
+        passed_label.setStyleSheet(f"""
+            color: {AnalyticsRunnerStylesheet.SUCCESS_COLOR}; 
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+        """)
+        passed_label.setToolTip(f"{passed:,} rows passed this test")
         stats_layout.addWidget(passed_label)
         
         # Failed
         failed_label = QLabel(f"✗ {failed:,}")
-        failed_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.ERROR_COLOR}; font-weight: bold;")
+        failed_label.setStyleSheet(f"""
+            color: {AnalyticsRunnerStylesheet.ERROR_COLOR}; 
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+        """)
+        failed_label.setToolTip(f"{failed:,} rows failed this test")
+        if failed > 0:
+            failed_label.setCursor(Qt.PointingHandCursor)
         stats_layout.addWidget(failed_label)
         
         # Errors
@@ -1752,82 +1934,12 @@ class AnalyticsRunnerApp(QMainWindow):
         
         return card
     
-    def _update_failed_items_tab(self, results: dict):
-        """Update the Failed Items tab with validation failures"""
-        # Clear existing items
-        self.failed_items_table.setRowCount(0)
-        
-        # Get failed items from results
-        failed_items = results.get('failed_items', [])
-        
-        if failed_items:
-            # Show table
-            self.failed_items_stack.setCurrentIndex(1)
-            self.failed_items_export_btn.setEnabled(True)
-            
-            # Add rows
-            self.failed_items_table.setRowCount(len(failed_items))
-            
-            for row, item in enumerate(failed_items):
-                # Rule Name
-                self.failed_items_table.setItem(row, 0, QTableWidgetItem(item.get('rule_name', '')))
-                
-                # Column
-                self.failed_items_table.setItem(row, 1, QTableWidgetItem(item.get('column', '')))
-                
-                # Row
-                self.failed_items_table.setItem(row, 2, QTableWidgetItem(str(item.get('row', ''))))
-                
-                # Value
-                self.failed_items_table.setItem(row, 3, QTableWidgetItem(str(item.get('value', ''))))
-                
-                # Reason
-                self.failed_items_table.setItem(row, 4, QTableWidgetItem(item.get('reason', '')))
-        else:
-            # Show placeholder
-            self.failed_items_stack.setCurrentIndex(0)
-            self.failed_items_export_btn.setEnabled(False)
     
     def _filter_rule_details(self, filter_text: str):
         """Filter rule detail cards based on status"""
         # This will be implemented when we have actual rule details
         pass
     
-    def _export_failed_items(self):
-        """Export failed items to CSV"""
-        if self.failed_items_table.rowCount() == 0:
-            return
-            
-        file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Export Failed Items",
-            "failed_items.csv",
-            "CSV Files (*.csv)"
-        )
-        
-        if file_path:
-            try:
-                # Create data for export
-                data = []
-                for row in range(self.failed_items_table.rowCount()):
-                    row_data = []
-                    for col in range(self.failed_items_table.columnCount()):
-                        item = self.failed_items_table.item(row, col)
-                        row_data.append(item.text() if item else '')
-                    data.append(row_data)
-                
-                # Create DataFrame and export
-                df = pd.DataFrame(data, columns=[
-                    "Rule Name", "Column", "Row", "Value", "Reason"
-                ])
-                df.to_csv(file_path, index=False)
-                
-                self.log_message(f"Failed items exported to: {file_path}")
-                QMessageBox.information(self, "Export Complete", "Failed items exported successfully!")
-                
-            except Exception as e:
-                self.log_message(f"Error exporting failed items: {str(e)}", "ERROR")
-                QMessageBox.critical(self, "Export Error", f"Failed to export: {str(e)}")
         
     def _open_report_file(self, file_path: str):
         """Open a report file with the default application"""
@@ -1870,70 +1982,109 @@ class AnalyticsRunnerApp(QMainWindow):
     
     def clear_results(self):
         """Clear all results from the Results & Reports tab"""
-        # Update status
-        self.results_status_label.setText("No results loaded")
-        self.results_status_label.setStyleSheet(f"""
-            QLabel {{
-                color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};
-                padding: 4px 8px;
-                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
-                border-radius: 4px;
-                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
-            }}
-        """)
-        
-        # Disable clear button
-        self.clear_results_button.setEnabled(False)
-        
-        # Clear Summary tab
-        self.compliance_rate_label.setText("--")
-        self.compliance_rate_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR}; font-size: 32px; font-weight: bold;")
-        
-        # Reset status pills
-        self.gc_pill.setText("GC 0")
-        self.gc_pill.count_text = "0"
-        self.pc_pill.setText("PC 0")
-        self.pc_pill.count_text = "0"
-        self.dnc_pill.setText("DNC 0")
-        self.dnc_pill.count_text = "0"
+        try:
+            # Update status - check if label still exists
+            if hasattr(self, 'results_status_label') and self.results_status_label:
+                self.results_status_label.setText("No results loaded")
+                self.results_status_label.setStyleSheet(f"""
+                    QLabel {{
+                        color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};
+                        padding: 4px 8px;
+                        border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                        border-radius: 4px;
+                        background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+                    }}
+                """)
             
-        # Reset execution details
-        self.timestamp_label.setText("<b>Timestamp:</b> --")
-        self.rules_count_label.setText("<b>Rules Applied:</b> --")
-        self.execution_time_label.setText("<b>Execution Time:</b> --")
-        self.data_source_label.setText("<b>Data Source:</b> --")
-        self.data_source_label.setToolTip("")
+            # Disable clear button
+            if hasattr(self, 'clear_results_button') and self.clear_results_button:
+                self.clear_results_button.setEnabled(False)
+            
+            # Clear Summary tab - check each widget exists before accessing
+            if hasattr(self, 'compliance_rate_label') and self.compliance_rate_label:
+                self.compliance_rate_label.setText("--")
+                self.compliance_rate_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR}; font-size: 32px; font-weight: bold;")
+            
+            # Reset status pills
+            if hasattr(self, 'gc_pill') and self.gc_pill:
+                self.gc_pill.setText("GC 0")
+                if hasattr(self.gc_pill, 'count_text'):
+                    self.gc_pill.count_text = "0"
+            
+            if hasattr(self, 'pc_pill') and self.pc_pill:
+                self.pc_pill.setText("PC 0")
+                if hasattr(self.pc_pill, 'count_text'):
+                    self.pc_pill.count_text = "0"
+            
+            if hasattr(self, 'dnc_pill') and self.dnc_pill:
+                self.dnc_pill.setText("DNC 0")
+                if hasattr(self.dnc_pill, 'count_text'):
+                    self.dnc_pill.count_text = "0"
+                
+            # Reset execution details
+            if hasattr(self, 'timestamp_label') and self.timestamp_label:
+                self.timestamp_label.setText("<b>Timestamp:</b> --")
+            
+            if hasattr(self, 'rules_count_label') and self.rules_count_label:
+                self.rules_count_label.setText("<b>Tests Applied:</b> --")
+            
+            if hasattr(self, 'execution_time_label') and self.execution_time_label:
+                self.execution_time_label.setText("<b>Execution Time:</b> --")
+            
+            if hasattr(self, 'data_source_label') and self.data_source_label:
+                self.data_source_label.setText("<b>Data Source:</b> --")
+                self.data_source_label.setToolTip("")
         
-        # Clear Rule Details tab
-        while self.rule_cards_layout.count():
-            item = self.rule_cards_layout.takeAt(0)
-            if item.widget():
-                widget = item.widget()
-                self._disconnect_widget_signals(widget)
-                widget.deleteLater()
-        self.rule_details_placeholder.show()
-        self.rule_cards_layout.addWidget(self.rule_details_placeholder)
-        
-        # Clear Failed Items tab
-        self.failed_items_table.setRowCount(0)
-        self.failed_items_stack.setCurrentIndex(0)
-        self.failed_items_export_btn.setEnabled(False)
-        
-        # Clear Reports tab
-        while self.reports_container_layout.count():
-            item = self.reports_container_layout.takeAt(0)
-            if item.widget():
-                widget = item.widget()
-                self._disconnect_widget_signals(widget)
-                widget.deleteLater()
-        self.no_reports_label.show()
-        
-        # Clear the side panel results view
-        if hasattr(self, 'results_view'):
-            self.results_view.tree_widget.clear()
-            self.results_view.failing_items_cache.clear()
-        
-        self.log_message("Results cleared", "INFO")
+            # Clear Rule Details tab
+            if hasattr(self, 'rule_cards_layout') and self.rule_cards_layout:
+                while self.rule_cards_layout.count():
+                    item = self.rule_cards_layout.takeAt(0)
+                    if item and item.widget():
+                        widget = item.widget()
+                        self._disconnect_widget_signals(widget)
+                        widget.deleteLater()
+                
+                if hasattr(self, 'rule_details_placeholder') and self.rule_details_placeholder:
+                    self.rule_details_placeholder.show()
+                    self.rule_cards_layout.addWidget(self.rule_details_placeholder)
+            
+            # Clear Failed Items tab
+            if hasattr(self, 'failed_items_table') and self.failed_items_table:
+                self.failed_items_table.setRowCount(0)
+            
+            if hasattr(self, 'failed_items_stack') and self.failed_items_stack:
+                self.failed_items_stack.setCurrentIndex(0)
+            
+            if hasattr(self, 'failed_items_export_btn') and self.failed_items_export_btn:
+                self.failed_items_export_btn.setEnabled(False)
+            
+            # Clear Reports tab
+            if hasattr(self, 'reports_container_layout') and self.reports_container_layout:
+                while self.reports_container_layout.count():
+                    item = self.reports_container_layout.takeAt(0)
+                    if item and item.widget():
+                        widget = item.widget()
+                        self._disconnect_widget_signals(widget)
+                        widget.deleteLater()
+                
+                if hasattr(self, 'no_reports_label') and self.no_reports_label:
+                    self.no_reports_label.show()
+            
+            # Clear the side panel results view
+            if hasattr(self, 'results_view') and self.results_view:
+                if hasattr(self.results_view, 'tree_widget') and self.results_view.tree_widget:
+                    self.results_view.tree_widget.clear()
+                if hasattr(self.results_view, 'failing_items_cache'):
+                    self.results_view.failing_items_cache.clear()
+            
+            self.log_message("Results cleared", "INFO")
+            
+        except RuntimeError as e:
+            # Handle case where widget was already deleted
+            self.log_message(f"Warning during clear results: {str(e)}", "WARNING")
+        except Exception as e:
+            # Log any other unexpected errors
+            self.log_message(f"Error clearing results: {str(e)}", "ERROR")
 
     def create_results_panel(self):
         """Create the results and logging panel."""
@@ -1992,7 +2143,7 @@ class AnalyticsRunnerApp(QMainWindow):
         # Open data source
         open_action = QAction("&Open Data Source", self)
         open_action.setShortcut("Ctrl+O")
-        open_action.triggered.connect(self.open_data_source)
+        open_action.triggered.connect(self._open_data_source_dialog)
         file_menu.addAction(open_action)
 
         file_menu.addSeparator()
@@ -2055,40 +2206,6 @@ class AnalyticsRunnerApp(QMainWindow):
         about_action.triggered.connect(self.show_about)
         help_menu.addAction(about_action)
 
-    def create_toolbar(self):
-        """Create the application toolbar."""
-        toolbar = self.addToolBar("Main")
-        toolbar.setMovable(False)
-
-        # Open data source
-        open_data_action = QAction("Open Data", self)
-        open_data_action.setToolTip("Open data source for validation")
-        open_data_action.triggered.connect(self.open_data_source)
-        toolbar.addAction(open_data_action)
-
-        toolbar.addSeparator()
-
-        # Start validation
-        self.start_validation_action = QAction("Start Validation", self)
-        self.start_validation_action.setToolTip("Start validation process")
-        self.start_validation_action.setEnabled(False)
-        self.start_validation_action.triggered.connect(self.start_validation)
-        toolbar.addAction(self.start_validation_action)
-
-        # Stop validation
-        self.stop_validation_action = QAction("Stop Validation", self)
-        self.stop_validation_action.setToolTip("Stop validation process")
-        self.stop_validation_action.setEnabled(False)
-        self.stop_validation_action.triggered.connect(self.stop_validation)
-        toolbar.addAction(self.stop_validation_action)
-
-        toolbar.addSeparator()
-
-        # Debug mode checkbox in toolbar
-        self.debug_checkbox = QCheckBox("Debug")
-        self.debug_checkbox.setToolTip("Toggle debug mode")
-        self.debug_checkbox.toggled.connect(self.toggle_debug_mode)
-        toolbar.addWidget(self.debug_checkbox)
 
     def create_status_bar(self):
         """Create the application status bar."""
@@ -2300,16 +2417,14 @@ class AnalyticsRunnerApp(QMainWindow):
 
         # Update start button if we have both data and rules
         if hasattr(self, 'data_source_panel') and self.data_source_panel.is_valid() and rule_ids:
-            self.start_button.setText("Start Validation with Selected Rules")
+            self.start_button.setText("Start Validation with Selected Tests")
             self.start_button.setEnabled(True)
-            self.start_validation_action.setEnabled(True)
         elif not rule_ids:
             if hasattr(self, 'data_source_panel') and self.data_source_panel.is_valid():
-                self.start_button.setText("Select Rules First")
+                self.start_button.setText("Select Tests First")
             else:
-                self.start_button.setText("Select Data Source and Rules")
+                self.start_button.setText("Select Data Source and Tests")
             self.start_button.setEnabled(False)
-            self.start_validation_action.setEnabled(False)
 
     def _on_rule_edit_requested(self, rule_id: str):
         """Handle rule editing request."""
@@ -2586,15 +2701,78 @@ class AnalyticsRunnerApp(QMainWindow):
             self.log_message(f"Data source validation: {message}")
             self.start_button.setText("Start Validation")
             self.start_button.setEnabled(True)
-            self.start_validation_action.setEnabled(True)
+            
+            # Update workflow state
+            if hasattr(self, 'workflow_state'):
+                self.workflow_state.handle_data_loaded()
         else:
             self.log_message(f"Data source validation failed: {message}", "WARNING")
             self.start_button.setText("Fix Data Issues First")
             self.start_button.setEnabled(False)
-            self.start_validation_action.setEnabled(False)
+            
+            # Update workflow state
+            if hasattr(self, 'workflow_state'):
+                self.workflow_state.handle_error(message)
+    
+    def _on_columns_detected(self, columns: List[str]):
+        """Handle columns detected from data source."""
+        # Update responsible party combo box with available columns
+        if hasattr(self, 'responsible_party_combo'):
+            self.responsible_party_combo.clear()
+            self.responsible_party_combo.addItem("None")
+            self.responsible_party_combo.addItems(columns)
+            
+            # Restore previous selection if available
+            if hasattr(self, 'session') and self.session:
+                saved_column = self.session.get('responsible_party_column')
+                if saved_column and saved_column in columns:
+                    index = self.responsible_party_combo.findText(saved_column)
+                    if index >= 0:
+                        self.responsible_party_combo.setCurrentIndex(index)
+
+    def _store_scroll_positions(self) -> Dict[str, int]:
+        """Store current scroll positions for all scroll areas."""
+        positions = {}
+        
+        # Store main scroll area position
+        if hasattr(self, 'main_scroll_area') and self.main_scroll_area:
+            positions['main'] = self.main_scroll_area.verticalScrollBar().value()
+        
+        # Store Rule Management tab scroll position
+        if hasattr(self, 'mode_tabs'):
+            for i in range(self.mode_tabs.count()):
+                if self.mode_tabs.tabText(i) == "Rule Management":
+                    widget = self.mode_tabs.widget(i)
+                    if isinstance(widget, QScrollArea):
+                        positions['rule_management'] = widget.verticalScrollBar().value()
+                    break
+        
+        return positions
+    
+    def _restore_scroll_positions(self, positions: Dict[str, int]):
+        """Restore scroll positions for all scroll areas."""
+        if not positions:
+            return
+        
+        # Restore main scroll area position
+        if 'main' in positions and hasattr(self, 'main_scroll_area') and self.main_scroll_area:
+            self.main_scroll_area.verticalScrollBar().setValue(positions['main'])
+        
+        # Restore Rule Management tab scroll position  
+        if 'rule_management' in positions and hasattr(self, 'mode_tabs'):
+            for i in range(self.mode_tabs.count()):
+                if self.mode_tabs.tabText(i) == "Rule Management":
+                    widget = self.mode_tabs.widget(i)
+                    if isinstance(widget, QScrollArea):
+                        widget.verticalScrollBar().setValue(positions['rule_management'])
+                    break
+    
 
     def _on_data_preview_updated(self, preview_df):
         """Handle data preview update."""
+        # Store current scroll positions before any UI updates
+        scroll_positions = self._store_scroll_positions()
+        
         if preview_df is not None and not preview_df.empty:
             rows, cols = preview_df.shape
             self.log_message(f"Data preview loaded: {rows} rows, {cols} columns")
@@ -2631,8 +2809,13 @@ class AnalyticsRunnerApp(QMainWindow):
             self.responsible_party_combo.clear()
             self.responsible_party_combo.addItem("None")
             self.responsible_party_combo.addItems(list(preview_df.columns))
-            self.responsible_party_combo.setEnabled(True)
             self.responsible_party_combo.setCurrentIndex(0)  # Default to "None"
+            
+            # Update workflow state - data loaded
+            self.workflow_state.handle_data_loaded()
+            
+            # Load simple rules list
+            self._populate_simple_rules_list()
             
         else:
             self.log_message("Data preview cleared", "INFO")
@@ -2643,7 +2826,12 @@ class AnalyticsRunnerApp(QMainWindow):
             # Clear and disable responsible party dropdown
             self.responsible_party_combo.clear()
             self.responsible_party_combo.addItem("None")
-            self.responsible_party_combo.setEnabled(False)
+            
+            # Reset workflow state
+            self.workflow_state.reset_to_initial()
+        
+        # Restore scroll positions after UI updates
+        QTimer.singleShot(100, lambda: self._restore_scroll_positions(scroll_positions))
 
     # Slot methods for menu actions
     def new_session(self):
@@ -2653,11 +2841,10 @@ class AnalyticsRunnerApp(QMainWindow):
         self.data_source_path = None
         self.results_view.clear()
         self.start_button.setEnabled(False)
-        self.start_validation_action.setEnabled(False)
         self.status_label.setText("Ready - New session")
 
-    def open_data_source(self):
-        """Open a data source file."""
+    def _open_data_source_dialog(self):
+        """Open a data source file dialog and load it into the data source panel."""
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "Select Data Source",
@@ -2666,7 +2853,14 @@ class AnalyticsRunnerApp(QMainWindow):
         )
 
         if file_path:
-            self.load_data_source(file_path)
+            # Update session
+            self.session.add_recent_file(file_path)
+            self.session.set('last_data_directory', os.path.dirname(file_path))
+            self.update_recent_files_menu()
+            
+            # Load into data source panel
+            if hasattr(self, 'data_source_panel'):
+                self.data_source_panel.load_file(file_path)
 
     def load_data_source(self, file_path: str):
         """Load a data source file."""
@@ -2682,7 +2876,6 @@ class AnalyticsRunnerApp(QMainWindow):
 
         # Enable validation controls
         self.start_button.setEnabled(True)
-        self.start_validation_action.setEnabled(True)
 
         # Update status
         self.status_label.setText(f"Data source loaded: {os.path.basename(file_path)}")
@@ -2740,6 +2933,181 @@ class AnalyticsRunnerApp(QMainWindow):
             self.leader_packs_warning.setVisible(True)
         else:
             self.leader_packs_warning.setVisible(False)
+        
+        # Update workflow state
+        if hasattr(self, 'workflow_state'):
+            if index > 0:  # Not "None"
+                column_name = self.responsible_party_combo.currentText()
+                self.workflow_state.handle_column_selected(column_name)
+            else:
+                # Going backward - check if we need to reset state
+                from ui.common.workflow_state import WorkflowState
+                if self.workflow_state.current_state in [WorkflowState.COLUMN_SELECTED, WorkflowState.RULES_SELECTED, 
+                                                       WorkflowState.VALIDATION_READY, WorkflowState.VALIDATION_COMPLETE]:
+                    self.workflow_state.transition_to(WorkflowState.DATA_LOADED)
+
+    def _on_section_visibility_changed(self, section_name: str, visible: bool):
+        """Handle workflow section visibility changes."""
+        section_map = {
+            'responsible_party': self.responsible_party_section if hasattr(self, 'responsible_party_section') else None,
+            'rule_selection': self.rule_selection_section if hasattr(self, 'rule_selection_section') else None,
+            'validation_controls': self.execution_section if hasattr(self, 'execution_section') else None,
+            'progress_tracking': self.progress_section if hasattr(self, 'progress_section') else None,
+            'results_summary': self.report_section if hasattr(self, 'report_section') else None
+        }
+        
+        if section_name in section_map:
+            widget = section_map[section_name]
+            if widget:  # Check widget exists
+                if visible:
+                    widget.show()
+                    # Smooth scroll to new section
+                    QTimer.singleShot(100, lambda: self._scroll_to_widget(widget))
+                else:
+                    widget.hide()
+    
+    def _on_workflow_status_message(self, message: str, level: str):
+        """Display workflow status messages."""
+        if level == "error":
+            self.log_message(message, "ERROR")
+        elif level == "warning":
+            self.log_message(message, "WARNING")
+        else:
+            self.log_message(message, "INFO")
+    
+    def _scroll_to_widget(self, widget: QWidget):
+        """Smoothly scroll to make widget visible."""
+        if hasattr(self, 'main_scroll_area') and self.main_scroll_area:
+            self.main_scroll_area.ensureWidgetVisible(widget)
+    
+    def _populate_simple_rules_list(self):
+        """Populate the simple rules list with checkboxes."""
+        # Clear existing checkboxes
+        for checkbox in self.simple_rule_checkboxes:
+            checkbox.deleteLater()
+        self.simple_rule_checkboxes.clear()
+        
+        # Clear layout
+        while self.rule_list_layout.count():
+            item = self.rule_list_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+        
+        # Get rules from rule manager
+        all_rules = self.rule_selector_panel.rule_manager.list_rules()
+        
+        # Create checkboxes for each test with enhanced styling
+        for rule in all_rules:
+            # Create a container widget for each checkbox with hover effects
+            checkbox_container = QWidget()
+            checkbox_container.setObjectName("testCheckboxContainer")
+            container_layout = QHBoxLayout(checkbox_container)
+            container_layout.setContentsMargins(8, 8, 8, 8)
+            container_layout.setSpacing(8)
+            
+            checkbox = QCheckBox(rule.name)
+            checkbox.setToolTip(rule.description if rule.description else "")
+            checkbox.setStyleSheet(f"""
+                QCheckBox {{
+                    color: {AnalyticsRunnerStylesheet.DARK_TEXT};
+                    font-size: 14px;
+                    background-color: transparent;
+                    spacing: 8px;
+                }}
+                QCheckBox::indicator {{
+                    width: 18px;
+                    height: 18px;
+                    border: 2px solid #808080;
+                    border-radius: 3px;
+                    background-color: white;
+                }}
+                QCheckBox::indicator:unchecked {{
+                    border: 2px solid #606060;
+                    background-color: white;
+                }}
+                QCheckBox::indicator:unchecked:hover {{
+                    border-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                    background-color: #f0f0f0;
+                }}
+                QCheckBox::indicator:checked {{
+                    background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                    border-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                    image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEwIDNMNC41IDguNUwyIDYiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPg==);
+                }}
+                QCheckBox::indicator:checked:hover {{
+                    background-color: {AnalyticsRunnerStylesheet.HOVER_COLOR};
+                    border-color: {AnalyticsRunnerStylesheet.HOVER_COLOR};
+                }}
+            """)
+            checkbox.stateChanged.connect(self._on_simple_rule_toggled)
+            
+            # Store rule ID as property
+            checkbox.setProperty("rule_id", rule.rule_id)
+            
+            container_layout.addWidget(checkbox)
+            container_layout.addStretch()
+            
+            # Style the container with hover effects
+            checkbox_container.setStyleSheet(f"""
+                QWidget#testCheckboxContainer {{
+                    background-color: rgba(255, 255, 255, 0.6);
+                    border: 1px solid transparent;
+                    border-radius: 4px;
+                    padding: 4px;
+                }}
+                QWidget#testCheckboxContainer:hover {{
+                    background-color: rgba(255, 255, 255, 0.9);
+                    border: 1px solid {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                }}
+            """)
+            
+            self.rule_list_layout.addWidget(checkbox_container)
+            self.simple_rule_checkboxes.append(checkbox)
+        
+        # Update count
+        self._update_simple_rule_count()
+    
+    def _on_simple_rule_toggled(self):
+        """Handle simple rule checkbox toggle."""
+        self._update_simple_rule_count()
+        
+        # Get selected count
+        selected_count = sum(1 for cb in self.simple_rule_checkboxes if cb.isChecked())
+        
+        # Update workflow state
+        if hasattr(self, 'workflow_state'):
+            self.workflow_state.handle_rules_selected(selected_count)
+            
+            # Check if ready for validation
+            if selected_count > 0:
+                self.workflow_state.handle_validation_ready()
+    
+    def _update_simple_rule_count(self):
+        """Update the test count label."""
+        selected_count = sum(1 for cb in self.simple_rule_checkboxes if cb.isChecked())
+        total_count = len(self.simple_rule_checkboxes)
+        self.rule_count_label.setText(f"{selected_count} of {total_count} tests selected")
+    
+    def _select_all_rules(self):
+        """Select all rules in simple list."""
+        for checkbox in self.simple_rule_checkboxes:
+            checkbox.setChecked(True)
+    
+    
+    def _clear_all_rules(self):
+        """Clear all rule selections."""
+        for checkbox in self.simple_rule_checkboxes:
+            checkbox.setChecked(False)
+    
+    def get_selected_simple_rules(self) -> List[str]:
+        """Get list of selected rule IDs from simple mode."""
+        selected_ids = []
+        for checkbox in self.simple_rule_checkboxes:
+            if checkbox.isChecked():
+                rule_id = checkbox.property("rule_id")
+                if rule_id:
+                    selected_ids.append(rule_id)
+        return selected_ids
 
     def start_validation(self):
         """Start the validation process with selected rules."""
@@ -2754,16 +3122,20 @@ class AnalyticsRunnerApp(QMainWindow):
             QMessageBox.warning(self, "Invalid Data Source", "The selected data source is not valid.")
             return
 
-        # Get selected rules from enhanced rule selector
-        selected_rules = []
-        if hasattr(self, 'rule_selector_panel'):
-            selected_rules = self.rule_selector_panel.get_selected_rule_ids()
+        # Get selected rules - check which tab is active
+        if self.mode_tabs.currentIndex() == 0:  # Simple Mode
+            selected_rules = self.get_selected_simple_rules()
+        else:
+            # Get from rule selector panel
+            selected_rules = []
+            if hasattr(self, 'rule_selector_panel'):
+                selected_rules = self.rule_selector_panel.get_selected_rule_ids()
 
         if not selected_rules:
             reply = QMessageBox.question(
                 self,
-                "No Rules Selected",
-                "No validation rules are selected. Do you want to run with all available rules?",
+                "No Tests Selected",
+                "No validation tests are selected. Do you want to run with all available tests?",
                 QMessageBox.Yes | QMessageBox.No,
                 QMessageBox.No
             )
@@ -2774,12 +3146,16 @@ class AnalyticsRunnerApp(QMainWindow):
                 # Use all rules if none selected
                 selected_rules = None
 
-        self.log_message(f"Starting validation with {len(selected_rules) if selected_rules else 'all'} rules")
+        self.log_message(f"Starting validation with {len(selected_rules) if selected_rules else 'all'} tests")
 
         # Get sheet name for Excel files
         sheet_name = self.data_source_panel.get_current_sheet()
         if sheet_name:
             self.log_message(f"Using Excel sheet: {sheet_name}")
+            
+        # Update workflow state
+        if hasattr(self, 'workflow_state'):
+            self.workflow_state.handle_validation_started()
 
         # Update UI state for execution
         self.start_button.setEnabled(False)
@@ -2793,8 +3169,6 @@ class AnalyticsRunnerApp(QMainWindow):
             border: none;
             border-radius: 4px;
         """)
-        self.start_validation_action.setEnabled(False)
-        self.stop_validation_action.setEnabled(True)
         self.show_progress(True)
         self.update_progress(0, "Initializing validation...")
 
@@ -2917,6 +3291,10 @@ class AnalyticsRunnerApp(QMainWindow):
     def _on_validation_complete(self, results: dict):
         """Handle validation completion with results."""
         self.log_message("Validation completed successfully")
+        
+        # Update workflow state
+        if hasattr(self, 'workflow_state'):
+            self.workflow_state.handle_validation_complete(True, "Validation completed successfully")
 
         # Update status in Results & Reports tab
         self.results_status_label.setText("Results loaded")
@@ -2934,11 +3312,8 @@ class AnalyticsRunnerApp(QMainWindow):
         # Update Summary tab
         self._update_summary_tab(results)
         
-        # Update Rule Details tab
+        # Update Test Details tab
         self._update_rule_details_tab(results)
-        
-        # Update Failed Items tab
-        self._update_failed_items_tab(results)
         
         # Update Reports tab
         self._update_reports_tab(results)
@@ -2957,6 +3332,10 @@ class AnalyticsRunnerApp(QMainWindow):
         """Handle validation error."""
         self.log_message(f"Validation failed: {error_message}", "ERROR")
         QMessageBox.critical(self, "Validation Error", f"Validation failed:\n\n{error_message}")
+        
+        # Update workflow state
+        if hasattr(self, 'workflow_state'):
+            self.workflow_state.handle_validation_complete(False, error_message)
         
         # Update status in Results & Reports tab
         self.results_status_label.setText("Validation failed")
@@ -2985,7 +3364,6 @@ class AnalyticsRunnerApp(QMainWindow):
         # Update tabs with error state
         self._update_summary_tab(error_results)
         self._update_rule_details_tab(error_results)
-        self._update_failed_items_tab(error_results)
         self._update_reports_tab(error_results)
         
         # Still update the side panel
@@ -3003,8 +3381,6 @@ class AnalyticsRunnerApp(QMainWindow):
         self.start_button.setEnabled(True)
         self.cancel_button.setEnabled(False)
         self.cancel_button.setText("Cancel")
-        self.start_validation_action.setEnabled(True)
-        self.stop_validation_action.setEnabled(False)
         self.show_progress(False)
         self.status_label.setText("Validation completed")
         
@@ -3058,10 +3434,10 @@ class AnalyticsRunnerApp(QMainWindow):
     
     def _on_rule_started(self, rule_name: str, current: int, total: int):
         """Handle individual rule start notification."""
-        self.rule_summary_label.setText(f"Rule {current} of {total}: {rule_name}")
+        self.rule_summary_label.setText(f"Test {current} of {total}: {rule_name}")
         
         # Also update in log for detailed tracking
-        self.log_message(f"Evaluating rule {current}/{total}: {rule_name}")
+        self.log_message(f"Evaluating test {current}/{total}: {rule_name}")
     
     def _hide_progress_section(self):
         """Hide the progress section with animation."""
@@ -3248,13 +3624,14 @@ class AnalyticsRunnerApp(QMainWindow):
                 size_str = f"{file_size / 1024:.1f} KB" if file_size < 1024 * 1024 else f"{file_size / (1024 * 1024):.1f} MB"
                 
                 # Format based on file type
-                if file_path.endswith('.xlsx'):
+                file_path_str = str(file_path)
+                if file_path_str.endswith('.xlsx'):
                     icon = "📊"
                     desc = "Excel Report"
-                elif file_path.endswith('.html'):
+                elif file_path_str.endswith('.html'):
                     icon = "🌐"
                     desc = "HTML Report"
-                elif file_path.endswith('.json'):
+                elif file_path_str.endswith('.json'):
                     icon = "📄"
                     desc = "JSON Results"
                 else:
@@ -3315,8 +3692,9 @@ class AnalyticsRunnerApp(QMainWindow):
         """Stop the validation process."""
         self.log_message("Stopping validation process")
 
-        # TODO: Implement actual cancellation in Phase 4
-        self.validation_complete()
+        # This is handled by cancel_validation method now
+        if hasattr(self, 'cancel_validation'):
+            self.cancel_validation()
 
     def validation_complete(self):
         """Handle validation completion."""
@@ -3324,8 +3702,6 @@ class AnalyticsRunnerApp(QMainWindow):
 
         # Update UI state
         self.start_button.setEnabled(True)
-        self.start_validation_action.setEnabled(True)
-        self.stop_validation_action.setEnabled(False)
         self.show_progress(False)
         self.status_label.setText("Validation completed")
 

@@ -1,0 +1,22 @@
+{
+  "rule_id": "QA-ID-7",
+  "name": "Followup_Fields_If_Impact",
+  "formula": "=IF(LEFT([ImpactOccurred],3)=\"Yes\",AND(NOT(ISBLANK([CaseSource])),NOT(ISBLANK([BusinessMonitoringCase])),NOT(ISBLANK([ResponsibleForAction])),NOT(ISBLANK([ActionItemDescription]))),TRUE)",
+  "description": "If impact occurred, all follow-up action fields must be completed",
+  "threshold": 0.05,
+  "metadata": {
+    "severity": "critical",
+    "category": "completeness",
+    "tags": ["business_monitoring", "followup", "conditional", "BM"],
+    "title": "Follow-up Fields Required if Impact Occurred",
+    "created_at": "2025-05-24T12:00:00.000000",
+    "modified_at": "2025-05-24T12:00:00.000000",
+    "column_names": ["CaseSource", "BusinessMonitoringCase", "ResponsibleForAction", "ActionItemDescription"],
+    "condition_column": "ImpactOccurred",
+    "condition_logic": "starts_with_yes",
+    "error_message": "All follow-up action fields must be filled if an impact is reported.",
+    "business_rule": "Additional Fields Required if Impact Occurred",
+    "responsible_party_column": "AuditLeader",
+    "analytic_id": "BM_COMPLETENESS_2024"
+  }
+}

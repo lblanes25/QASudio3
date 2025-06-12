@@ -64,5 +64,35 @@ report_config:
     max_failures_per_rule: 1000
     show_formula_on_sheets: true
     enable_conditional_formatting: true
-    include_explanation_section: true
+    include_explanation_section: false  # Disabled - no troubleshooting guide in rule tabs
     show_intermediate_calculations: true
+    use_template_for_rule_tabs: true  # Use QA-ID-70 template format for individual rule tabs
+
+  # Template configuration
+  template_config:
+    # Enable template-based generation by default
+    use_templates: true
+    
+    # Path to summary template (IAG and AL Results and Ratings)
+    summary_template_path: "qa_summary_template.xlsx"
+    
+    # Path to individual analytic template (QA-ID-70 format)
+    individual_template_path: "qa_individual_analytic_template.xlsx"
+    
+    # Generate individual reports automatically
+    auto_generate_individual_reports: true
+    
+    # Output directory for individual reports (relative to main output)
+    individual_reports_subdir: "individual_analytics"
+    
+    # Template validation settings
+    validate_templates_on_init: true
+    fail_on_missing_template: false  # Fall back to programmatic if template missing
+    
+    # Template caching for performance
+    cache_templates: true
+    
+    # Custom template paths (optional - can override defaults)
+    custom_templates:
+      # department_summary: "custom_dept_summary_template.xlsx"
+      # risk_assessment: "risk_assessment_template.xlsx"

@@ -59,7 +59,21 @@ class RuleEvaluationResult:
 
     def get_failing_items(self) -> pd.DataFrame:
         """Get subset of results that did not comply with the rule"""
-        return self.result_df[self.result_df[self.result_column] == False]
+        # Check if result column contains boolean or compliance values
+        if self.result_column in self.result_df.columns:
+            # Handle both boolean results and compliance status values
+            result_col = self.result_df[self.result_column]
+            
+            # If boolean column, return False values
+            if result_col.dtype == bool:
+                return self.result_df[result_col == False]
+            
+            # If compliance status column, return PC and DNC values
+            failing_mask = result_col.isin(['PC', 'DNC', 'PARTIALLY_COMPLIANT', 'DOES_NOT_COMPLY'])
+            return self.result_df[failing_mask]
+        
+        # Fallback: return empty DataFrame
+        return pd.DataFrame()
 
     def get_party_status(self, party: str) -> Optional[Dict[str, Any]]:
         """Get compliance status for a specific responsible party"""
@@ -94,7 +108,12 @@ class RuleEvaluationResult:
         # Group by responsible party
         failing_by_party = {}
         for party, party_df in failing_items.groupby(party_column):
-            failing_by_party[party] = party_df.copy()
+            # Convert party to string if it's a Timestamp to avoid dictionary key error
+            if pd.api.types.is_datetime64_any_dtype(type(party)):
+                party_key = str(party)
+            else:
+                party_key = party
+            failing_by_party[party_key] = party_df.copy()
 
         return failing_by_party
 
@@ -214,10 +233,10 @@ class RuleEvaluator:
 
         with ExcelFormulaProcessor(visible=self.excel_visible, track_errors=True) as processor:
             result_df = processor.process_formulas(data_df, formula_map)
+            result_df.index = data_df.index  # ✅ Fix: align result index to input
 
         # Convert string "TRUE"/"FALSE" values to boolean for proper handling
         if result_column in result_df.columns:
-            # Handle different result types that might come back from Excel
             def normalize_result(val):
                 if isinstance(val, bool):
                     return val

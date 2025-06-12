@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QA Analytics Framework - Validation Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1, h2, h3 { color: #333366; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #dddddd; text-align: left; padding: 8px; }
+        th { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .status { font-weight: bold; }
+        .status.gc { color: #006100; background-color: #C6EFCE; }
+        .status.pc { color: #9C6500; background-color: #FFEB9C; }
+        .status.dnc { color: #9C0006; background-color: #FFC7CE; }
+        .rate { text-align: center; }
+        .summary-box { border: 1px solid #ddd; padding: 10px; margin-bottom: 15px; }
+        .rule-details { margin-bottom: 30px; }
+        .explanation { background-color: #f0f0f0; padding: 10px; border-left: 4px solid #333366; }
+        .formula { font-family: Consolas, monospace; background-color: #f8f8f8; padding: 10px; }
+        .rule-header { background-color: #e0e0e0; padding: 10px; margin-bottom: 10px; }
+        .failures { max-height: 400px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>QA Analytics Framework - Validation Report</h1>
+    <p>Report generated on 2025-06-12 11:36:49</p>
+    <h2>Summary</h2>
+    <div class="summary-box">
+        <h3>Overall Status: <span class="status dnc">NON_COMPLIANT</span></h3>
+        <table>
+            <tr><th>Total Rules</th><th>Generally Conforms (GC)</th><th>Partially Conforms (PC)</th><th>Does Not Conform (DNC)</th></tr>
+            <tr><td>7</td><td class="status gc">1</td><td class="status pc">4</td><td class="status dnc">2</td></tr>
+        </table>
+    </div>
+    <h2>Rule Details</h2>
+    <div class="rule-details">
+        <div class="rule-header">
+            <h3>Date_Activity_Required</h3>
+            <p>Status: <span class="status pc">PC</span></p>
+            <p>Compliance Rate: <span class="rate">90.0%</span> (27/30)</p>
+        </div>
+        <p>Validates that the date of activity field is not blank</p>
+        <div class="formula">
+            <p><strong>Formula:</strong> =NOT(ISBLANK([DateActivityOccurred]))</p>
+        </div>
+        <h4>Failures: 3</h4>
+    <div class="rule-details"><p>Error processing rule QA-ID-1: Unalignable boolean Series provided as indexer (index of the boolean Series and of the indexed object do not match).</p></div>
+    <div class="rule-details">
+        <div class="rule-header">
+            <h3>Attendees_Required</h3>
+            <p>Status: <span class="status pc">PC</span></p>
+            <p>Compliance Rate: <span class="rate">90.0%</span> (27/30)</p>
+        </div>
+        <p>Validates that attendees field is not blank</p>
+        <div class="formula">
+            <p><strong>Formula:</strong> =NOT(ISBLANK([Attendees]))</p>
+        </div>
+        <h4>Failures: 3</h4>
+    <div class="rule-details"><p>Error processing rule QA-ID-2: Unalignable boolean Series provided as indexer (index of the boolean Series and of the indexed object do not match).</p></div>
+    <div class="rule-details">
+        <div class="rule-header">
+            <h3>Summary_Results_Required</h3>
+            <p>Status: <span class="status pc">PC</span></p>
+            <p>Compliance Rate: <span class="rate">86.7%</span> (26/30)</p>
+        </div>
+        <p>Validates that summary of results field is not blank</p>
+        <div class="formula">
+            <p><strong>Formula:</strong> =NOT(ISBLANK([SummaryOfResults]))</p>
+        </div>
+        <h4>Failures: 4</h4>
+    <div class="rule-details"><p>Error processing rule QA-ID-3: Unalignable boolean Series provided as indexer (index of the boolean Series and of the indexed object do not match).</p></div>
+    <div class="rule-details">
+        <div class="rule-header">
+            <h3>DDAP_Indicator_Required</h3>
+            <p>Status: <span class="status dnc">DNC</span></p>
+            <p>Compliance Rate: <span class="rate">73.3%</span> (22/30)</p>
+        </div>
+        <p>Validates that DDAP usage indicator field is not blank</p>
+        <div class="formula">
+            <p><strong>Formula:</strong> =NOT(ISBLANK([WasADataDrivenAuditingProcedureUtilized]))</p>
+        </div>
+        <h4>Failures: 8</h4>
+    <div class="rule-details"><p>Error processing rule QA-ID-4: Unalignable boolean Series provided as indexer (index of the boolean Series and of the indexed object do not match).</p></div>
+    <div class="rule-details">
+        <div class="rule-header">
+            <h3>DDAP_Type_If_Used</h3>
+            <p>Status: <span class="status pc">PC</span></p>
+            <p>Compliance Rate: <span class="rate">93.3%</span> (28/30)</p>
+        </div>
+        <p>If DDAP was used, then DDAP type must be specified</p>
+        <div class="formula">
+            <p><strong>Formula:</strong> =IF([WasADataDrivenAuditingProcedureUtilized]="Yes",NOT(ISBLANK([DDAPTypeUtilized])),TRUE)</p>
+        </div>
+        <h4>Failures: 2</h4>
+    <div class="rule-details"><p>Error processing rule QA-ID-5: Unalignable boolean Series provided as indexer (index of the boolean Series and of the indexed object do not match).</p></div>
+    <div class="rule-details">
+        <div class="rule-header">
+            <h3>Impact_Description_If_Impact</h3>
+            <p>Status: <span class="status gc">GC</span></p>
+            <p>Compliance Rate: <span class="rate">100.0%</span> (30/30)</p>
+        </div>
+        <p>If impact occurred, then impact description must be provided</p>
+        <div class="formula">
+            <p><strong>Formula:</strong> =IF(LEFT([ImpactOccurred],3)="Yes",LEN(TRIM([ImpactDescription]))>0,TRUE)</p>
+        </div>
+        <div class="explanation">
+            <p><strong>Explanation:</strong> This rule validates that the relationship between 'ImpactOccurred' and 'ImpactDescription' is valid.
+
+Formula: =IF(LEFT([ImpactOccurred],3)="Yes",LEN(TRIM([ImpactDescription]))>0,TRUE)</p>
+        </div>
+    </div>
+    <div class="rule-details">
+        <div class="rule-header">
+            <h3>Followup_Fields_If_Impact</h3>
+            <p>Status: <span class="status dnc">DNC</span></p>
+            <p>Compliance Rate: <span class="rate">76.7%</span> (23/30)</p>
+        </div>
+        <p>If impact occurred, all follow-up action fields must be completed</p>
+        <div class="formula">
+            <p><strong>Formula:</strong> =IF(LEFT([ImpactOccurred],3)="Yes",AND(NOT(ISBLANK([CaseSource])),NOT(ISBLANK([BusinessMonitoringCase])),NOT(ISBLANK([ResponsibleForAction])),NOT(ISBLANK([ActionItemDescription]))),TRUE)</p>
+        </div>
+        <h4>Failures: 7</h4>
+    <div class="rule-details"><p>Error processing rule QA-ID-7: Unalignable boolean Series provided as indexer (index of the boolean Series and of the indexed object do not match).</p></div>
+</body>
+</html>

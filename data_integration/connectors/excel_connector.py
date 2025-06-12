@@ -51,7 +51,7 @@ class ExcelConnector(BaseConnector):
         # Check if pandas supports the engine requested, default to openpyxl for .xlsx
         self.engine = self.connection_params.get('engine')
         if not self.engine:
-            if self.file_path and self.file_path.lower().endswith('.xlsx'):
+            if self.file_path and str(self.file_path).lower().endswith('.xlsx'):
                 self.engine = 'openpyxl'
             else:
                 self.engine = None  # Let pandas choose

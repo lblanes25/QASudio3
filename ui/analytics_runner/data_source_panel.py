@@ -114,6 +114,7 @@ class DataSourcePanel(QWidget):
     dataSourceValidated = Signal(bool, str)  # Is valid, message
     sheetChanged = Signal(str)  # Sheet name for Excel files
     previewUpdated = Signal(object)  # Preview DataFrame
+    columnsDetected = Signal(list)  # List of column names when data is loaded
 
     def __init__(self, session_manager=None, parent: Optional[QWidget] = None):
         super().__init__(parent)
@@ -601,7 +602,7 @@ class DataSourcePanel(QWidget):
 
     def _on_sheet_changed(self, sheet_name: str):
         """Handle Excel sheet selection change."""
-        if sheet_name and sheet_name != self._current_sheet:
+        if sheet_name and sheet_name != self._current_sheet and sheet_name != "Loading...":
             self._current_sheet = sheet_name
             self._load_file_preview()
             self.sheetChanged.emit(sheet_name)
@@ -677,6 +678,10 @@ class DataSourcePanel(QWidget):
         """Load file preview."""
         if not self._current_file:
             return
+            
+        # Don't try to load if sheet name is the placeholder
+        if self._is_excel_file and self._current_sheet == "Loading...":
+            return
 
         # Stop any existing preview worker
         if self._preview_worker and self._preview_worker.isRunning():
@@ -723,8 +728,12 @@ class DataSourcePanel(QWidget):
             # Always use generic validation for fast structural checks
             self.pre_validation_widget.validate_data(preview_df, "generic")
 
-        # Emit signal
+        # Emit signals
         self.previewUpdated.emit(preview_df)
+        
+        # Emit columns detected signal
+        if preview_df is not None and not preview_df.empty:
+            self.columnsDetected.emit(list(preview_df.columns))
 
         logger.info(f"Preview loaded: {len(preview_df)} rows, {len(preview_df.columns)} columns")
 

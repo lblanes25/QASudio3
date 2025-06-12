@@ -383,8 +383,10 @@ class ExcelFormulaProcessor:
         for col in excel_df.columns:
             # Check if column contains datetime objects
             if pd.api.types.is_datetime64_any_dtype(excel_df[col]):
-                # Convert timestamps to MM/DD/YYYY format that Excel recognizes regardless of locale
-                excel_df[col] = excel_df[col].dt.strftime('%m/%d/%Y')
+                # Convert timestamps to MM/DD/YYYY format or "" if missing
+                excel_df[col] = excel_df[col].apply(
+                    lambda x: x.strftime('%m/%d/%Y') if pd.notnull(x) else ""
+                )
                 logger.debug(f"Converted timestamp column {col} to MM/DD/YYYY format")
 
             # Handle columns with mixed types that might contain timestamps

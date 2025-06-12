@@ -2,8 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(grep:*)",
-      "Bash(python test:*)"
+      "Bash(python test:*)",
+      "Bash(python:*)",
+      "Bash(cp:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
-  }
+  },
+  "enableAllProjectMcpServers": false
 }

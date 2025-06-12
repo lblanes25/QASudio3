@@ -10,7 +10,8 @@ from collections import defaultdict
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTreeWidget, QTreeWidgetItem,
     QLineEdit, QPushButton, QLabel, QCheckBox, QComboBox, QFrame,
-    QSplitter, QTextEdit, QGroupBox, QScrollArea, QMessageBox, QTabWidget
+    QSplitter, QTextEdit, QGroupBox, QScrollArea, QMessageBox, QTabWidget,
+    QSizePolicy
 )
 from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QFont, QIcon
@@ -23,7 +24,7 @@ from ui.common.stylesheet import AnalyticsRunnerStylesheet
 from ui.common.session_manager import SessionManager
 
 # Import the rule editor panel
-from rule_editor_panel import RuleEditorPanel
+from .rule_editor_panel import RuleEditorPanel
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +67,11 @@ class RuleSelectorPanel(QWidget):
         self.search_timer = QTimer()
         self.search_timer.setSingleShot(True)
         self.search_timer.timeout.connect(self._perform_search)
+        
+        # Debug: Track size changes
+        self._last_size = None
+        self._size_check_timer = QTimer()
+        self._size_check_timer.timeout.connect(self._check_size_changes)
 
         # Initialize UI
         self.init_ui()
@@ -84,6 +90,12 @@ class RuleSelectorPanel(QWidget):
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(12, 12, 12, 12)
         main_layout.setSpacing(12)
+        
+        # Debug: Log initial layout setup
+        logger.debug("=== INIT UI ===")
+        logger.debug(f"Main layout spacing: {main_layout.spacing()}")
+        logger.debug(f"Main layout margins: {main_layout.contentsMargins()}")
+        
 
         # Header section
         self.create_header_section(main_layout)
@@ -99,22 +111,46 @@ class RuleSelectorPanel(QWidget):
 
     def create_header_section(self, parent_layout):
         """Create the header with title and summary stats."""
-        header_layout = QHBoxLayout()
+        # Create a container widget for the header
+        header_widget = QWidget()
+        header_layout = QHBoxLayout(header_widget)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # CRITICAL FIX: Set maximum height for header to prevent expansion
+        header_widget.setMaximumHeight(50)
+        
+        # Debug: Log header creation
+        logger.debug("=== CREATING HEADER SECTION ===")
+        
 
         # Title
         title_label = QLabel("Rule Management")
         title_label.setFont(AnalyticsRunnerStylesheet.get_fonts()['title'])
         title_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR}; font-weight: bold;")
+        title_label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         header_layout.addWidget(title_label)
 
         # Stats label (updated dynamically)
         self.stats_label = QLabel("Loading rules...")
         self.stats_label.setFont(AnalyticsRunnerStylesheet.get_fonts()['regular'])
-        self.stats_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};")
+        stats_style = f"color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};"
+        
+        # FIX: Set size policy to prevent vertical expansion
+        self.stats_label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        
+            
+        self.stats_label.setStyleSheet(stats_style)
+        
+        # Debug: Log initial stats label properties
+        logger.debug(f"Initial stats label text: '{self.stats_label.text()}'")
+        logger.debug(f"Initial stats label font: {self.stats_label.font().family()}, {self.stats_label.font().pointSize()}pt")
+        
         header_layout.addStretch()
         header_layout.addWidget(self.stats_label)
 
-        parent_layout.addLayout(header_layout)
+        # Store reference for debugging
+        self.header_widget = header_widget
+        parent_layout.addWidget(header_widget)
 
     def create_filter_section(self, parent_layout):
         """Create search and filter controls - REMOVED preset buttons"""
@@ -122,6 +158,16 @@ class RuleSelectorPanel(QWidget):
         filter_layout = QVBoxLayout(filter_widget)
         filter_layout.setContentsMargins(0, 0, 0, 0)
         filter_layout.setSpacing(12)
+        
+        # FIX: Set size policy to prevent vertical expansion
+        filter_widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        
+        # Store reference for debugging
+        self.filter_widget = filter_widget
+        
+        # Debug: Log filter section setup
+        logger.debug("=== FILTER SECTION ===")
+        logger.debug(f"Filter layout spacing: {filter_layout.spacing()}")
 
         # Search row
         search_layout = QHBoxLayout()
@@ -183,6 +229,17 @@ class RuleSelectorPanel(QWidget):
         """Create the main content area with rule tree and integrated editor."""
         # Horizontal splitter for rules tree and editor
         self.content_splitter = QSplitter(Qt.Horizontal)
+        
+        # FIX: Make splitter handle more visible and easier to grab
+        self.content_splitter.setHandleWidth(8)
+        self.content_splitter.setStyleSheet("""
+            QSplitter::handle {
+                background-color: #E0E0E0;
+            }
+            QSplitter::handle:hover {
+                background-color: #0078D4;
+            }
+        """)
 
         # Left panel: Rules tree
         self.create_rules_tree_panel()
@@ -190,6 +247,9 @@ class RuleSelectorPanel(QWidget):
 
         # Right panel: Integrated Rule Editor
         self.rule_editor = RuleEditorPanel(self.rule_manager, self)
+        
+        # FIX: Set minimum width for rule editor to prevent it from blocking splitter movement
+        self.rule_editor.setMinimumWidth(300)
 
         # Connect editor signals
         self.rule_editor.ruleUpdated.connect(self._on_rule_updated)
@@ -199,18 +259,30 @@ class RuleSelectorPanel(QWidget):
 
         # Set initial splitter proportions (50% tree, 50% editor)
         self.content_splitter.setSizes([500, 500])
+        
+        # FIX: Set stretch factors to allow proper resizing
+        # Both panels should be equally stretchable
+        self.content_splitter.setStretchFactor(0, 1)  # Rules tree panel
+        self.content_splitter.setStretchFactor(1, 1)  # Rule editor panel
+        
+        # Ensure no child sizing policies are preventing resize
+        self.content_splitter.setChildrenCollapsible(False)
 
         parent_layout.addWidget(self.content_splitter)
 
     def create_rules_tree_panel(self):
         """Create the rules tree panel."""
         self.rules_tree_panel = QWidget()
+        
+        # FIX: Set minimum width to prevent collapse, but no maximum to allow expansion
+        self.rules_tree_panel.setMinimumWidth(300)
+        
         tree_layout = QVBoxLayout(self.rules_tree_panel)
         tree_layout.setContentsMargins(0, 0, 0, 0)
         tree_layout.setSpacing(8)
 
         # Panel header
-        tree_header = QLabel("Available Rules")
+        tree_header = QLabel("Available Tests")
         tree_header.setFont(AnalyticsRunnerStylesheet.get_fonts()['header'])
         tree_header.setStyleSheet(AnalyticsRunnerStylesheet.get_header_stylesheet())
         tree_layout.addWidget(tree_header)
@@ -229,7 +301,7 @@ class RuleSelectorPanel(QWidget):
         selection_layout.addWidget(self.deselect_all_btn)
 
         # Selected count
-        self.selection_count_label = QLabel("0 rules selected")
+        self.selection_count_label = QLabel("0 tests selected")
         self.selection_count_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};")
         selection_layout.addStretch()
         selection_layout.addWidget(self.selection_count_label)
@@ -245,8 +317,39 @@ class RuleSelectorPanel(QWidget):
         self.rules_tree.itemDoubleClicked.connect(self._on_item_double_clicked)
         self.rules_tree.currentItemChanged.connect(self._on_current_item_changed)
 
-        # Apply table styling
-        self.rules_tree.setStyleSheet(AnalyticsRunnerStylesheet.get_table_stylesheet())
+        # Apply table styling with enhanced checkbox visibility
+        tree_stylesheet = AnalyticsRunnerStylesheet.get_table_stylesheet() + f"""
+            QTreeWidget::indicator {{
+                width: 18px;
+                height: 18px;
+                border: 2px solid #606060;
+                border-radius: 3px;
+                background-color: white;
+            }}
+            QTreeWidget::indicator:unchecked {{
+                border: 2px solid #606060;
+                background-color: white;
+            }}
+            QTreeWidget::indicator:unchecked:hover {{
+                border-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                background-color: #f0f0f0;
+            }}
+            QTreeWidget::indicator:checked {{
+                background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                border-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEwIDNMNC41IDguNUwyIDYiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPg==);
+            }}
+            QTreeWidget::indicator:checked:hover {{
+                background-color: {AnalyticsRunnerStylesheet.HOVER_COLOR};
+                border-color: {AnalyticsRunnerStylesheet.HOVER_COLOR};
+            }}
+            QTreeWidget::indicator:indeterminate {{
+                background-color: #e0e0e0;
+                border-color: #606060;
+                image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iMyIgeT0iNSIgd2lkdGg9IjYiIGhlaWdodD0iMiIgZmlsbD0iIzYwNjA2MCIvPgo8L3N2Zz4=);
+            }}
+        """
+        self.rules_tree.setStyleSheet(tree_stylesheet)
 
         tree_layout.addWidget(self.rules_tree)
 
@@ -290,6 +393,11 @@ class RuleSelectorPanel(QWidget):
     def load_rules(self):
         """Load rules from the rule manager and populate the tree - ENHANCED WITH ERROR HANDLING"""
         try:
+            # Debug: Log before loading rules
+            logger.debug("=== LOAD RULES START ===")
+            logger.debug(f"Widget size before loading: {self.size()}")
+            logger.debug(f"Stats label size before: {self.stats_label.size()}")
+            
             # Store current selection before reload
             previously_selected = self.selected_rule_ids.copy()
 
@@ -314,6 +422,11 @@ class RuleSelectorPanel(QWidget):
             # Emit selection change to notify other components
             if self.selected_rule_ids:
                 self.rulesSelectionChanged.emit(list(self.selected_rule_ids))
+                
+            # Debug: Log after loading rules
+            logger.debug("=== LOAD RULES END ===")
+            logger.debug(f"Widget size after loading: {self.size()}")
+            logger.debug(f"Stats label size after: {self.stats_label.size()}")
 
         except Exception as e:
             logger.error(f"Error loading rules: {e}")
@@ -464,20 +577,48 @@ class RuleSelectorPanel(QWidget):
         filtered_rules = len(self.filtered_rules)
         selected_rules = len(self.selected_rule_ids)
 
+        # Debug: Log before updating
+        logger.debug("=== UPDATE STATS DISPLAY ===")
+        logger.debug(f"Current stats label text: '{self.stats_label.text()}'")
+        logger.debug(f"Current stats label style: '{self.stats_label.styleSheet()}'")
+        logger.debug(f"Parent widget size before: {self.size()}")
+        
+        # Get parent layout to check its state
+        parent_widget = self.stats_label.parent()
+        if parent_widget:
+            logger.debug(f"Stats label parent size before: {parent_widget.size()}")
+        
         if total_rules == 0:
-            self.stats_label.setText("No rules available - click 'Create New Rule' to get started")
-            self.stats_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.LIGHT_TEXT}; font-style: italic;")
+            new_text = "No rules available - click 'Create New Rule' to get started"
+            new_style = f"color: {AnalyticsRunnerStylesheet.LIGHT_TEXT}; font-style: italic;"
+            self.stats_label.setText(new_text)
+            self.stats_label.setStyleSheet(new_style)
         elif filtered_rules == total_rules:
-            self.stats_label.setText(f"{total_rules} rules • {selected_rules} selected for validation")
-            self.stats_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.TEXT_COLOR};")
+            new_text = f"{total_rules} tests • {selected_rules} selected for validation"
+            new_style = f"color: {AnalyticsRunnerStylesheet.TEXT_COLOR};"
+            logger.debug(">>> CHANGING FROM ITALIC TO NORMAL FONT <<<")
+            self.stats_label.setText(new_text)
+            self.stats_label.setStyleSheet(new_style)
         else:
-            self.stats_label.setText(f"Showing {filtered_rules} of {total_rules} rules • {selected_rules} selected")
-            self.stats_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.TEXT_COLOR};")
+            new_text = f"Showing {filtered_rules} of {total_rules} tests • {selected_rules} selected"
+            new_style = f"color: {AnalyticsRunnerStylesheet.TEXT_COLOR};"
+            self.stats_label.setText(new_text)
+            self.stats_label.setStyleSheet(new_style)
+            
+        # Debug: Log after updating
+        logger.debug(f"New stats label text: '{self.stats_label.text()}'")
+        logger.debug(f"New stats label style: '{self.stats_label.styleSheet()}'")
+        logger.debug(f"Stats label size after update: {self.stats_label.size()}")
+        logger.debug(f"Stats label size hint after update: {self.stats_label.sizeHint()}")
+        logger.debug(f"Parent widget size after: {self.size()}")
+        
+        if parent_widget:
+            logger.debug(f"Stats label parent size after: {parent_widget.size()}")
 
     def update_selection_count(self):
         """Update the selection count display."""
         count = len(self.selected_rule_ids)
-        self.selection_count_label.setText(f"{count} rule{'s' if count != 1 else ''} selected")
+        self.selection_count_label.setText(f"{count} test{'s' if count != 1 else ''} selected")
         self.update_stats_display()
 
     # Event handlers
@@ -798,7 +939,75 @@ class RuleSelectorPanel(QWidget):
 
     def set_current_data_preview(self, data_df):
         """Set current data preview for rule testing."""
+        # Debug: Log widget sizes before setting data
+        logger.debug("=== BEFORE DATA LOAD ===")
+        logger.debug(f"RuleSelectorPanel size: {self.size()}")
+        logger.debug(f"Main layout spacing: {self.layout().spacing()}")
+        logger.debug(f"Main layout contents margins: {self.layout().contentsMargins()}")
+        
+        # Check parent widget hierarchy
+        parent = self.parent()
+        if parent:
+            logger.debug(f"Parent widget: {parent.__class__.__name__}")
+            logger.debug(f"Parent size: {parent.size()}")
+            if hasattr(parent, 'layout') and parent.layout():
+                logger.debug(f"Parent layout: {parent.layout().__class__.__name__}")
+                logger.debug(f"Parent layout spacing: {parent.layout().spacing()}")
+                logger.debug(f"Parent layout margins: {parent.layout().contentsMargins()}")
+        
+        # Log header section info
+        if hasattr(self, 'stats_label'):
+            logger.debug(f"Stats label text: '{self.stats_label.text()}'")
+            logger.debug(f"Stats label size: {self.stats_label.size()}")
+            logger.debug(f"Stats label size hint: {self.stats_label.sizeHint()}")
+        
+        # Log tree widget info
+        if hasattr(self, 'rules_tree_panel'):
+            logger.debug(f"Rules tree panel size: {self.rules_tree_panel.size()}")
+        
         self.rule_editor.set_current_data_preview(data_df)
+        
+        # Debug: Log widget sizes after setting data with delays
+        QTimer.singleShot(100, lambda: self._debug_after_data_load())
+        QTimer.singleShot(500, lambda: self._debug_after_data_load("500ms"))
+        
+        # Start monitoring size changes
+        self._start_size_monitoring()
+    
+    def _debug_after_data_load(self, delay="100ms"):
+        """Debug helper to log sizes after data load."""
+        logger.debug(f"=== AFTER DATA LOAD ({delay}) ===")
+        logger.debug(f"RuleSelectorPanel size: {self.size()}")
+        
+        if hasattr(self, 'stats_label'):
+            logger.debug(f"Stats label text: '{self.stats_label.text()}'")
+            logger.debug(f"Stats label size: {self.stats_label.size()}")
+            logger.debug(f"Stats label size hint: {self.stats_label.sizeHint()}")
+            
+        if hasattr(self, 'rules_tree_panel'):
+            logger.debug(f"Rules tree panel size: {self.rules_tree_panel.size()}")
+    
+    def _start_size_monitoring(self):
+        """Start monitoring widget size changes."""
+        self._last_size = self.size()
+        self._size_check_timer.start(50)  # Check every 50ms
+        # Stop after 2 seconds
+        QTimer.singleShot(2000, self._size_check_timer.stop)
+    
+    def _check_size_changes(self):
+        """Check if widget size has changed."""
+        current_size = self.size()
+        if current_size != self._last_size:
+            logger.debug(f"!!! SIZE CHANGED: {self._last_size} -> {current_size}")
+            logger.debug(f"    Width delta: {current_size.width() - self._last_size.width()}")
+            logger.debug(f"    Height delta: {current_size.height() - self._last_size.height()}")
+            
+            # Log current layout state
+            if self.layout():
+                logger.debug(f"    Layout spacing: {self.layout().spacing()}")
+                logger.debug(f"    Layout margins: {self.layout().contentsMargins()}")
+            
+            self._last_size = current_size
 
     # Session management
     def save_session_state(self):

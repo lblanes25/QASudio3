@@ -67,8 +67,12 @@ class DynamicIndividualTemplateProcessorV5:
         # Copy template to output location
         shutil.copy2(self.template_path, output_path)
         
-        # Open the copied template
-        wb = openpyxl.load_workbook(output_path)
+        # Open the copied template with data_only=True to avoid formula issues
+        wb = openpyxl.load_workbook(output_path, data_only=True)
+        
+        # Remove external links to prevent corruption
+        if hasattr(wb, 'external_links') and wb.external_links:
+            wb.external_links.clear()
         ws = wb.active
         
         # Update metadata section
@@ -91,18 +95,18 @@ class DynamicIndividualTemplateProcessorV5:
             ws, responsible_parties, compliance_stats, threshold
         )
         
+        # Sort detailed results by compliance status (DNC, GC, NA, PC order)
+        # This ensures DNC appears first when sorted alphabetically
+        detailed_results_sorted = sorted(detailed_results, key=lambda x: x['compliance'])
+        
         # Create dynamic detailed results section with all enhancements
         self._create_enhanced_detailed_results(
-            ws, rule_result, detailed_results, responsible_party_column, 
+            ws, rule_result, detailed_results_sorted, responsible_party_column, 
             test_columns, detail_start_adjustment
         )
         
-        # Clean up extra formatting after all data is populated
-        # Find where QA Comments column ends in the detail section
-        detail_start_row = 60 + detail_start_adjustment
-        # QA Comments is at comment_col_idx (result_col_idx + 1), so 3 columns after that
-        qa_comments_col = len(self._determine_columns_for_detailed_results(detailed_results[0]['row_data'] if detailed_results else {}, responsible_party_column)) + 3
-        self._cleanup_extra_formatting(ws, qa_comments_col + 1)  # Start cleanup after QA Comments
+        # Skip cleanup to preserve formatting and avoid Fill errors
+        # self._cleanup_extra_formatting(ws, qa_comments_col + 1)
         
         # Save the workbook
         wb.save(output_path)
