@@ -30,7 +30,9 @@
   "backup_results": true,
   "session_timeout_minutes": 120,
   "rule_selector_state": {
-    "selected_rule_ids": [],
+    "selected_rule_ids": [
+      "QA-ID-2"
+    ],
     "search_text": "",
     "category_filter": "All Categories",
     "severity_filter": "All Severities",
