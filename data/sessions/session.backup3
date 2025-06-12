@@ -1,10 +1,11 @@
 {
-  "window_geometry": "AdnQywADAAAAAAFoAAAAVQAABhcAAAOTAAABaAAAAHQAAAYXAAADkwAAAAAAAAAAB4AAAAFoAAAAdAAABhcAAAOT",
-  "splitter_state": "AAAA/wAAAAEAAAACAAAAAAAAAAAB/////wEAAAABAA==",
-  "active_mode": 2,
-  "last_data_directory": "C:\\Users\\luria\\PycharmProjects\\AuditQAStudio2\\test_data",
+  "window_geometry": "AdnQywADAAAAAALPAAAAAAAAB34AAAQGAAACzwAAAB8AAAd+AAAEBgAAAAAAAAAAB4AAAALPAAAAHwAAB34AAAQG",
+  "splitter_state": "AAAA/wAAAAEAAAACAAAB8QAAAqcB/////wEAAAABAA==",
+  "active_mode": 1,
+  "last_data_directory": "C:\\Users\\luria\\PycharmProjects\\QAStudiov3\\tests",
   "last_output_directory": "./output",
   "recent_files": [
+    "C:\\Users\\luria\\PycharmProjects\\QAStudiov3\\tests\\business_monitoring_dummy_data.xlsx",
     "C:\\Users\\luria\\PycharmProjects\\AuditQAStudio2\\test_data\\audit_workpapers_2025Q2.xlsx"
   ],
   "recent_rule_sets": [],
@@ -30,15 +31,14 @@
   "session_timeout_minutes": 120,
   "rule_selector_state": {
     "selected_rule_ids": [
-      "1eff1bb3-8d42-4499-b0a6-161744c5b35c",
-      "ad1682c4-4e93-437a-8228-c844532d547b"
+      "QA-ID-2"
     ],
     "search_text": "",
     "category_filter": "All Categories",
     "severity_filter": "All Severities",
     "splitter_state": {
       "_qt_type": "bytes",
-      "data": "AAAA/wAAAAEAAAACAAAB9AAAAfQB/////wEAAAABAA=="
+      "data": "AAAA/wAAAAEAAAACAAAB9AAAAfQAAAAACAEAAAABAA=="
     }
   }
 }
