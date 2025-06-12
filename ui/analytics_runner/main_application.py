@@ -30,7 +30,7 @@ from ui.analytics_runner.dialogs.debug_panel import DebugPanel
 from data_source_panel import DataSourcePanel
 from data_source_registry import DataSourceRegistry
 from ui.analytics_runner.dialogs.save_data_source_dialog import SaveDataSourceDialog
-from services.progress_tracking_pipeline import ProgressTrackingPipeline
+# from services.progress_tracking_pipeline import ProgressTrackingPipeline
 from rule_selector_panel import RuleSelectorPanel
 from ui.analytics_runner.cancellable_validation_worker import (
     CancellableValidationWorker, CancellableWorkerSignals, ExecutionStatus
@@ -147,9 +147,8 @@ class ValidationWorker(QRunnable):
                     output_dir=self.output_dir
                 )
 
-            # Create progress tracking wrapper and run validation
-            progress_pipeline = ProgressTrackingPipeline(self.pipeline)
-            results = progress_pipeline.validate_data_source_with_progress(**validation_params)
+            # Run validation directly with the pipeline
+            results = self.pipeline.validate_data_source(**validation_params)
 
             self.signals.progress.emit(90, "Processing results...")
             
