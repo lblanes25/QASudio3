@@ -21414,3 +21414,76 @@ AttributeError: 'DynamicIndividualTemplateProcessorV5' object has no attribute '
 2025-06-12 11:56:29,131 - __main__ - INFO - Application closing
 2025-06-12 11:56:29,134 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel cleaned up
 2025-06-12 11:56:29,138 - __main__ - INFO - Application state saved
+2025-06-12 15:26:29,876 - ui.common.error_handler - INFO - Error handler initialized
+2025-06-12 15:26:29,877 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-06-12 15:26:29,877 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-06-12 15:26:29,878 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-12 15:26:29,878 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-12 15:26:29,880 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-12 15:26:29,880 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-12 15:26:29,987 - ui.analytics_runner.rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-06-12 15:26:30,010 - ui.analytics_runner.rule_selector_panel - INFO - Loaded 7 rules from rule manager
+2025-06-12 15:26:30,033 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-06-12 15:26:30,109 - __main__ - INFO - Application state restored - defaulted to Simple Mode
+2025-06-12 15:26:30,110 - __main__ - INFO - Backend systems initialized
+2025-06-12 15:26:30,110 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-06-12 15:26:39,657 - __main__ - INFO - Data source changed: business_monitoring_dummy_data.xlsx
+2025-06-12 15:26:39,657 - __main__ - INFO - Data source validation: File appears valid
+2025-06-12 15:26:39,658 - ui.common.workflow_state - INFO - State transition: INITIAL -> DATA_LOADED
+2025-06-12 15:26:39,658 - __main__ - INFO - Data loaded successfully
+2025-06-12 15:26:40,002 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-06-12 15:26:40,002 - __main__ - INFO - Data preview loaded: 30 rows, 13 columns
+2025-06-12 15:26:40,007 - __main__ - INFO - Updated rule editor with 13 columns
+2025-06-12 15:26:40,007 - ui.analytics_runner.data_source_panel - INFO - Preview loaded: 30 rows, 13 columns
+2025-06-12 15:26:40,021 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation passed - will auto-collapse
+2025-06-12 15:26:40,021 - ui.analytics_runner.data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-06-12 15:26:40,022 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-06-12 15:26:40,022 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-06-12 15:26:43,501 - ui.analytics_runner.rule_editor_panel - INFO - Created new rule with ID: 0477bc2d-b904-47c8-956c-40c05f92ceb5
+2025-06-12 15:26:43,502 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-12 15:26:43,504 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-12 15:26:43,506 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-12 15:26:43,507 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-12 15:26:43,509 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-12 15:26:43,511 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-12 15:26:43,512 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-12 15:26:43,514 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-12 15:26:43,515 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-12 15:26:43,517 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-12 15:26:43,519 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-12 15:26:43,520 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-12 15:26:43,522 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-12 15:26:43,524 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-12 15:28:28,205 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:29,778 - ui.analytics_runner.rule_selector_panel - INFO - Loaded 7 rules from rule manager
+2025-06-12 15:28:29,779 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:29,782 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:29,784 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:29,786 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:29,788 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:29,789 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:29,791 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:29,793 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:29,795 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:29,796 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:29,798 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:29,799 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:29,801 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:29,803 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:29,805 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:30,233 - ui.analytics_runner.rule_selector_panel - INFO - Loaded 7 rules from rule manager
+2025-06-12 15:28:30,234 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:30,235 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:30,237 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:30,240 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:30,241 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:30,243 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:30,244 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:30,246 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:30,247 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:30,249 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:30,251 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:30,252 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:30,254 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:30,255 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-12 15:28:30,258 - __main__ - INFO - Rule selection changed: 1 rules selected
