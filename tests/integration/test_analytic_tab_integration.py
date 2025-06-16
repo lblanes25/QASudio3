@@ -17,7 +17,7 @@ from openpyxl import load_workbook
 
 from services.validation_service import ValidationPipeline
 from core.rule_engine.rule_manager import ValidationRule, ValidationRuleManager
-from reporting.generation.report_generator import ReportGenerator
+# from reporting.generation.report_generator import ReportGenerator  # Removed
 
 
 class TestAnalyticTabIntegration(unittest.TestCase):

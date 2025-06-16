@@ -340,11 +340,21 @@ class ValidationRuleManager:
         if rule_id in self.rules:
             return self.rules[rule_id]
 
-        # Try to load from file
+        # Try to load from file with exact filename match
         rule_path = self.rules_directory / f"{rule_id}.json"
         if rule_path.exists():
             return self._load_rule_from_file(rule_path)
 
+        # If not found by filename, load all rules and search by rule_id
+        # This handles cases where filename doesn't match rule_id
+        self._load_all_rules()
+        
+        # Check again after loading all rules
+        if rule_id in self.rules:
+            return self.rules[rule_id]
+            
+        # Still not found - log warning
+        logger.warning(f"Rule {rule_id} not found in {self.rules_directory}")
         return None
 
     def update_rule(self, rule: ValidationRule) -> None:
@@ -431,7 +441,9 @@ class ValidationRuleManager:
             with open(file_path, 'r') as f:
                 rule_data = json.load(f)
                 rule = ValidationRule.from_dict(rule_data)
+                # Store by the rule's actual rule_id, not the filename
                 self.rules[rule.rule_id] = rule
+                logger.debug(f"Loaded rule {rule.rule_id} from {file_path.name}")
                 return rule
         except Exception as e:
             logger.error(f"Error loading rule from {file_path}: {str(e)}")

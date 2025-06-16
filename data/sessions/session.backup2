@@ -1,5 +1,5 @@
 {
-  "window_geometry": "AdnQywADAAAAAALPAAAAAAAAB34AAAQGAAACzwAAAB8AAAd+AAAEBgAAAAAAAAAAB4AAAALPAAAAHwAAB34AAAQG",
+  "window_geometry": "AdnQywADAAAAAAmVAAAAAAAADkQAAAQGAAAJlQAAAB8AAA5EAAAEBgAAAAEAAAAAB4AAAAmVAAAAHwAADkQAAAQG",
   "splitter_state": "AAAA/wAAAAEAAAACAAAB8QAAAqcB/////wEAAAABAA==",
   "active_mode": 1,
   "last_data_directory": "C:\\Users\\luria\\PycharmProjects\\QAStudiov3\\tests",
@@ -30,9 +30,7 @@
   "backup_results": true,
   "session_timeout_minutes": 120,
   "rule_selector_state": {
-    "selected_rule_ids": [
-      "QA-ID-2"
-    ],
+    "selected_rule_ids": [],
     "search_text": "",
     "category_filter": "All Categories",
     "severity_filter": "All Severities",

@@ -38,6 +38,13 @@ from ui.analytics_runner.cancellable_validation_worker import (
 )
 from ui.common.widgets.results_tree_widget import ResultsTreeWidget
 
+# New imports for state-aware UI
+from ui.analytics_runner.validation_requirements import ValidationRequirements
+from ui.analytics_runner.section_styles_minimal import (
+    SectionStyles, create_section_header, update_section_header
+)
+from ui.common.workflow_state_simple import WorkflowStateTracker
+
 # Configure basic logging (will be enhanced by error handler)
 logging.basicConfig(
     level=logging.INFO,
@@ -210,7 +217,16 @@ class AnalyticsRunnerApp(QMainWindow):
         self.session = SessionManager()
         self.threadpool = QThreadPool()
         
-        # Initialize workflow state manager
+        # Initialize validation requirements model
+        self.validation_requirements = ValidationRequirements()
+        
+        # Initialize simplified workflow tracker (for logging only)
+        self.workflow_tracker = WorkflowStateTracker(self)
+        
+        # Initialize results data
+        self.results_data = None
+        
+        # Keep old workflow state temporarily for compatibility
         self.workflow_state = WorkflowStateManager(self)
         self.workflow_state.sectionVisibilityChanged.connect(self._on_section_visibility_changed)
         self.workflow_state.statusMessage.connect(self._on_workflow_status_message)
@@ -283,6 +299,9 @@ class AnalyticsRunnerApp(QMainWindow):
         # Connect data source to rule editor (moved here so both panels exist)
         self.data_source_panel.previewUpdated.connect(self.rule_selector_panel.set_current_data_preview)
         self.data_source_panel.previewUpdated.connect(self._update_rule_editor_columns)
+        
+        # Initial state update
+        self.update_all_section_states()
 
     def create_main_panel(self):
         """Create the main workflow panel with sticky tabs and scrolling support."""
@@ -364,14 +383,12 @@ class AnalyticsRunnerApp(QMainWindow):
 
         simple_layout.addWidget(self.data_source_panel)
         
-        # Responsible Party Selection Section (hidden initially)
+        # Responsible Party Selection Section (always visible)
         self.responsible_party_section = self._create_responsible_party_section()
-        self.responsible_party_section.hide()  # Hidden until data is loaded
         simple_layout.addWidget(self.responsible_party_section)
         
-        # Rule Selection Section (hidden initially)
+        # Rule Selection Section (always visible)
         self.rule_selection_section = self._create_rule_selection_section()
-        self.rule_selection_section.hide()  # Hidden until column is selected
         simple_layout.addWidget(self.rule_selection_section)
 
         # Report Generation Options section (hidden initially)
@@ -406,35 +423,28 @@ class AnalyticsRunnerApp(QMainWindow):
         self.excel_report_checkbox = QCheckBox("Generate Excel Report")
         self.excel_report_checkbox.setChecked(True)
         self.excel_report_checkbox.setStyleSheet("background-color: transparent;")
+        self.excel_report_checkbox.setToolTip("Generate comprehensive IAG Summary Report with all validation results")
         self.excel_report_checkbox.toggled.connect(self._on_report_option_changed)
         checkbox_layout.addWidget(self.excel_report_checkbox)
 
-        # HTML report checkbox
-        self.html_report_checkbox = QCheckBox("Generate HTML Report")
-        self.html_report_checkbox.setChecked(True)
-        self.html_report_checkbox.setStyleSheet("background-color: transparent;")
-        self.html_report_checkbox.toggled.connect(self._on_report_option_changed)
-        checkbox_layout.addWidget(self.html_report_checkbox)
-
-        # Audit Leader-Specific Workbooks checkbox (always enabled for discoverability)
-        self.leader_packs_checkbox = QCheckBox("Generate Audit Leader-Specific Workbooks")
-        self.leader_packs_checkbox.setChecked(False)
-        self.leader_packs_checkbox.setEnabled(True)  # Always enabled
-        self.leader_packs_checkbox.setStyleSheet("background-color: transparent;")
-        self.leader_packs_checkbox.setToolTip("Creates individual Excel workbooks for each responsible party. Requires a responsible party column to be selected.")
-        self.leader_packs_checkbox.toggled.connect(self._on_leader_packs_changed)
-        checkbox_layout.addWidget(self.leader_packs_checkbox)
+        # Individual Leader Reports checkbox (replaces leader packs)
+        self.individual_reports_checkbox = QCheckBox("Generate Individual Leader Reports")
+        self.individual_reports_checkbox.setChecked(True)  # Default checked
+        self.individual_reports_checkbox.setStyleSheet("background-color: transparent;")
+        self.individual_reports_checkbox.setToolTip("Split the master report into individual Excel files for each responsible party")
+        self.individual_reports_checkbox.toggled.connect(self._on_individual_reports_changed)
+        checkbox_layout.addWidget(self.individual_reports_checkbox)
         
-        # Warning label for leader packs (hidden by default)
-        self.leader_packs_warning = QLabel("⚠️ Select a responsible party column to enable this feature")
-        self.leader_packs_warning.setStyleSheet(f"""
+        # Warning label for individual reports (hidden by default)
+        self.individual_reports_warning = QLabel("⚠️ Select a responsible party column to enable this feature")
+        self.individual_reports_warning.setStyleSheet(f"""
             color: {AnalyticsRunnerStylesheet.WARNING_COLOR};
             background-color: transparent;
             font-size: 12px;
             padding-left: 20px;
         """)
-        self.leader_packs_warning.setVisible(False)
-        checkbox_layout.addWidget(self.leader_packs_warning)
+        self.individual_reports_warning.setVisible(False)
+        checkbox_layout.addWidget(self.individual_reports_warning)
 
         report_layout.addWidget(checkbox_frame)
 
@@ -461,7 +471,7 @@ class AnalyticsRunnerApp(QMainWindow):
 
         report_layout.addWidget(output_dir_frame)
 
-        report_section.hide()  # Hidden initially
+        # Always visible now
         simple_layout.addWidget(report_section)
 
         # Progress tracking section (hidden initially)
@@ -528,55 +538,26 @@ class AnalyticsRunnerApp(QMainWindow):
         self.progress_section = progress_section
         self.progress_section.setVisible(False)  # Hidden by default
 
-        # Execution Management section (hidden initially)
+        # Execution Management section (always visible)
         execution_section = QWidget()
-        self.execution_section = execution_section  # Store reference for visibility control
-        execution_section.setStyleSheet(f"""
-            QWidget {{
-                background-color: {AnalyticsRunnerStylesheet.ACCENT_COLOR};
-                border: 1px solid {AnalyticsRunnerStylesheet.PRIMARY_COLOR}40;
-                border-radius: 6px;
-                padding: {AnalyticsRunnerStylesheet.STANDARD_SPACING}px;
-            }}
-        """)
+        self.execution_section = execution_section  # Store reference for compatibility
+        execution_section.setObjectName("execution_section")
         execution_layout = QVBoxLayout(execution_section)
         execution_layout.setContentsMargins(12, 12, 12, 12)
         execution_layout.setSpacing(8)
         
-        # Execution header with status
-        execution_header_layout = QHBoxLayout()
-        execution_header_layout.setSpacing(12)
+        # Section header
+        header = create_section_header("Validation Control")
+        execution_layout.addWidget(header)
+        execution_section.header = header  # Store reference
         
-        execution_header = QLabel("Execution Control")
-        execution_header.setFont(AnalyticsRunnerStylesheet.get_fonts()['header'])
-        execution_header.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.DARK_TEXT}; background-color: transparent;")
-        execution_header_layout.addWidget(execution_header)
+        # Description
+        desc = QLabel("Configure and start the validation process")
+        desc.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.LIGHT_TEXT}; background-color: transparent; font-size: 12px;")
+        desc.setWordWrap(True)
+        execution_layout.addWidget(desc)
         
-        # Status indicator
-        self.execution_status_label = QLabel("Status: Ready")
-        self.execution_status_label.setStyleSheet(f"""
-            color: {AnalyticsRunnerStylesheet.DARK_TEXT}; 
-            background-color: transparent;
-            font-weight: bold;
-            padding: 4px 8px;
-            border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
-            border-radius: 4px;
-        """)
-        execution_header_layout.addStretch()
-        execution_header_layout.addWidget(self.execution_status_label)
-        
-        execution_layout.addLayout(execution_header_layout)
-        
-        # Session info label
-        self.session_info_label = QLabel("")
-        self.session_info_label.setStyleSheet(f"""
-            color: {AnalyticsRunnerStylesheet.LIGHT_TEXT}; 
-            background-color: transparent;
-            font-size: 12px;
-            font-style: italic;
-        """)
-        self.session_info_label.setVisible(False)
-        execution_layout.addWidget(self.session_info_label)
+        # Session info removed - using tracker for analytics only
         
         # Execution parameters section
         params_widget = QWidget()
@@ -752,7 +733,9 @@ class AnalyticsRunnerApp(QMainWindow):
         
         execution_layout.addLayout(controls_layout)
         
-        execution_section.hide()  # Hidden initially
+        # Set initial style
+        execution_section.setStyleSheet(SectionStyles.SECTION_INCOMPLETE)
+        
         simple_layout.addWidget(execution_section)
 
         # Let content naturally size without forcing stretch
@@ -767,24 +750,15 @@ class AnalyticsRunnerApp(QMainWindow):
     def _create_responsible_party_section(self) -> QWidget:
         """Create the responsible party column selection section."""
         section = QWidget()
-        section.setStyleSheet(f"""
-            QWidget {{
-                background-color: {AnalyticsRunnerStylesheet.ACCENT_COLOR};
-                border: 1px solid {AnalyticsRunnerStylesheet.PRIMARY_COLOR}40;
-                border-radius: 6px;
-                padding: {AnalyticsRunnerStylesheet.STANDARD_SPACING}px;
-            }}
-        """)
-        
+        section.setObjectName("responsible_party_section")
         layout = QVBoxLayout(section)
         layout.setContentsMargins(12, 12, 12, 12)
         layout.setSpacing(8)
         
         # Section header
-        header = QLabel("Responsible Party Column")
-        header.setFont(AnalyticsRunnerStylesheet.get_fonts()['header'])
-        header.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.DARK_TEXT}; background-color: transparent;")
+        header = create_section_header("Responsible Party Column (Optional)")
         layout.addWidget(header)
+        section.header = header  # Store reference
         
         # Description
         desc = QLabel("Select a column to group validation results by responsible party (optional)")
@@ -855,24 +829,15 @@ class AnalyticsRunnerApp(QMainWindow):
     def _create_rule_selection_section(self) -> QWidget:
         """Create a simplified test selection section for Simple Mode."""
         section = QWidget()
-        section.setStyleSheet(f"""
-            QWidget {{
-                background-color: {AnalyticsRunnerStylesheet.ACCENT_COLOR};
-                border: 1px solid {AnalyticsRunnerStylesheet.PRIMARY_COLOR}40;
-                border-radius: 6px;
-                padding: {AnalyticsRunnerStylesheet.STANDARD_SPACING}px;
-            }}
-        """)
-        
+        section.setObjectName("rule_selection_section")
         layout = QVBoxLayout(section)
         layout.setContentsMargins(12, 12, 12, 12)
         layout.setSpacing(8)
         
         # Section header
-        header = QLabel("Validation Tests")
-        header.setFont(AnalyticsRunnerStylesheet.get_fonts()['header'])
-        header.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.DARK_TEXT}; background-color: transparent;")
+        header = create_section_header("Validation Tests")
         layout.addWidget(header)
+        section.header = header  # Store reference
         
         # Description
         desc = QLabel("Select which validation tests to apply to your dataset. Some tests may only apply under certain conditions.")
@@ -947,6 +912,9 @@ class AnalyticsRunnerApp(QMainWindow):
         
         # Store references
         self.simple_rule_checkboxes = []
+        
+        # Set initial style
+        section.setStyleSheet(SectionStyles.SECTION_INCOMPLETE)
         
         return section
 
@@ -1464,13 +1432,26 @@ class AnalyticsRunnerApp(QMainWindow):
         """)
         reports_layout.addWidget(reports_title)
         
+        # Reports scroll area
+        reports_scroll = QScrollArea()
+        reports_scroll.setWidgetResizable(True)
+        reports_scroll.setStyleSheet(f"""
+            QScrollArea {{
+                border: none;
+                background-color: transparent;
+            }}
+            QScrollArea > QWidget > QWidget {{
+                background-color: transparent;
+            }}
+        """)
+        
         # Reports container
         self.reports_container = QWidget()
         self.reports_container_layout = QVBoxLayout(self.reports_container)
         self.reports_container_layout.setSpacing(12)
         
         # Placeholder for no reports
-        self.no_reports_label = QLabel("No reports generated yet")
+        self.no_reports_label = QLabel("No reports generated yet\n\nRun a validation to generate reports.")
         self.no_reports_label.setAlignment(Qt.AlignCenter)
         self.no_reports_label.setStyleSheet(f"""
             QLabel {{
@@ -1484,10 +1465,98 @@ class AnalyticsRunnerApp(QMainWindow):
         """)
         self.reports_container_layout.addWidget(self.no_reports_label)
         
-        reports_layout.addWidget(self.reports_container)
-        reports_layout.addStretch()
+        reports_scroll.setWidget(self.reports_container)
+        reports_layout.addWidget(reports_scroll)
         
         self.results_reports_tabs.addTab(self.reports_widget, "Reports")
+    
+    def _create_folder_card(self, folder_path: str, file_count: int) -> QFrame:
+        """Create a card widget for a folder containing reports"""
+        import os
+        
+        card = QFrame()
+        card.setStyleSheet(f"""
+            QFrame {{
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 8px;
+                padding: 16px;
+            }}
+            QFrame:hover {{
+                border-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+            }}
+        """)
+        
+        card_layout = QHBoxLayout(card)
+        card_layout.setSpacing(12)
+        
+        # Folder icon
+        icon_label = QLabel()
+        icon_label.setFixedSize(48, 48)
+        icon_label.setAlignment(Qt.AlignCenter)
+        icon_label.setStyleSheet(f"""
+            QLabel {{
+                background-color: {AnalyticsRunnerStylesheet.INPUT_BACKGROUND};
+                border-radius: 8px;
+                font-size: 24px;
+            }}
+        """)
+        icon_label.setText("📁")
+        card_layout.addWidget(icon_label)
+        
+        # Folder info
+        info_layout = QVBoxLayout()
+        info_layout.setSpacing(4)
+        
+        folder_name = "Individual Leader Reports"
+        name_label = QLabel(folder_name)
+        name_label.setFont(AnalyticsRunnerStylesheet.get_fonts()['regular'])
+        name_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.DARK_TEXT};")
+        info_layout.addWidget(name_label)
+        
+        # File count
+        count_label = QLabel(f"Contains {file_count} leader report{'s' if file_count != 1 else ''}")
+        count_label.setFont(AnalyticsRunnerStylesheet.get_fonts()['small'])
+        count_label.setStyleSheet(f"color: {AnalyticsRunnerStylesheet.LIGHT_TEXT};")
+        info_layout.addWidget(count_label)
+        
+        card_layout.addLayout(info_layout)
+        card_layout.addStretch()
+        
+        # Open folder button
+        open_btn = QPushButton("Open Folder")
+        open_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 6px 12px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: {AnalyticsRunnerStylesheet.HOVER_COLOR};
+            }}
+        """)
+        open_btn.clicked.connect(lambda: self._open_folder(folder_path))
+        card_layout.addWidget(open_btn)
+        
+        return card
+    
+    def _open_folder(self, folder_path: str):
+        """Open a folder in the system file explorer"""
+        import os
+        import platform
+        import subprocess
+        
+        if platform.system() == 'Windows':
+            os.startfile(folder_path)
+        elif platform.system() == 'Darwin':  # macOS
+            subprocess.run(['open', folder_path])
+        else:  # Linux and other Unix-like
+            subprocess.run(['xdg-open', folder_path])
+            
+        self.log_message(f"Opened folder: {folder_path}")
     
     def _create_report_card(self, file_path: str, file_type: str) -> QFrame:
         """Create a card widget for a report file"""
@@ -1521,13 +1590,13 @@ class AnalyticsRunnerApp(QMainWindow):
             }}
         """)
         
-        if file_type == "Excel":
+        if "Excel" in file_type:
             icon_label.setText("📊")
-        elif file_type == "HTML":
+        elif "HTML" in file_type:
             icon_label.setText("🌐")
-        elif file_type == "JSON":
+        elif "JSON" in file_type:
             icon_label.setText("📄")
-        elif file_type == "ZIP":
+        elif "ZIP" in file_type:
             icon_label.setText("📦")
         else:
             icon_label.setText("📁")
@@ -1742,55 +1811,97 @@ class AnalyticsRunnerApp(QMainWindow):
         self.data_source_label.setToolTip(data_source)
         
     def _update_reports_tab(self, results: dict):
-        """Update the Reports tab with generated files"""
-        # Clear existing report cards - properly disconnect signals first
-        while self.reports_container_layout.count():
-            item = self.reports_container_layout.takeAt(0)
-            if item.widget():
-                widget = item.widget()
-                # Disconnect all signals from buttons in the widget to prevent orphaned connections
-                self._disconnect_widget_signals(widget)
-                widget.deleteLater()
-                
-        output_files = results.get('output_files', [])
+        """Update the Reports tab with generated files from the current validation session"""
+        import os
+        from pathlib import Path
         
-        if output_files:
-            # Hide no reports label
-            self.no_reports_label.hide()
+        # Prevent re-entry while updating
+        if hasattr(self, '_updating_reports_tab') and self._updating_reports_tab:
+            return
             
-            # Add report cards
+        self._updating_reports_tab = True
+        
+        try:
+            # Get files from the current validation session only
+            output_files = results.get('output_files', [])
+            
+            # Log the update
+            if output_files:
+                self.log_message(f"Updating reports tab with {len(output_files)} files", "INFO")
+            
+            # Clear existing report cards safely
+            try:
+                # Remove all widgets except the no_reports_label
+                for i in reversed(range(self.reports_container_layout.count())):
+                    item = self.reports_container_layout.itemAt(i)
+                    if item and item.widget() and item.widget() != self.no_reports_label:
+                        widget = item.widget()
+                        self.reports_container_layout.removeWidget(widget)
+                        widget.setParent(None)
+                        widget.deleteLater()
+            except RuntimeError:
+                # Widget already deleted, continue
+                pass
+            
+            # Separate files by type
+            excel_file = None
+            json_file = None
+            leader_reports_dir = None
+            
             for file_path in output_files:
-                # Determine file type
-                file_path_str = str(file_path)
-                if file_path_str.endswith('.xlsx'):
-                    file_type = "Excel"
-                elif file_path_str.endswith('.html'):
-                    file_type = "HTML"
-                elif file_path_str.endswith('.json'):
-                    file_type = "JSON"
-                elif file_path_str.endswith('.zip'):
-                    file_type = "ZIP"
-                else:
-                    file_type = "File"
+                if not os.path.exists(file_path):
+                    continue
                     
-                card = self._create_report_card(file_path, file_type)
-                self.reports_container_layout.addWidget(card)
+                file_str = str(file_path)
+                basename = os.path.basename(file_str)
                 
-            # Check for leader packs
-            leader_packs = results.get('leader_packs', {})
-            if leader_packs.get('success') and leader_packs.get('zip_path'):
-                card = self._create_report_card(
-                    leader_packs['zip_path'], 
-                    "ZIP"
-                )
-                self.reports_container_layout.addWidget(card)
-        else:
-            # Show no reports label
-            self.no_reports_label.show()
+                # Identify the JSON results
+                if file_str.endswith('.json'):
+                    json_file = file_path
+                # Identify the master Excel report (not individual leader reports)
+                elif file_str.endswith('.xlsx'):
+                    excel_file = file_path
             
-        # Add stretch at the end
-        self.reports_container_layout.addStretch()
-        
+            # Check for leader reports info from the results
+            leader_pack_results = results.get('leader_pack_results', {})
+            if not leader_reports_dir and leader_pack_results.get('output_dir'):
+                leader_reports_dir = leader_pack_results['output_dir']
+            
+            # Display the files
+            if excel_file or json_file or leader_reports_dir:
+                if hasattr(self, 'no_reports_label') and self.no_reports_label:
+                    try:
+                        self.no_reports_label.hide()
+                    except RuntimeError:
+                        pass
+                
+                # Add master Excel report
+                if excel_file:
+                    card = self._create_report_card(excel_file, "Excel Report")
+                    self.reports_container_layout.addWidget(card)
+                
+                # Add JSON results
+                if json_file:
+                    card = self._create_report_card(json_file, "JSON Results")
+                    self.reports_container_layout.addWidget(card)
+                
+                # Add folder link for individual leader reports
+                if leader_reports_dir and os.path.exists(leader_reports_dir):
+                    # Count the leader files
+                    leader_files = [f for f in os.listdir(leader_reports_dir) if f.endswith('.xlsx')]
+                    folder_card = self._create_folder_card(leader_reports_dir, len(leader_files))
+                    self.reports_container_layout.addWidget(folder_card)
+            else:
+                # Show no reports label
+                if hasattr(self, 'no_reports_label') and self.no_reports_label:
+                    try:
+                        self.no_reports_label.show()
+                    except RuntimeError:
+                        pass
+            
+        finally:
+            self._updating_reports_tab = False
+    
     def _update_rule_details_tab(self, results: dict):
         """Update the Test Details tab with test execution information"""
         # Clear existing rule cards - properly disconnect signals first
@@ -2252,6 +2363,87 @@ class AnalyticsRunnerApp(QMainWindow):
         self.validation_pipeline = None
 
         self.log_message("Backend systems initialized")
+    
+    def update_all_section_states(self):
+        """Update visual state of all sections based on current data"""
+        
+        # Data Source Section (handled by DataSourcePanel itself)
+        # The panel manages its own styling
+        
+        # Responsible Party Section
+        party_section = self.responsible_party_section
+        if party_section and hasattr(party_section, 'header'):
+            if self.validation_requirements.responsible_party_column:
+                party_section.setStyleSheet(SectionStyles.SECTION_COMPLETE)
+                update_section_header(party_section.header, "complete", 
+                                    self.validation_requirements.responsible_party_column)
+            else:
+                party_section.setStyleSheet(SectionStyles.SECTION_INCOMPLETE)
+                update_section_header(party_section.header, "incomplete", "Not configured")
+        
+        # Rule Selection Section
+        rule_section = self.rule_selection_section
+        if rule_section and hasattr(rule_section, 'header'):
+            rule_count = len(self.validation_requirements.selected_rules)
+            if rule_count > 0:
+                rule_section.setStyleSheet(SectionStyles.SECTION_COMPLETE)
+                update_section_header(rule_section.header, "complete", f"{rule_count} tests selected")
+            else:
+                rule_section.setStyleSheet(SectionStyles.SECTION_INCOMPLETE)
+                update_section_header(rule_section.header, "incomplete", "No tests selected")
+        
+        # Execution Section
+        exec_section = self.execution_section
+        if exec_section and hasattr(exec_section, 'header'):
+            if self.validation_requirements.can_validate:
+                exec_section.setStyleSheet(SectionStyles.SECTION_COMPLETE)
+                update_section_header(exec_section.header, "complete", "Ready to validate")
+            else:
+                exec_section.setStyleSheet(SectionStyles.SECTION_INCOMPLETE)
+                update_section_header(exec_section.header, "incomplete", "Complete above steps first")
+        
+        # Validation Button Update
+        if hasattr(self, 'start_button'):
+            if self.validation_requirements.can_validate:
+                self.start_button.setEnabled(True)
+                self.start_button.setStyleSheet(f"""
+                    QPushButton {{
+                        background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        padding: 6px 16px;
+                        font-weight: bold;
+                    }}
+                    QPushButton:hover:enabled {{
+                        background-color: {AnalyticsRunnerStylesheet.HOVER_COLOR};
+                    }}
+                    QPushButton:pressed {{
+                        background-color: #014A8F;
+                    }}
+                """)
+                self.start_button.setText("Start Validation")
+                self.start_button.setToolTip(self.validation_requirements.validation_ready_message)
+            else:
+                self.start_button.setEnabled(False)
+                self.start_button.setStyleSheet(f"""
+                    QPushButton {{
+                        background-color: {AnalyticsRunnerStylesheet.DISABLED_COLOR};
+                        color: #999999;
+                        border: none;
+                        border-radius: 4px;
+                        padding: 6px 16px;
+                        font-weight: bold;
+                    }}
+                """)
+                # Update button text based on what's missing
+                if not self.validation_requirements.data_source_valid:
+                    self.start_button.setText("Select Data Source First")
+                elif len(self.validation_requirements.selected_rules) == 0:
+                    self.start_button.setText("Select Tests First")
+                else:
+                    self.start_button.setText("Start Validation")
+                self.start_button.setToolTip(self.validation_requirements.validation_ready_message)
 
     def restore_state(self):
         """Restore application state from previous session - FIXED: Default to Simple Mode"""
@@ -2404,9 +2596,14 @@ class AnalyticsRunnerApp(QMainWindow):
 
     def update_progress(self, value: int, message: str = ""):
         """Update progress bar and status message."""
-        self.progress_bar.setValue(value)
-        if message:
-            self.status_label.setText(message)
+        try:
+            if hasattr(self, 'progress_bar') and self.progress_bar:
+                self.progress_bar.setValue(value)
+            if message and hasattr(self, 'status_label') and self.status_label:
+                self.status_label.setText(message)
+        except RuntimeError:
+            # Widget was deleted, ignore
+            pass
 
     def _on_rules_selection_changed(self, rule_ids: List[str]):
         """Handle rule selection changes."""
@@ -2414,17 +2611,18 @@ class AnalyticsRunnerApp(QMainWindow):
 
         # Store selected rules for validation
         self.selected_rule_ids = rule_ids
-
-        # Update start button if we have both data and rules
-        if hasattr(self, 'data_source_panel') and self.data_source_panel.is_valid() and rule_ids:
-            self.start_button.setText("Start Validation with Selected Tests")
-            self.start_button.setEnabled(True)
-        elif not rule_ids:
-            if hasattr(self, 'data_source_panel') and self.data_source_panel.is_valid():
-                self.start_button.setText("Select Tests First")
-            else:
-                self.start_button.setText("Select Data Source and Tests")
-            self.start_button.setEnabled(False)
+        
+        # Update validation requirements
+        self.validation_requirements.selected_rules = rule_ids
+        
+        # Update UI state
+        self.update_all_section_states()
+        
+        # Update workflow tracker (logging only)
+        if len(rule_ids) > 0:
+            self.workflow_tracker.update_state("rules_selected", {
+                'count': len(rule_ids)
+            })
 
     def _on_rule_edit_requested(self, rule_id: str):
         """Handle rule editing request."""
@@ -2682,37 +2880,59 @@ class AnalyticsRunnerApp(QMainWindow):
                 self.log_message(f"Loaded from saved source: {saved_source.name}")
 
             self.data_source_path = file_path
+            
+            # Update validation requirements
+            self.validation_requirements.data_source_path = file_path
+            self.validation_requirements.data_source_valid = False  # Will be set by validation
 
-            self.start_button.setText("Loading...")
-            self.start_button.setEnabled(False)
             self.status_label.setText(f"Data source: {file_name}")
 
             # Enable save action when file is selected (but will be enabled when preview loads)
             self.save_source_action.setEnabled(False)
         else:
-            self.start_button.setText("Select Data Source First")
-            self.start_button.setEnabled(False)
+            self.validation_requirements.data_source_path = None
+            self.validation_requirements.data_source_valid = False
             self.status_label.setText("No data source selected")
             self.save_source_action.setEnabled(False)
+        
+        # Update UI states
+        self.update_all_section_states()
 
     def _on_data_source_validated(self, is_valid: bool, message: str):
         """Handle data source validation status change."""
         if is_valid:
             self.log_message(f"Data source validation: {message}")
-            self.start_button.setText("Start Validation")
-            self.start_button.setEnabled(True)
             
-            # Update workflow state
+            # Update validation requirements
+            self.validation_requirements.data_source_valid = True
+            if hasattr(self, 'data_source_panel'):
+                self.validation_requirements.sheet_name = self.data_source_panel.get_current_sheet()
+            
+            # Update workflow tracker (logging only)
+            self.workflow_tracker.update_state("data_loaded", {
+                'file': self.validation_requirements.data_source_path
+            })
+            
+            # OLD workflow state for compatibility
             if hasattr(self, 'workflow_state'):
                 self.workflow_state.handle_data_loaded()
         else:
             self.log_message(f"Data source validation failed: {message}", "WARNING")
-            self.start_button.setText("Fix Data Issues First")
-            self.start_button.setEnabled(False)
             
-            # Update workflow state
+            # Update validation requirements
+            self.validation_requirements.data_source_valid = False
+            
+            # Update workflow tracker
+            self.workflow_tracker.update_state("error", {
+                'message': message
+            })
+            
+            # OLD workflow state for compatibility
             if hasattr(self, 'workflow_state'):
                 self.workflow_state.handle_error(message)
+        
+        # Update UI states
+        self.update_all_section_states()
     
     def _on_columns_detected(self, columns: List[str]):
         """Handle columns detected from data source."""
@@ -2808,8 +3028,21 @@ class AnalyticsRunnerApp(QMainWindow):
             # Update responsible party dropdown with column names
             self.responsible_party_combo.clear()
             self.responsible_party_combo.addItem("None")
-            self.responsible_party_combo.addItems(list(preview_df.columns))
-            self.responsible_party_combo.setCurrentIndex(0)  # Default to "None"
+            columns = list(preview_df.columns)
+            self.responsible_party_combo.addItems(columns)
+            
+            # Default to "AuditLeader" if it exists in the columns
+            audit_leader_index = -1
+            for i, col in enumerate(columns):
+                if col.lower() == 'auditleader':
+                    audit_leader_index = i + 1  # +1 because "None" is at index 0
+                    break
+            
+            if audit_leader_index > 0:
+                self.responsible_party_combo.setCurrentIndex(audit_leader_index)
+                self.log_message(f"Responsible party column defaulted to: {columns[audit_leader_index - 1]}")
+            else:
+                self.responsible_party_combo.setCurrentIndex(0)  # Default to "None"
             
             # Update workflow state - data loaded
             self.workflow_state.handle_data_loaded()
@@ -2906,9 +3139,15 @@ class AnalyticsRunnerApp(QMainWindow):
             
     def _on_report_option_changed(self):
         """Handle report option checkbox changes."""
-        # Enable/disable output directory selection based on report options
-        reports_enabled = (self.excel_report_checkbox.isChecked() or 
-                          self.html_report_checkbox.isChecked())
+        # Enable/disable individual reports based on Excel report selection
+        if not self.excel_report_checkbox.isChecked():
+            self.individual_reports_checkbox.setChecked(False)
+            self.individual_reports_checkbox.setEnabled(False)
+            self.log_message("Individual reports require Excel report to be enabled", "INFO")
+        else:
+            self.individual_reports_checkbox.setEnabled(True)
+        
+        reports_enabled = self.excel_report_checkbox.isChecked()
         
         self.output_dir_edit.setEnabled(reports_enabled)
         self.output_dir_button.setEnabled(reports_enabled)
@@ -2916,25 +3155,41 @@ class AnalyticsRunnerApp(QMainWindow):
         if not reports_enabled:
             self.log_message("Report generation disabled - only JSON results will be saved", "INFO")
     
-    def _on_leader_packs_changed(self, checked: bool):
-        """Handle leader packs checkbox changes."""
+    def _on_individual_reports_changed(self, checked: bool):
+        """Handle individual reports checkbox changes."""
         if checked and self.responsible_party_combo.currentIndex() == 0:  # "None" selected
-            self.leader_packs_warning.setVisible(True)
-            self.log_message("Leader packs require a responsible party column to be selected", "WARNING")
+            self.individual_reports_warning.setVisible(True)
+            self.log_message("Individual reports require a responsible party column to be selected", "WARNING")
         else:
-            self.leader_packs_warning.setVisible(False)
+            self.individual_reports_warning.setVisible(False)
             if checked:
-                self.log_message("Audit Leader-Specific Workbooks will be generated", "INFO")
+                self.log_message("Individual Leader Reports will be generated", "INFO")
     
     def _on_responsible_party_changed(self, index: int):
         """Handle responsible party column selection changes."""
-        # Update leader packs warning visibility
-        if self.leader_packs_checkbox.isChecked() and index == 0:  # "None" selected
-            self.leader_packs_warning.setVisible(True)
+        # Update individual reports warning visibility
+        if self.individual_reports_checkbox.isChecked() and index == 0:  # "None" selected
+            self.individual_reports_warning.setVisible(True)
         else:
-            self.leader_packs_warning.setVisible(False)
+            self.individual_reports_warning.setVisible(False)
         
-        # Update workflow state
+        # Update validation requirements
+        if index > 0:
+            self.validation_requirements.responsible_party_column = self.responsible_party_combo.currentText()
+            self.log_message(f"Responsible party column: {self.validation_requirements.responsible_party_column}")
+        else:
+            self.validation_requirements.responsible_party_column = None
+        
+        # Update UI state
+        self.update_all_section_states()
+        
+        # Update workflow tracker (logging only)
+        if index > 0:
+            self.workflow_tracker.update_state("responsible_party_selected", {
+                'column': self.validation_requirements.responsible_party_column
+            })
+        
+        # OLD workflow state for compatibility
         if hasattr(self, 'workflow_state'):
             if index > 0:  # Not "None"
                 column_name = self.responsible_party_combo.currentText()
@@ -2947,24 +3202,12 @@ class AnalyticsRunnerApp(QMainWindow):
                     self.workflow_state.transition_to(WorkflowState.DATA_LOADED)
 
     def _on_section_visibility_changed(self, section_name: str, visible: bool):
-        """Handle workflow section visibility changes."""
-        section_map = {
-            'responsible_party': self.responsible_party_section if hasattr(self, 'responsible_party_section') else None,
-            'rule_selection': self.rule_selection_section if hasattr(self, 'rule_selection_section') else None,
-            'validation_controls': self.execution_section if hasattr(self, 'execution_section') else None,
-            'progress_tracking': self.progress_section if hasattr(self, 'progress_section') else None,
-            'results_summary': self.report_section if hasattr(self, 'report_section') else None
-        }
+        """Handle workflow section visibility changes - DEPRECATED.
         
-        if section_name in section_map:
-            widget = section_map[section_name]
-            if widget:  # Check widget exists
-                if visible:
-                    widget.show()
-                    # Smooth scroll to new section
-                    QTimer.singleShot(100, lambda: self._scroll_to_widget(widget))
-                else:
-                    widget.hide()
+        With state-aware UI, sections are always visible. This is kept for compatibility.
+        """
+        # No longer hide/show sections - they are always visible with state indicators
+        pass
     
     def _on_workflow_status_message(self, message: str, level: str):
         """Display workflow status messages."""
@@ -3071,10 +3314,22 @@ class AnalyticsRunnerApp(QMainWindow):
         """Handle simple rule checkbox toggle."""
         self._update_simple_rule_count()
         
+        # Update validation requirements
+        self.validation_requirements.selected_rules = self.get_selected_simple_rules()
+        
+        # Update UI state
+        self.update_all_section_states()
+        
         # Get selected count
         selected_count = sum(1 for cb in self.simple_rule_checkboxes if cb.isChecked())
         
-        # Update workflow state
+        # Update workflow tracker (logging only)
+        if selected_count > 0:
+            self.workflow_tracker.update_state("rules_selected", {
+                'count': selected_count
+            })
+        
+        # OLD workflow state for compatibility
         if hasattr(self, 'workflow_state'):
             self.workflow_state.handle_rules_selected(selected_count)
             
@@ -3160,15 +3415,7 @@ class AnalyticsRunnerApp(QMainWindow):
         # Update UI state for execution
         self.start_button.setEnabled(False)
         self.cancel_button.setEnabled(True)
-        self.execution_status_label.setText("Status: Active")
-        self.execution_status_label.setStyleSheet(f"""
-            color: white; 
-            background-color: {AnalyticsRunnerStylesheet.SUCCESS_COLOR};
-            font-weight: bold;
-            padding: 4px 8px;
-            border: none;
-            border-radius: 4px;
-        """)
+        # Status indicator removed - using section header status instead
         self.show_progress(True)
         self.update_progress(0, "Initializing validation...")
 
@@ -3187,15 +3434,7 @@ class AnalyticsRunnerApp(QMainWindow):
                 )
                 self.start_button.setEnabled(True)
                 self.cancel_button.setEnabled(False)
-                self.execution_status_label.setText("Status: Ready")
-                self.execution_status_label.setStyleSheet(f"""
-                    color: {AnalyticsRunnerStylesheet.DARK_TEXT}; 
-                    background-color: transparent;
-                    font-weight: bold;
-                    padding: 4px 8px;
-                    border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
-                    border-radius: 4px;
-                """)
+                # Status update handled by update_all_section_states()
                 return
         
         execution_mode = self.execution_mode_combo.currentText()
@@ -3211,18 +3450,19 @@ class AnalyticsRunnerApp(QMainWindow):
         if responsible_party_column:
             self.log_message(f"Responsible Party Column: {responsible_party_column}")
         
-        # Check leader packs settings
-        generate_leader_packs = self.leader_packs_checkbox.isChecked() and responsible_party_column is not None
-        if self.leader_packs_checkbox.isChecked() and not responsible_party_column:
-            self.log_message("Leader packs requested but no responsible party column selected - will be skipped", "WARNING")
+        # Check individual reports settings
+        generate_individual_reports = (self.individual_reports_checkbox.isChecked() and 
+                                      responsible_party_column is not None and
+                                      self.excel_report_checkbox.isChecked())
+        
+        if self.individual_reports_checkbox.isChecked() and not responsible_party_column:
+            self.log_message("Individual reports requested but no responsible party column selected - will be skipped", "WARNING")
         
         # Collect report generation options
-        generate_reports = self.excel_report_checkbox.isChecked() or self.html_report_checkbox.isChecked()
+        generate_reports = self.excel_report_checkbox.isChecked()
         report_formats = []
         if self.excel_report_checkbox.isChecked():
-            report_formats.append('excel')
-        if self.html_report_checkbox.isChecked():
-            report_formats.append('html')
+            report_formats.append('iag_excel')  # New format identifier
         
         # Always include JSON for results
         report_formats.append('json')
@@ -3233,9 +3473,32 @@ class AnalyticsRunnerApp(QMainWindow):
         self.log_message(f"Report generation enabled: {generate_reports}")
         self.log_message(f"Report formats requested: {report_formats}")
         self.log_message(f"Output directory: {output_dir}")
-        if generate_leader_packs:
-            self.log_message("Audit Leader-Specific Workbooks will be generated", "INFO")
+        if generate_individual_reports:
+            self.log_message("Individual Leader Reports will be generated", "INFO")
 
+        # Clean up any existing validation worker
+        if hasattr(self, 'validation_worker') and self.validation_worker:
+            try:
+                # Disconnect all signals to prevent orphaned connections
+                self.validation_worker.signals.started.disconnect()
+                self.validation_worker.signals.progress.disconnect()
+                self.validation_worker.signals.result.disconnect()
+                self.validation_worker.signals.error.disconnect()
+                self.validation_worker.signals.finished.disconnect()
+                self.validation_worker.signals.progressUpdated.disconnect()
+                self.validation_worker.signals.statusUpdated.disconnect()
+                self.validation_worker.signals.ruleStarted.disconnect()
+                self.validation_worker.signals.reportStarted.disconnect()
+                self.validation_worker.signals.reportProgress.disconnect()
+                self.validation_worker.signals.reportCompleted.disconnect()
+                self.validation_worker.signals.reportError.disconnect()
+                self.validation_worker.signals.sessionStarted.disconnect()
+                self.validation_worker.signals.statusChanged.disconnect()
+                self.validation_worker.signals.cancelled.disconnect()
+            except (RuntimeError, TypeError):
+                # Ignore errors if signals were already disconnected
+                pass
+        
         # Create and start cancellable validation worker
         self.validation_worker = CancellableValidationWorker(
             pipeline=None,  # Will be created in worker
@@ -3248,7 +3511,7 @@ class AnalyticsRunnerApp(QMainWindow):
             output_dir=output_dir,
             use_parallel=use_parallel,
             responsible_party_column=responsible_party_column,
-            generate_leader_packs=generate_leader_packs
+            generate_leader_packs=generate_individual_reports  # Keep parameter name for compatibility
         )
 
         # Connect worker signals
@@ -3291,6 +3554,11 @@ class AnalyticsRunnerApp(QMainWindow):
     def _on_validation_complete(self, results: dict):
         """Handle validation completion with results."""
         self.log_message("Validation completed successfully")
+        
+        # Store the results for later use
+        self.results_data = results
+        
+        # Store the results for later use
         
         # Update workflow state
         if hasattr(self, 'workflow_state'):
@@ -3384,64 +3652,72 @@ class AnalyticsRunnerApp(QMainWindow):
         self.show_progress(False)
         self.status_label.setText("Validation completed")
         
-        # Reset execution status if not already set
-        if hasattr(self, 'execution_status_label'):
-            current_status = self.execution_status_label.text()
-            if "Active" in current_status:
-                self.execution_status_label.setText("Status: Ready")
-                self.execution_status_label.setStyleSheet(f"""
-                    color: {AnalyticsRunnerStylesheet.DARK_TEXT}; 
-                    background-color: transparent;
-                    font-weight: bold;
-                    padding: 4px 8px;
-                    border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
-                    border-radius: 4px;
-                """)
+        # Status updates now handled by section headers
         
         # Hide progress after a delay
         QTimer.singleShot(3000, self._hide_progress_section)
     
     def _on_progress_updated(self, progress: int):
         """Handle real-time progress updates."""
-        if progress == -1:
-            # Error state
-            self.validation_progress_bar.setStyleSheet(f"""
-                QProgressBar {{
-                    background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
-                    border: 1px solid {AnalyticsRunnerStylesheet.ERROR_COLOR};
-                    border-radius: 4px;
-                    text-align: center;
-                    min-height: 20px;
-                }}
-                QProgressBar::chunk {{
-                    background-color: {AnalyticsRunnerStylesheet.ERROR_COLOR};
-                    border-radius: 3px;
-                }}
-            """)
-        else:
-            self.validation_progress_bar.setValue(progress)
+        try:
+            if hasattr(self, 'validation_progress_bar') and self.validation_progress_bar:
+                if progress == -1:
+                    # Error state
+                    self.validation_progress_bar.setStyleSheet(f"""
+                        QProgressBar {{
+                            background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+                            border: 1px solid {AnalyticsRunnerStylesheet.ERROR_COLOR};
+                            border-radius: 4px;
+                            text-align: center;
+                            min-height: 20px;
+                        }}
+                        QProgressBar::chunk {{
+                            background-color: {AnalyticsRunnerStylesheet.ERROR_COLOR};
+                            border-radius: 3px;
+                        }}
+                    """)
+                else:
+                    self.validation_progress_bar.setValue(progress)
+        except RuntimeError:
+            # Widget was deleted, ignore
+            pass
     
     def _on_status_updated(self, status: str):
         """Handle status message updates."""
-        self.validation_status_label.setText(status)
-        
-        # Extract ETA if present
-        if "ETA:" in status:
-            eta_match = status.find("ETA:")
-            if eta_match != -1:
-                eta_text = status[eta_match:]
-                self.validation_status_label.setToolTip(eta_text)
+        try:
+            if hasattr(self, 'validation_status_label') and self.validation_status_label:
+                self.validation_status_label.setText(status)
+                
+                # Extract ETA if present
+                if "ETA:" in status:
+                    eta_match = status.find("ETA:")
+                    if eta_match != -1:
+                        eta_text = status[eta_match:]
+                        self.validation_status_label.setToolTip(eta_text)
+        except RuntimeError:
+            # Widget was deleted, ignore
+            pass
     
     def _on_rule_started(self, rule_name: str, current: int, total: int):
         """Handle individual rule start notification."""
-        self.rule_summary_label.setText(f"Test {current} of {total}: {rule_name}")
+        try:
+            if hasattr(self, 'rule_summary_label') and self.rule_summary_label:
+                self.rule_summary_label.setText(f"Test {current} of {total}: {rule_name}")
+        except RuntimeError:
+            # Widget was deleted, ignore
+            pass
         
         # Also update in log for detailed tracking
         self.log_message(f"Evaluating test {current}/{total}: {rule_name}")
     
     def _hide_progress_section(self):
         """Hide the progress section with animation."""
-        self.progress_section.setVisible(False)
+        try:
+            if hasattr(self, 'progress_section') and self.progress_section:
+                self.progress_section.setVisible(False)
+        except RuntimeError:
+            # Widget was deleted, ignore
+            pass
     
     def cancel_validation(self):
         """Cancel the running validation."""
@@ -3453,39 +3729,18 @@ class AnalyticsRunnerApp(QMainWindow):
     
     def _on_session_started(self, session_id: str, timestamp: str):
         """Handle session start notification."""
-        self.session_info_label.setText(f"Session: {session_id} | Started: {timestamp}")
-        self.session_info_label.setVisible(True)
+        # Session info tracked internally
         self.log_message(f"Validation session started: {session_id}")
     
     def _on_execution_status_changed(self, status: str):
         """Handle execution status changes."""
-        self.execution_status_label.setText(f"Status: {status}")
+        # Status now handled by section headers
+        self.workflow_tracker.update_state(f"execution_{status.lower()}", {
+            'status': status
+        })
         
-        # Update status styling based on state
-        if status == ExecutionStatus.ACTIVE:
-            bg_color = AnalyticsRunnerStylesheet.SUCCESS_COLOR
-            text_color = "white"
-        elif status == ExecutionStatus.CANCELLED:
-            bg_color = AnalyticsRunnerStylesheet.WARNING_COLOR
-            text_color = "black"
-        elif status == ExecutionStatus.ERROR:
-            bg_color = AnalyticsRunnerStylesheet.ERROR_COLOR
-            text_color = "white"
-        elif status == ExecutionStatus.COMPLETED:
-            bg_color = AnalyticsRunnerStylesheet.INFO_COLOR
-            text_color = "white"
-        else:
-            bg_color = AnalyticsRunnerStylesheet.SURFACE_COLOR
-            text_color = AnalyticsRunnerStylesheet.DARK_TEXT
-            
-        self.execution_status_label.setStyleSheet(f"""
-            color: {text_color}; 
-            background-color: {bg_color};
-            font-weight: bold;
-            padding: 4px 8px;
-            border: none;
-            border-radius: 4px;
-        """)
+        # Update UI states
+        self.update_all_section_states()
     
     def _on_validation_cancelled(self, reason: str):
         """Handle validation cancellation."""
@@ -3608,41 +3863,13 @@ class AnalyticsRunnerApp(QMainWindow):
         # Display report files in results view
         output_files = report_info.get('output_files', [])
         if output_files:
-            # Append to existing results
-            current_text = self.results_view.toPlainText()
-            
-            report_text = [
-                "",
-                "=== GENERATED REPORTS ===",
-                f"Output Directory: {report_info.get('output_dir', 'unknown')}",
-                ""
-            ]
-            
-            for file_path in output_files:
-                file_name = os.path.basename(file_path)
-                file_size = os.path.getsize(file_path) if os.path.exists(file_path) else 0
-                size_str = f"{file_size / 1024:.1f} KB" if file_size < 1024 * 1024 else f"{file_size / (1024 * 1024):.1f} MB"
-                
-                # Format based on file type
-                file_path_str = str(file_path)
-                if file_path_str.endswith('.xlsx'):
-                    icon = "📊"
-                    desc = "Excel Report"
-                elif file_path_str.endswith('.html'):
-                    icon = "🌐"
-                    desc = "HTML Report"
-                elif file_path_str.endswith('.json'):
-                    icon = "📄"
-                    desc = "JSON Results"
-                else:
-                    icon = "📁"
-                    desc = "Report File"
-                    
-                report_text.append(f"{icon} {file_name} ({size_str}) - {desc}")
-                report_text.append(f"   Path: {file_path}")
-                
-            # For ResultsTreeWidget, we need to refresh with updated data
-            # This is handled by the tree widget's report display
+            # Update the results data to include the output files
+            if self.results_data:
+                self.results_data['output_files'] = output_files
+                # Reload the results to show the reports
+                self.results_view.load_results(self.results_data)
+                # Also update the Reports tab
+                self._update_reports_tab(self.results_data)
             
     def _on_report_error(self, error_msg: str):
         """Handle report generation error."""
@@ -3662,6 +3889,12 @@ class AnalyticsRunnerApp(QMainWindow):
             
             self.log_message(f"Successfully generated {num_packs} Audit Leader-Specific Workbooks")
             
+            # Store leader pack info in results data for Reports tab
+            if self.results_data:
+                self.results_data['leader_pack_results'] = leader_pack_results
+                # Update Reports tab to show the folder
+                self._update_reports_tab(self.results_data)
+            
             # Show success message with details
             zip_path = leader_pack_results.get('zip_path', '')
             if zip_path and os.path.exists(zip_path):
@@ -3672,14 +3905,16 @@ class AnalyticsRunnerApp(QMainWindow):
                 message += f"ZIP file created: {os.path.basename(zip_path)} ({size_str})\n"
                 message += f"Location: {zip_path}"
                 
-                QMessageBox.information(self, "Leader Packs Generated", message)
+                # Defer the message box to avoid widget lifecycle issues
+                QTimer.singleShot(100, lambda: QMessageBox.information(self, "Leader Packs Generated", message))
             else:
                 # Just show count if no ZIP
-                QMessageBox.information(
+                # Defer the message box to avoid widget lifecycle issues
+                QTimer.singleShot(100, lambda: QMessageBox.information(
                     self, 
                     "Leader Packs Generated", 
                     f"Successfully generated {num_packs} Audit Leader-Specific Workbooks"
-                )
+                ))
         else:
             # Handle failure
             error_msg = leader_pack_results.get('error', 'Unknown error')

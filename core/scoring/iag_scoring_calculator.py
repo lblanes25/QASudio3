@@ -234,6 +234,33 @@ class IAGScoringCalculator:
         
         return leader_metrics
     
+    def calculate_weighted_score(self, gc_count: int, pc_count: int, 
+                                dnc_count: int, na_count: int = 0) -> Union[float, str]:
+        """
+        Calculate weighted score using exact IAG methodology.
+        This is a convenience wrapper around calculate_iag_weighted_score that handles NA exclusion.
+        
+        Excel Formula: ((GC*5) + (PC*3) + (DNC*1)) / (Total*5)
+        
+        Args:
+            gc_count: Number of Generally Conforms results
+            pc_count: Number of Partially Conforms results
+            dnc_count: Number of Does Not Conform results
+            na_count: Number of Not Applicable results (excluded from total)
+            
+        Returns:
+            Float between 0.0 and 1.0 representing percentage, or "N/A" if no applicable tests
+        """
+        # Total excludes NA items
+        total_applicable = gc_count + pc_count + dnc_count
+        return self.calculate_iag_weighted_score(gc_count, pc_count, dnc_count, total_applicable)
+    
+    def assign_rating(self, weighted_score: Union[float, str]) -> str:
+        """
+        Convenience wrapper for assign_iag_rating for consistency.
+        """
+        return self.assign_iag_rating(weighted_score)
+    
     def format_percentage(self, score: Union[float, str], decimal_places: int = 1) -> str:
         """
         Format score as percentage string.
@@ -250,3 +277,71 @@ class IAGScoringCalculator:
         
         percentage = score * 100
         return f"{percentage:.{decimal_places}f}%"
+    
+    def calculate_severity_weighted_score(self, rule_results_by_leader: Dict[str, List[Dict]]) -> Tuple[Union[float, str], Dict[str, int]]:
+        """
+        Calculate weighted score with both IAG methodology and severity weighting.
+        
+        Each rule's contribution = (rule IAG score) × (severity weight)
+        Severity weights: Critical (risk_level=1) = 3x, High (risk_level=2) = 2x, Medium/Low (risk_level=3) = 1x
+        
+        Args:
+            rule_results_by_leader: Dict mapping leader names to their rule results
+                                  Each result should have compliance_status and risk_level
+            
+        Returns:
+            Tuple of (weighted_score, aggregated_counts)
+            weighted_score: Float between 0.0 and 1.0 or "N/A"
+            aggregated_counts: Dict with total gc_count, pc_count, dnc_count, na_count
+        """
+        # Map risk levels to severity weights
+        severity_weights = {
+            1: 3,  # Critical = 3x weight
+            2: 2,  # High = 2x weight  
+            3: 1   # Medium/Low = 1x weight
+        }
+        
+        # Track weighted and unweighted counts
+        weighted_numerator = 0
+        weighted_denominator = 0
+        total_gc = total_pc = total_dnc = total_na = 0
+        
+        # Process each leader's results
+        for leader_name, leader_results in rule_results_by_leader.items():
+            for result in leader_results:
+                status = result.get('compliance_status', 'NA')
+                risk_level = result.get('risk_level', 3)  # Default to lowest severity
+                severity_weight = severity_weights.get(risk_level, 1)
+                
+                # Count unweighted totals
+                if status == 'GC':
+                    total_gc += 1
+                    weighted_numerator += self.rating_weights['GC'] * severity_weight
+                    weighted_denominator += self.rating_weights['GC'] * severity_weight
+                elif status == 'PC':
+                    total_pc += 1
+                    weighted_numerator += self.rating_weights['PC'] * severity_weight
+                    weighted_denominator += self.rating_weights['GC'] * severity_weight
+                elif status == 'DNC':
+                    total_dnc += 1
+                    weighted_numerator += self.rating_weights['DNC'] * severity_weight
+                    weighted_denominator += self.rating_weights['GC'] * severity_weight
+                else:  # NA
+                    total_na += 1
+                    # NA items don't contribute to score
+        
+        # Calculate weighted score
+        if weighted_denominator == 0:
+            weighted_score = "N/A"
+        else:
+            weighted_score = weighted_numerator / weighted_denominator
+            
+        aggregated_counts = {
+            'gc_count': total_gc,
+            'pc_count': total_pc,
+            'dnc_count': total_dnc,
+            'na_count': total_na,
+            'total_applicable': total_gc + total_pc + total_dnc
+        }
+        
+        return weighted_score, aggregated_counts

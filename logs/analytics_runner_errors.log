@@ -3426,3 +3426,31 @@ AttributeError: 'DynamicIndividualTemplateProcessorV5' object has no attribute '
 2025-06-12 11:55:58,442 - reporting.generation.report_generator - ERROR - Error creating HTML for rule QA-ID-4: Unalignable boolean Series provided as indexer (index of the boolean Series and of the indexed object do not match).
 2025-06-12 11:55:58,443 - reporting.generation.report_generator - ERROR - Error creating HTML for rule QA-ID-5: Unalignable boolean Series provided as indexer (index of the boolean Series and of the indexed object do not match).
 2025-06-12 11:55:58,444 - reporting.generation.report_generator - ERROR - Error creating HTML for rule QA-ID-7: Unalignable boolean Series provided as indexer (index of the boolean Series and of the indexed object do not match).
+2025-06-15 08:55:41,793 - ui.common.error_handler - CRITICAL - RuntimeError: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-15 08:55:44,118 - __main__ - ERROR - ERROR: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-15 08:55:50,939 - ui.common.error_handler - CRITICAL - RuntimeError: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-15 08:55:54,753 - __main__ - ERROR - ERROR: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-16 13:06:11,330 - ui.common.error_handler - CRITICAL - AttributeError: 'ResultsTreeWidget' object has no attribute 'toPlainText'
+2025-06-16 13:06:14,595 - __main__ - ERROR - ERROR: 'ResultsTreeWidget' object has no attribute 'toPlainText'
+2025-06-16 13:11:23,233 - ui.common.error_handler - CRITICAL - AttributeError: 'AnalyticsRunnerApp' object has no attribute 'results_data'
+2025-06-16 13:11:24,635 - __main__ - ERROR - ERROR: 'AnalyticsRunnerApp' object has no attribute 'results_data'
+2025-06-16 13:16:27,783 - ui.common.error_handler - CRITICAL - RuntimeError: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-16 13:16:28,686 - ui.common.error_handler - CRITICAL - AttributeError: 'AnalyticsRunnerApp' object has no attribute 'results_data'
+2025-06-16 13:16:29,652 - __main__ - ERROR - ERROR: 'AnalyticsRunnerApp' object has no attribute 'results_data'
+2025-06-16 13:16:31,818 - __main__ - ERROR - ERROR: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-16 13:17:13,148 - ui.common.error_handler - CRITICAL - RuntimeError: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-16 13:17:16,073 - __main__ - ERROR - ERROR: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-16 13:25:26,608 - ui.common.error_handler - CRITICAL - RuntimeError: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-16 13:25:28,615 - __main__ - ERROR - ERROR: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-16 14:17:30,033 - ui.common.error_handler - CRITICAL - RuntimeError: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-16 14:17:30,054 - ui.common.error_handler - CRITICAL - RuntimeError: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-16 14:17:31,133 - __main__ - ERROR - ERROR: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-16 14:17:32,009 - __main__ - ERROR - ERROR: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-16 14:24:27,083 - ui.common.error_handler - CRITICAL - RuntimeError: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-16 14:24:27,105 - ui.common.error_handler - CRITICAL - RuntimeError: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-16 14:24:28,042 - __main__ - ERROR - ERROR: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+##2025-06-16 14:24:28,861 - __main__ - ERROR - ERROR: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-16 14:37:32,628 - ui.common.error_handler - CRITICAL - RuntimeError: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-16 14:37:32,667 - ui.common.error_handler - CRITICAL - RuntimeError: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-16 14:37:33,649 - __main__ - ERROR - ERROR: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-16 14:37:34,120 - __main__ - ERROR - ERROR: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.

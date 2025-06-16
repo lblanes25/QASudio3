@@ -6,7 +6,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Define compliance status types
-ComplianceStatus = Literal["GC", "PC", "DNC"]  # Generally Conforms, Partially Conforms, Does Not Conform
+ComplianceStatus = Literal["GC", "PC", "DNC", "NA"]  # Generally Conforms, Partially Conforms, Does Not Conform, Not Applicable
+
+# Compliance status descriptions
+COMPLIANCE_STATUS = {
+    "GC": "Generally Conforms",
+    "PC": "Partially Conforms", 
+    "DNC": "Does Not Conform",
+    "NA": "Not Applicable"
+}
 
 
 class ComplianceDeterminer:
@@ -31,17 +39,27 @@ class ComplianceDeterminer:
 
     def determine_row_compliance(self,
                                  result: Any,
-                                 rule_threshold: float = 1.0) -> ComplianceStatus:
+                                 rule_threshold: float = 1.0,
+                                 is_applicable: bool = True) -> ComplianceStatus:
         """
         Determine compliance status for a single validation result.
 
         Args:
             result: Result of validation (usually True/False or numeric)
             rule_threshold: Rule-specific threshold (overrides global thresholds)
+            is_applicable: Whether the rule applies to this row
 
         Returns:
-            Compliance status (GC, PC, DNC)
+            Compliance status (GC, PC, DNC, NA)
         """
+        # Handle NA status first
+        if not is_applicable:
+            return "NA"
+            
+        # Handle special NA indicators
+        if isinstance(result, str) and result.upper() in ["NA", "N/A", "NOT APPLICABLE"]:
+            return "NA"
+            
         # Handle boolean results directly
         if isinstance(result, bool):
             return "GC" if result else "DNC"
@@ -75,7 +93,8 @@ class ComplianceDeterminer:
     def determine_overall_compliance(self,
                                      result_df: pd.DataFrame,
                                      compliance_column: str,
-                                     rule_threshold: float = 1.0) -> Tuple[ComplianceStatus, Dict[str, Any]]:
+                                     rule_threshold: float = 1.0,
+                                     applicability_column: Optional[str] = None) -> Tuple[ComplianceStatus, Dict[str, Any]]:
         """
         Determine overall compliance status for results from a single rule.
 
@@ -83,6 +102,7 @@ class ComplianceDeterminer:
             result_df: DataFrame with validation results
             compliance_column: Column name containing validation results
             rule_threshold: Rule-specific threshold
+            applicability_column: Optional column indicating if rule applies to each row
 
         Returns:
             Tuple of (compliance_status, compliance_metrics)
@@ -91,12 +111,18 @@ class ComplianceDeterminer:
         gc_count = 0
         pc_count = 0
         dnc_count = 0
+        na_count = 0
         error_count = 0
         total_count = len(result_df)
 
         # Calculate compliance status for each row
-        for _, row in result_df.iterrows():
+        for idx, row in result_df.iterrows():
             result = row[compliance_column]
+            
+            # Check applicability if column provided
+            is_applicable = True
+            if applicability_column and applicability_column in result_df.columns:
+                is_applicable = row[applicability_column] if pd.notna(row[applicability_column]) else True
 
             # Skip nulls/NaNs
             if pd.isna(result):
@@ -108,33 +134,58 @@ class ComplianceDeterminer:
                 error_count += 1
                 dnc_count += 1  # Errors count as DNC
             else:
-                status = self.determine_row_compliance(result, rule_threshold)
+                status = self.determine_row_compliance(result, rule_threshold, is_applicable)
                 if status == "GC":
                     gc_count += 1
                 elif status == "PC":
                     pc_count += 1
+                elif status == "NA":
+                    na_count += 1
                 else:  # DNC
                     dnc_count += 1
 
+        # Calculate applicable count (exclude NA from compliance calculations)
+        applicable_count = total_count - na_count
+
         # Prevent division by zero
-        if total_count == 0:
+        if applicable_count == 0:
+            # If all items are NA, return NA status
+            if na_count > 0:
+                return "NA", {
+                    "gc_rate": 0,
+                    "pc_rate": 0,
+                    "dnc_rate": 0,
+                    "na_rate": 1.0,
+                    "gc_count": 0,
+                    "pc_count": 0,
+                    "dnc_count": 0,
+                    "na_count": na_count,
+                    "error_count": 0,
+                    "total_count": total_count,
+                    "applicable_count": 0
+                }
+            # Otherwise return DNC
             return "DNC", {
                 "gc_rate": 0,
                 "pc_rate": 0,
                 "dnc_rate": 0,
+                "na_rate": 0,
                 "gc_count": 0,
                 "pc_count": 0,
                 "dnc_count": 0,
+                "na_count": 0,
                 "error_count": 0,
-                "total_count": 0
+                "total_count": 0,
+                "applicable_count": 0
             }
 
-        # Calculate compliance rates
-        gc_rate = gc_count / total_count
-        pc_rate = pc_count / total_count
-        dnc_rate = dnc_count / total_count
+        # Calculate compliance rates based on applicable items only
+        gc_rate = gc_count / applicable_count if applicable_count > 0 else 0
+        pc_rate = pc_count / applicable_count if applicable_count > 0 else 0
+        dnc_rate = dnc_count / applicable_count if applicable_count > 0 else 0
+        na_rate = na_count / total_count if total_count > 0 else 0
 
-        # Determine overall compliance
+        # Determine overall compliance (based on applicable items only)
         if gc_rate >= self.gc_threshold:
             overall_status = "GC"
         elif gc_rate + pc_rate >= self.pc_threshold:
@@ -147,11 +198,14 @@ class ComplianceDeterminer:
             "gc_rate": gc_rate,
             "pc_rate": pc_rate,
             "dnc_rate": dnc_rate,
+            "na_rate": na_rate,
             "gc_count": gc_count,
             "pc_count": pc_count,
             "dnc_count": dnc_count,
+            "na_count": na_count,
             "error_count": error_count,
-            "total_count": total_count
+            "total_count": total_count,
+            "applicable_count": applicable_count
         }
 
         return overall_status, metrics
@@ -160,7 +214,8 @@ class ComplianceDeterminer:
                                        result_df: pd.DataFrame,
                                        compliance_column: str,
                                        responsible_party_column: str,
-                                       rule_threshold: float = 1.0) -> Dict[str, Dict[str, Any]]:
+                                       rule_threshold: float = 1.0,
+                                       applicability_column: Optional[str] = None) -> Dict[str, Dict[str, Any]]:
         """
         Aggregate compliance results by responsible party.
 
@@ -169,6 +224,7 @@ class ComplianceDeterminer:
             compliance_column: Column with validation results
             responsible_party_column: Column with responsible party names
             rule_threshold: Rule-specific threshold
+            applicability_column: Optional column indicating if rule applies to each row
 
         Returns:
             Dictionary mapping responsible parties to their compliance metrics
@@ -186,7 +242,7 @@ class ComplianceDeterminer:
                 party_key = party
                 
             status, metrics = self.determine_overall_compliance(
-                group_df, compliance_column, rule_threshold
+                group_df, compliance_column, rule_threshold, applicability_column
             )
 
             results[party_key] = {

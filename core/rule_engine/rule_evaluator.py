@@ -45,7 +45,7 @@ class RuleEvaluationResult:
     @property
     def summary(self) -> Dict[str, Any]:
         """Get summary of evaluation results"""
-        return {
+        result = {
             "rule_id": self.rule.rule_id,
             "rule_name": self.rule.name,
             "compliance_status": self.compliance_status,
@@ -56,6 +56,40 @@ class RuleEvaluationResult:
             "dnc_count": self.compliance_metrics.get("dnc_count", 0),
             "error_count": self.compliance_metrics.get("error_count", 0)
         }
+        
+        # Include party_results if present
+        if self.party_results:
+            result["party_results"] = self.party_results
+            
+        return result
+    
+    def summary_with_details(self, include_all_rows: bool = False) -> Dict[str, Any]:
+        """
+        Get summary including detailed row-level results.
+        
+        Args:
+            include_all_rows: If True, include all rows. If False, only include failures.
+            
+        Returns:
+            Summary dict with optional _result_df containing row-level results
+        """
+        result = self.summary
+        
+        # Include result DataFrame if requested
+        if hasattr(self, 'result_df') and self.result_df is not None and len(self.result_df) > 0:
+            if include_all_rows:
+                # Include all rows for complete population coverage
+                # Convert DataFrame to list of dicts for JSON serialization
+                result['_result_details'] = self.result_df.to_dict('records')
+                result['_result_column'] = self.result_column
+            else:
+                # Include only failures (DNC and PC) to reduce size
+                failing_items = self.get_failing_items()
+                if not failing_items.empty:
+                    result['_result_details'] = failing_items.to_dict('records')
+                    result['_result_column'] = self.result_column
+                    
+        return result
 
     def get_failing_items(self) -> pd.DataFrame:
         """Get subset of results that did not comply with the rule"""

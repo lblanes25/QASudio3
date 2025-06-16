@@ -7,6 +7,8 @@ import logging
 import threading
 import datetime
 import uuid
+import os
+import json
 from typing import Optional, List, Dict, Any
 from PySide6.QtCore import QRunnable, QObject, Signal
 
@@ -86,11 +88,11 @@ class CancellableValidationWorker(QRunnable):
         self.analytic_id = analytic_id or "Simple_Validation"
         self.rule_ids = rule_ids
         self.generate_reports = generate_reports
-        self.report_formats = report_formats or ['excel', 'html']
+        self.report_formats = report_formats or ['iag_excel']  # Updated to use new IAG format
         self.output_dir = output_dir or './output'
         self.use_parallel = use_parallel
         self.responsible_party_column = responsible_party_column
-        self.generate_leader_packs = generate_leader_packs
+        self.generate_individual_reports = generate_leader_packs  # Use clearer name internally
         self.analytic_title = analytic_title
         self.use_template = use_template
         
@@ -217,7 +219,7 @@ class CancellableValidationWorker(QRunnable):
                 'rule_ids': self.rule_ids,
                 'selected_sheet': self.sheet_name,
                 'analytic_id': self.analytic_id,
-                'output_formats': self.report_formats if self.generate_reports else ['json'],
+                'output_formats': ['json'],  # Only JSON during validation, Excel handled separately
                 'use_parallel': getattr(self, 'use_parallel', False),  # Get from instance if set
                 'responsible_party_column': getattr(self, 'responsible_party_column', None),
                 'progress_callback': progress_callback,
@@ -279,74 +281,75 @@ class CancellableValidationWorker(QRunnable):
             
     def _process_validation_results(self, results: Dict[str, Any]):
         """Process validation results and emit appropriate signals"""
-        # Similar to original ValidationWorker
         logger.info(f"Session {self._session_id}: Processing validation results")
         
         # Emit results
         self.signals.result.emit(results)
         
-        # Handle report generation if needed
-        if self.generate_reports and results.get('output_files'):
+        # Handle new IAG report generation
+        if self.generate_reports and 'iag_excel' in self.report_formats:
             self.signals.reportStarted.emit()
             
-            report_info = {
-                'files': results['output_files'],
-                'session_id': self._session_id,
-                'timestamp': datetime.datetime.now().isoformat()
-            }
-            
-            self.signals.reportCompleted.emit(report_info)
-            logger.info(f"Session {self._session_id}: Reports generated: {results['output_files']}")
-            
-        # Handle leader pack generation if requested
-        if self.generate_leader_packs and self.responsible_party_column and self.responsible_party_column != "None":
-            logger.info(f"Session {self._session_id}: Generating leader packs")
             try:
-                # Check if validation was successful and we have rule results
-                if results.get('valid') and 'rule_results' in results:
-                    # Get the report generator from the pipeline
-                    report_generator = self.pipeline.report_generator
+                # Save validation results JSON first
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                json_filename = f"{self.analytic_id}_{timestamp}_results.json"
+                json_path = os.path.join(self.output_dir, json_filename)
+                
+                with open(json_path, 'w') as f:
+                    json.dump(results, f, indent=2, default=str)
+                
+                logger.info(f"Session {self._session_id}: Saved validation results to {json_path}")
+                
+                # Generate IAG Excel report
+                excel_filename = f"{self.analytic_id}_{timestamp}_report.xlsx"
+                excel_path = os.path.join(self.output_dir, excel_filename)
+                
+                # Use the ValidationPipeline's report generation
+                self.pipeline.generate_excel_report(json_path, excel_path)
+                
+                output_files = [json_path, excel_path]
+                
+                # Generate individual leader reports if requested
+                if self.generate_individual_reports and self.responsible_party_column and self.responsible_party_column != "None":
+                    logger.info(f"Session {self._session_id}: Generating individual leader reports")
                     
-                    # Generate leader packs
-                    # Get the actual RuleEvaluationResult objects from the results
-                    rule_evaluation_results = results.get('_rule_evaluation_results', {})
+                    # Create subdirectory for leader reports
+                    leader_dir = os.path.join(self.output_dir, f"leader_reports_{timestamp}")
+                    os.makedirs(leader_dir, exist_ok=True)
                     
-                    if rule_evaluation_results:
-                        leader_pack_results = report_generator.generate_leader_packs(
-                            results=results,
-                            rule_results=rule_evaluation_results,
-                            output_dir=self.output_dir,
-                            responsible_party_column=self.responsible_party_column,
-                            include_only_failures=False,
-                            generate_email_content=False,
-                            zip_output=True
-                        )
-                    else:
-                        # Fallback if no evaluation results are stored
-                        leader_pack_results = {
-                            'success': False,
-                            'error': 'No rule evaluation results available for leader pack generation'
+                    # Split the master report
+                    leader_files = self.pipeline.split_report_by_leader(excel_path, leader_dir)
+                    
+                    # Don't add individual leader files to output_files - we'll show just the directory
+                    
+                    # Emit leader pack completion
+                    leader_pack_info = {
+                        'type': 'leader_packs',
+                        'results': {
+                            'success': True,
+                            'leader_reports': leader_files,
+                            'output_dir': leader_dir
                         }
-                    
-                    # Add leader pack info to results
-                    results['leader_packs'] = leader_pack_results
-                    
-                    # Emit signal about leader pack generation
-                    if leader_pack_results.get('success'):
-                        logger.info(f"Session {self._session_id}: Leader packs generated successfully")
-                        self.signals.reportCompleted.emit({
-                            'type': 'leader_packs',
-                            'results': leader_pack_results,
-                            'session_id': self._session_id
-                        })
-                    else:
-                        error_msg = leader_pack_results.get('error', 'Unknown error generating leader packs')
-                        logger.warning(f"Session {self._session_id}: Leader pack generation failed: {error_msg}")
-                        self.signals.reportError.emit(f"Leader pack generation failed: {error_msg}")
-                else:
-                    logger.info(f"Session {self._session_id}: Skipping leader pack generation - validation failed or no rule results")
+                    }
+                    self.signals.reportCompleted.emit(leader_pack_info)
+                
+                # Update results with output files
+                results['output_files'] = output_files
+                
+                # Emit report completion
+                report_info = {
+                    'output_files': output_files,
+                    'output_dir': self.output_dir,
+                    'session_id': self._session_id,
+                    'timestamp': timestamp
+                }
+                
+                self.signals.reportCompleted.emit(report_info)
+                logger.info(f"Session {self._session_id}: Reports generated: {output_files}")
+                
             except Exception as e:
-                error_msg = f"Error generating leader packs: {str(e)}"
+                error_msg = f"Report generation error: {str(e)}"
                 logger.error(f"Session {self._session_id}: {error_msg}", exc_info=True)
                 self.signals.reportError.emit(error_msg)
             

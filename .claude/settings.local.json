@@ -5,7 +5,9 @@
       "Bash(python test:*)",
       "Bash(python:*)",
       "Bash(cp:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(rg:*)"
     ],
     "deny": []
   },

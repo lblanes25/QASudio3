@@ -20,7 +20,7 @@ from core.rule_engine.rule_evaluator import RuleEvaluator, RuleEvaluationResult
 from core.rule_engine.compliance_determiner import ComplianceDeterminer
 from data_integration.io.importer import DataImporter
 from data_integration.io.data_validator import DataValidator
-from reporting.generation.report_generator import ReportGenerator  # Assuming this will be implemented
+# from reporting.generation.report_generator import ReportGenerator  # To be implemented
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,6 @@ class ValidationPipeline:
             rule_manager: ValidationRuleManager for rule access
             evaluator: RuleEvaluator for rule evaluation
             data_importer: DataImporter for loading data
-            report_generator: ReportGenerator for creating reports
             output_dir: Directory for output files
             archive_dir: Directory for archiving output files
             max_workers: Maximum number of worker threads for parallel processing
@@ -57,7 +56,7 @@ class ValidationPipeline:
         self.rule_manager = rule_manager or ValidationRuleManager()
         self.evaluator = evaluator or RuleEvaluator(rule_manager=self.rule_manager)
         self.data_importer = data_importer or DataImporter()
-        self.report_generator = ReportGenerator()
+        # ReportGenerator removed - using generate_excel_report method instead
 
         # Set output directory
         self.output_dir = Path(output_dir) if output_dir else Path("./output")
@@ -90,14 +89,14 @@ class ValidationPipeline:
         if report_config_path:
             if os.path.exists(report_config_path):
                 logger.info(f"Initializing report generator with configuration: {report_config_path}")
-                self.report_generator = ReportGenerator(report_config_path, template_path=template_path)
+                # ReportGenerator removed - using generate_excel_report method instead
             else:
                 logger.warning(f"Report configuration file not found: {report_config_path}")
                 logger.info("Using default report configuration")
-                self.report_generator = ReportGenerator(template_path=template_path)
+                # ReportGenerator removed - using generate_excel_report method instead
         else:
             logger.info("Initializing report generator with default configuration")
-            self.report_generator = ReportGenerator(template_path=template_path)
+            # ReportGenerator removed - using generate_excel_report method instead
 
     def validate_data_source(self,
                              data_source: Union[str, pd.DataFrame],
@@ -138,8 +137,9 @@ class ValidationPipeline:
         """
         # If report_config specified, update the ReportGenerator
         if report_config:
-            self.report_generator = ReportGenerator(report_config)
-
+            # ReportGenerator removed - report_config parameter is no longer used
+            pass
+            
         # If responsible_party_column specified, set it in metadata for all rules
         if responsible_party_column:
             for rule in self.rule_manager.list_rules():
@@ -169,6 +169,13 @@ class ValidationPipeline:
                 'column_count': len(data_df.columns),
                 'columns': list(data_df.columns)
             }
+            
+            # Add entity volume tracking if entity ID column exists
+            entity_id_column = 'AuditEntityID'  # Standard entity ID column
+            if entity_id_column in data_df.columns:
+                results['data_metrics']['total_unique_entities'] = data_df[entity_id_column].nunique()
+            else:
+                results['data_metrics']['total_unique_entities'] = len(data_df)
 
             # Validate schema if provided
             if expected_schema:
@@ -228,7 +235,7 @@ class ValidationPipeline:
                 )
 
             # Process evaluation results including grouping by responsible party
-            self._process_evaluation_results(rule_results, results, responsible_party_column)
+            self._process_evaluation_results(rule_results, results, responsible_party_column, data_df)
 
             # Generate outputs in requested formats
             if output_formats:
@@ -814,10 +821,31 @@ class ValidationPipeline:
             except Exception as e:
                 logger.error(f"Error uninitializing COM in thread {threading.current_thread().ident}: {str(e)}")
 
+    def _calculate_entities_per_leader(self, 
+                                      data_df: pd.DataFrame, 
+                                      responsible_party_column: str, 
+                                      entity_id_column: str = 'AuditEntityID') -> Dict[str, int]:
+        """
+        Calculate unique entities per audit leader.
+        
+        Args:
+            data_df: DataFrame with validation data
+            responsible_party_column: Column identifying responsible parties
+            entity_id_column: Column with entity IDs
+            
+        Returns:
+            Dictionary mapping leader names to unique entity counts
+        """
+        if entity_id_column in data_df.columns and responsible_party_column in data_df.columns:
+            entities_per_leader = data_df.groupby(responsible_party_column)[entity_id_column].nunique().to_dict()
+            return entities_per_leader
+        return {}
+
     def _process_evaluation_results(self,
                                     rule_results: Dict[str, RuleEvaluationResult],
                                     results: Dict[str, Any],
-                                    responsible_party_column: Optional[str] = None) -> None:
+                                    responsible_party_column: Optional[str] = None,
+                                    data_df: Optional[pd.DataFrame] = None) -> None:
         """
         Process and summarize rule evaluation results.
 
@@ -825,28 +853,36 @@ class ValidationPipeline:
             rule_results: Dictionary of rule evaluation results
             results: Results dictionary to update
             responsible_party_column: Column identifying responsible parties for grouping
+            data_df: Original DataFrame for entity counting
         """
         # Track overall compliance
         overall_valid = True
         compliance_counts = {
-            'GC': 0,  # Generally Conforms
-            'PC': 0,  # Partially Conforms
-            'DNC': 0  # Does Not Conform
+            'GC': 0,   # Generally Conforms
+            'PC': 0,   # Partially Conforms
+            'DNC': 0,  # Does Not Conform
+            'NA': 0    # Not Applicable
         }
 
         # Group rules by category and severity for reporting
         rule_stats = {
-            'by_category': defaultdict(lambda: {'count': 0, 'GC': 0, 'PC': 0, 'DNC': 0}),
-            'by_severity': defaultdict(lambda: {'count': 0, 'GC': 0, 'PC': 0, 'DNC': 0})
+            'by_category': defaultdict(lambda: {'count': 0, 'GC': 0, 'PC': 0, 'DNC': 0, 'NA': 0}),
+            'by_severity': defaultdict(lambda: {'count': 0, 'GC': 0, 'PC': 0, 'DNC': 0, 'NA': 0})
         }
 
         # Group results by responsible party if specified
-        grouped_summary = defaultdict(lambda: {'count': 0, 'GC': 0, 'PC': 0, 'DNC': 0})
+        grouped_summary = defaultdict(lambda: {'count': 0, 'GC': 0, 'PC': 0, 'DNC': 0, 'NA': 0})
 
         # Process each rule result
         for rule_id, result in rule_results.items():
             # Add result summary to results
-            results['rule_results'][rule_id] = result.summary
+            # For now, always include details if available (can be optimized later)
+            if hasattr(result, 'summary_with_details'):
+                # Include detailed results for potential Excel report generation
+                results['rule_results'][rule_id] = result.summary_with_details(include_all_rows=True)
+            else:
+                # Standard summary only
+                results['rule_results'][rule_id] = result.summary
 
             # Update compliance counts
             compliance_status = result.compliance_status
@@ -886,6 +922,15 @@ class ValidationPipeline:
 
         # Add grouped summary if present
         if grouped_summary:
+            # Calculate entities per leader if data_df provided
+            entities_per_leader = {}
+            if data_df is not None and responsible_party_column:
+                entities_per_leader = self._calculate_entities_per_leader(
+                    data_df, responsible_party_column
+                )
+                # Also add to data_metrics
+                results['data_metrics']['entities_per_leader'] = entities_per_leader
+            
             # Calculate compliance rates for each group
             formatted_groups = {}
             for party, counts in grouped_summary.items():
@@ -895,7 +940,9 @@ class ValidationPipeline:
                         'GC': counts['GC'],
                         'PC': counts['PC'],
                         'DNC': counts['DNC'],
-                        'compliance_rate': counts['GC'] / counts['count']
+                        'NA': counts.get('NA', 0),
+                        'compliance_rate': counts['GC'] / counts['count'] if counts['count'] > 0 else 0,
+                        'entity_count': entities_per_leader.get(party, 0)
                     }
 
             results['grouped_summary'] = formatted_groups
@@ -907,6 +954,19 @@ class ValidationPipeline:
             results['status'] = 'NON_COMPLIANT'
         else:
             results['status'] = 'PARTIALLY_COMPLIANT'
+            
+        # Add population summary if data_df provided
+        if data_df is not None:
+            results['population_summary'] = {
+                'total_entities': results['data_metrics'].get('total_unique_entities', results['data_metrics']['row_count']),
+                'entities_per_leader': results['data_metrics'].get('entities_per_leader', {}),
+                'data_source': results.get('data_source', 'Unknown'),
+                'filters_applied': [],  # TODO: Implement filter tracking
+                'sampling_method': '100% population',
+                'validation_date': results.get('timestamp', datetime.datetime.now().isoformat()),
+                'total_rows': results['data_metrics']['row_count'],
+                'total_columns': results['data_metrics']['column_count']
+            }
 
     def _generate_outputs(self,
                           results: Dict[str, Any],
@@ -936,44 +996,13 @@ class ValidationPipeline:
         # Generate outputs in each requested format
         for format in output_formats:
             if format.lower() == 'excel_template':
-                # Generate using template-based report generator
-                excel_path = self.output_dir / f"{analytic_id}_{timestamp}_template_report.xlsx"
-                
-                try:
-                    # Initialize template generator if not already done
-                    if not hasattr(self, 'template_report_generator'):
-                        from reporting.generation.template_report_generator import TemplateBasedReportGenerator
-                        template_path = self.output_dir.parent / "templates" / "qa_report_template.xlsx"
-                        self.template_report_generator = TemplateBasedReportGenerator(template_path)
+                # Template report generation removed - TemplateBasedReportGenerator no longer available
+                logger.info("Excel template format requested but TemplateBasedReportGenerator has been removed.")
+                logger.info("Use generate_excel_report() method for IAG Excel reports.")
+                # Skip template generation
+                continue
                     
-                    # Use responsible_party_column if provided, otherwise try to detect
-                    group_by = responsible_party_column
-                    if not group_by:
-                        # Try to get from rule metadata
-                        for result in rule_results.values():
-                            if hasattr(result.rule, 'metadata') and 'responsible_party_column' in result.rule.metadata:
-                                group_by = result.rule.metadata['responsible_party_column']
-                                break
-                    
-                    logger.info(f"Generating template-based Excel report: {excel_path}")
-                    report_path = self.template_report_generator.generate_excel_from_template(
-                        results=results,
-                        rule_results=rule_results,
-                        output_path=str(excel_path),
-                        analytic_id=analytic_id,
-                        analytic_title=analytic_title,
-                        group_by=group_by
-                    )
-                    output_paths.append(report_path)
-                    logger.info(f"Template-based Excel report generated successfully")
-                    
-                except Exception as e:
-                    logger.error(f"Error generating template report: {str(e)}", exc_info=True)
-                    # Fall back to regular Excel generation
-                    logger.info("Falling back to standard Excel report")
-                    format = 'excel'  # Process as regular Excel
-                    
-            if format.lower() == 'json':
+            elif format.lower() == 'json':
                 # Export results to JSON
                 json_path = self.output_dir / f"{analytic_id}_{timestamp}_results.json"
                 with open(json_path, 'w') as f:
@@ -981,67 +1010,24 @@ class ValidationPipeline:
                 output_paths.append(str(json_path))
 
             elif format.lower() == 'excel':
-                # Generate standard Excel report
-                excel_path = self.output_dir / f"{analytic_id}_{timestamp}_detailed_report.xlsx"
-
-                # Determine group_by column for responsible party aggregation
-                group_by = None
-                # Look for responsible_party_column in rule metadata
-                for result in rule_results.values():
-                    if hasattr(result.rule, 'metadata') and 'responsible_party_column' in result.rule.metadata:
-                        group_by = result.rule.metadata['responsible_party_column']
-                        break
-
-                # If no metadata found, check 'grouped_summary' in results
-                if not group_by and 'grouped_summary' in results:
-                    # The presence of grouped_summary implies grouping was done
-                    # Try to determine the column name from context
-                    for rule_id, result in rule_results.items():
-                        party_results = getattr(result, 'party_results', None)
-                        if party_results:
-                            for party_col in data_df.columns:
-                                if any(party in data_df[party_col].values for party in party_results.keys()):
-                                    group_by = party_col
-                                    break
-                        if group_by:
-                            break
-
-                # Generate the report using ReportGenerator
-                try:
-                    logger.info(f"Generating detailed Excel report: {excel_path}")
-                    report_path = self.report_generator.generate_excel(
-                        results,
-                        rule_results,
-                        str(excel_path),
-                        group_by=group_by
-                    )
-                    output_paths.append(report_path)
-                    logger.info(f"Excel report generated successfully")
-                except Exception as e:
-                    logger.error(f"Error generating detailed Excel report: {str(e)}")
-                    # Fall back to simple Excel export
-                    logger.info(f"Falling back to basic Excel export")
-                    self._export_to_excel(results, rule_results, data_df, excel_path)
-                    output_paths.append(str(excel_path))
+                # Excel report generation removed - use generate_excel_report() method instead
+                logger.info("Excel output format requested but ReportGenerator has been removed.")
+                logger.info("Use the generate_excel_report() method for IAG Excel reports.")
+                # Save results JSON for use with generate_excel_report
+                json_path = self.output_dir / f"{analytic_id}_{timestamp}_results.json"
+                if not json_path.exists():
+                    with open(json_path, 'w') as f:
+                        json.dump(results, f, indent=2, default=str)
+                logger.info(f"Results saved to {json_path} - use this with generate_excel_report()")
+                # Skip excel generation in this method
+                continue
 
             elif format.lower() == 'html':
-                # Create filename for HTML report
-                html_path = self.output_dir / f"{analytic_id}_{timestamp}_report.html"
-
-                # Generate HTML report using ReportGenerator
-                try:
-                    logger.info(f"Generating HTML report: {html_path}")
-                    report_path = self.report_generator.generate_html(
-                        results,
-                        rule_results,
-                        str(html_path),
-                        max_failures=1000  # Limit failures for performance
-                    )
-                    output_paths.append(report_path)
-                    logger.info(f"HTML report generated successfully")
-                except Exception as e:
-                    logger.error(f"Error generating HTML report: {str(e)}")
-                    # No fallback for HTML - just log the error
+                # HTML report generation removed - ReportGenerator no longer available
+                logger.info("HTML output format requested but ReportGenerator has been removed.")
+                logger.info("HTML reports are not currently supported.")
+                # Skip HTML generation
+                continue
 
             elif format.lower() == 'csv':
                 # Export summary results to CSV
@@ -1355,26 +1341,9 @@ class ValidationPipeline:
                     # Create Excel report
                     excel_path = output_dir_path / f"aggregated_report_{timestamp}.xlsx"
 
-                    try:
-                        # Explicit exception handling for ReportGenerator
-                        if not hasattr(self, 'report_generator') or self.report_generator is None:
-                            if report_config:
-                                self.report_generator = ReportGenerator(report_config)
-                            else:
-                                self.report_generator = ReportGenerator()  # Default to empty config
-                        elif report_config:  # Update existing report generator with new config
-                            self.report_generator = ReportGenerator(report_config)
-
-                        # This would need to be implemented in ReportGenerator
-                        report_path = self.report_generator.generate_aggregate_excel(
-                            summary=summary,
-                            output_path=str(excel_path)
-                        )
-                        output_paths.append(report_path)
-                        logger.info(f"Generated Excel report at {report_path}")
-                    except Exception as e:
-                        logger.error(f"Error generating Excel report: {str(e)}")
-                        logger.debug(f"Excel error details: {e}", exc_info=True)
+                    # Aggregate Excel generation removed - ReportGenerator no longer available
+                    logger.warning("Aggregate Excel report generation has been removed.")
+                    logger.info("Use generate_excel_report() method for IAG Excel reports.")
                 else:
                     # Report format validation - log unsupported formats
                     logger.warning(f"Unsupported output format: {fmt}")
@@ -1480,25 +1449,15 @@ class ValidationPipeline:
         if inferred_column and not suppress_logs:
             logger.info(f"Using responsible party column: {responsible_party_column} (inferred from context)")
 
-        # Check if report_generator is available
-        if not hasattr(self, 'report_generator'):
-            # Initialize with default settings
-            self.report_generator = ReportGenerator()
-
-        # Call the report generator to create leader packs
-        return self.report_generator.generate_leader_packs(
-            results=results,
-            rule_results=rule_results,
-            output_dir=output_dir,
-            responsible_party_column=responsible_party_column,
-            selected_leaders=selected_leaders,
-            include_only_failures=include_only_failures,
-            generate_email_content=generate_email_content,
-            zip_output=zip_output,
-            export_csv_summary=export_csv_summary,
-            sort_leaders=True,  # Always sort leaders for consistency
-            suppress_logs=suppress_logs  # Pass through log suppression flag
-        )
+        # ReportGenerator removed - this method is deprecated
+        logger.warning("generate_leader_packs is deprecated. ReportGenerator has been removed.")
+        logger.warning("Use generate_excel_report() for IAG reports instead.")
+        
+        return {
+            "success": False,
+            "error": "generate_leader_packs is deprecated. Use generate_excel_report() instead.",
+            "message": "ReportGenerator has been removed from the project."
+        }
     
     def generate_iag_summary_report(
         self,
@@ -1537,21 +1496,15 @@ class ValidationPipeline:
             # Log generation start
             logger.info(f"Generating IAG summary report for {len(rule_results)} rules")
             
-            # Check if report_generator is available
-            if not hasattr(self, 'report_generator'):
-                self.report_generator = ReportGenerator()
+            # ReportGenerator removed - this method is deprecated
+            logger.warning("generate_iag_summary_report is deprecated. ReportGenerator has been removed.")
+            logger.warning("Use generate_excel_report() for IAG reports instead.")
             
-            # Generate the IAG summary report
-            report_path = self.report_generator.generate_iag_summary_excel(
-                results=results,
-                rule_results=rule_results,
-                output_path=output_path,
-                responsible_party_column=responsible_party_column,
-                **kwargs
-            )
-            
-            logger.info(f"IAG summary report generated successfully: {report_path}")
-            return report_path
+            return {
+                "success": False,
+                "error": "generate_iag_summary_report is deprecated. Use generate_excel_report() instead.",
+                "message": "ReportGenerator has been removed from the project."
+            }
             
         except Exception as e:
             error_msg = f"Failed to generate IAG summary report: {str(e)}"
@@ -1614,22 +1567,15 @@ class ValidationPipeline:
             # Log generation start
             logger.info(f"Generating comprehensive IAG report with {len(rule_results)} individual analytic tabs")
             
-            # Check if report_generator is available
-            if not hasattr(self, 'report_generator'):
-                self.report_generator = ReportGenerator()
+            # ReportGenerator removed - this method is deprecated
+            logger.warning("generate_comprehensive_iag_report is deprecated. ReportGenerator has been removed.")
+            logger.warning("Use generate_excel_report() for IAG reports instead.")
             
-            # Generate the comprehensive report
-            report_path = self.report_generator.generate_comprehensive_iag_workbook(
-                results=results,
-                rule_results=rule_results,
-                source_data=source_data,
-                responsible_party_column=responsible_party_column,
-                output_path=str(output_path),
-                **kwargs
-            )
-            
-            logger.info(f"Comprehensive IAG report generated successfully: {report_path}")
-            return Path(report_path)
+            return {
+                "success": False,
+                "error": "generate_comprehensive_iag_report is deprecated. Use generate_excel_report() instead.",
+                "message": "ReportGenerator has been removed from the project."
+            }
             
         except Exception as e:
             error_msg = f"Failed to generate comprehensive IAG report: {str(e)}"
@@ -1638,3 +1584,1289 @@ class ValidationPipeline:
                 "success": False,
                 "error": error_msg
             }
+    
+    def generate_excel_report(self, validation_results_path: str, output_path: str) -> None:
+        """
+        Generate complete IAG Summary Report with all 3 sections.
+        
+        Args:
+            validation_results_path: Path to validation results JSON file
+            output_path: Path where Excel report should be saved
+        """
+        from openpyxl import Workbook
+        from openpyxl.styles import PatternFill, Font, Alignment
+        from openpyxl.utils import get_column_letter
+        from core.scoring.iag_scoring_calculator import IAGScoringCalculator
+        
+        # Ensure rules are loaded from data/rules directory
+        if len(self.rule_manager.list_rules()) == 0:
+            logger.info("No rules loaded, loading from data/rules directory")
+            self.rule_manager.load_rules_from_directory("data/rules")
+            logger.info(f"Loaded {len(self.rule_manager.list_rules())} rules")
+        
+        # Read validation results
+        with open(validation_results_path, 'r') as f:
+            results = json.load(f)
+        
+        # Create workbook with Guide as first tab
+        wb = Workbook()
+        
+        # Create Guide tab first
+        ws = wb.active
+        ws.title = "Guide"
+        self._create_guide_tab_content(ws)
+        
+        # Create IAG Summary Report as second tab
+        ws = wb.create_sheet("IAG Summary Report")
+        
+        # Get responsible party column from first rule
+        first_rule_id = list(results['rule_results'].keys())[0] if results['rule_results'] else None
+        responsible_party_column = 'AuditLeader'  # Default
+        
+        if first_rule_id:
+            # Try to get rule from manager first
+            rule = self.rule_manager.get_rule(first_rule_id)
+            if rule:
+                responsible_party_column = rule.metadata.get('responsible_party_column', 'AuditLeader')
+        
+        # Section 1: IAG Overall Results (rows 3-10)
+        current_row = self._generate_section1_iag_overall(ws, results, start_row=3)
+        
+        # Section 2: Audit Leader Results (2 rows below Section 1)
+        current_row = self._generate_section2_leader_results(ws, results, 
+                                                           responsible_party_column, 
+                                                           start_row=current_row+2)
+        
+        # Section 3: Detailed Analytics (2 rows below Section 2)
+        self._generate_section3_detailed_analytics(ws, results, 
+                                                 responsible_party_column, 
+                                                 start_row=current_row+2)
+        
+        # Apply column widths
+        self._apply_column_widths(ws)
+        
+        # Generate individual test tabs
+        for rule_id, rule_result in results['rule_results'].items():
+            self._create_test_tab(wb, rule_id, rule_result, results)
+        
+        # Save workbook
+        wb.save(output_path)
+        logger.info(f"Excel report generated: {output_path}")
+    
+    def _generate_section1_iag_overall(self, ws, results: Dict[str, Any], start_row: int = 3) -> int:
+        """
+        Generate Section 1: Executive Summary with severity-weighted IAG scoring.
+        
+        Args:
+            ws: Worksheet object
+            results: Validation results dictionary
+            start_row: Starting row number
+            
+        Returns:
+            Next available row number
+        """
+        from core.scoring.iag_scoring_calculator import IAGScoringCalculator
+        from openpyxl.styles import Font, Alignment
+        from openpyxl.utils import get_column_letter
+        
+        calculator = IAGScoringCalculator()
+        
+        # Debug logging
+        logger.info(f"Starting _generate_section1_iag_overall with {len(results.get('rule_results', {}))} rules")
+        
+        # Prepare rule results organized by leader with risk levels
+        rule_results_by_leader = {}
+        for rule_id, rule_result in results.get('rule_results', {}).items():
+            # Get rule's risk level
+            rule = self.rule_manager.get_rule(rule_id)
+            if rule:
+                logger.debug(f"Rule {rule_id} found with metadata: {rule.metadata}")
+            else:
+                logger.warning(f"Rule {rule_id} not found in rule_manager")
+            
+            risk_level = rule.metadata.get('risk_level', 3) if rule else 3
+            
+            # Get party results if available
+            if 'party_results' in rule_result:
+                logger.debug(f"Rule {rule_id} has party_results with {len(rule_result['party_results'])} parties")
+                for leader, leader_result in rule_result['party_results'].items():
+                    if leader not in rule_results_by_leader:
+                        rule_results_by_leader[leader] = []
+                    rule_results_by_leader[leader].append({
+                        'compliance_status': leader_result.get('status', 'NA'),
+                        'risk_level': risk_level
+                    })
+            else:
+                logger.warning(f"Rule {rule_id} missing party_results")
+        
+        logger.info(f"rule_results_by_leader has {len(rule_results_by_leader)} leaders")
+        logger.debug(f"rule_results_by_leader structure: {list(rule_results_by_leader.keys())}")
+        
+        # Calculate severity-weighted score
+        weighted_score, counts = calculator.calculate_severity_weighted_score(rule_results_by_leader)
+        
+        # Fallback if severity-weighted calculation returns N/A
+        if weighted_score == "N/A" and 'grouped_summary' in results and results['grouped_summary']:
+            logger.info("Severity-weighted calculation failed, falling back to standard IAG scoring")
+            # Calculate standard IAG score from grouped_summary
+            total_gc = sum(stats.get('GC', 0) for stats in results['grouped_summary'].values())
+            total_pc = sum(stats.get('PC', 0) for stats in results['grouped_summary'].values())
+            total_dnc = sum(stats.get('DNC', 0) for stats in results['grouped_summary'].values())
+            total_na = sum(stats.get('NA', 0) for stats in results['grouped_summary'].values())
+            
+            total_applicable = total_gc + total_pc + total_dnc
+            if total_applicable > 0:
+                total_score = (total_gc * 5) + (total_pc * 3) + (total_dnc * 1)
+                max_score = total_applicable * 5
+                weighted_score = total_score / max_score
+                logger.info(f"Fallback calculation: score={total_score}, max={max_score}, weighted={weighted_score}")
+            else:
+                weighted_score = "N/A"
+        
+        rating = calculator.assign_rating(weighted_score)
+        
+        # Get summary metrics
+        total_rules = len(results.get('rule_results', {}))
+        
+        # Get total data points with multiple fallbacks
+        total_entities = 0
+        if 'population_summary' in results:
+            total_entities = results['population_summary'].get('total_entities', 0)
+            logger.debug(f"Got total_entities from population_summary: {total_entities}")
+        
+        if total_entities == 0 and 'data_metrics' in results:
+            total_entities = results['data_metrics'].get('total_unique_entities', 0)
+            logger.debug(f"Got total_entities from data_metrics.total_unique_entities: {total_entities}")
+            
+        if total_entities == 0 and 'data_metrics' in results:
+            total_entities = results['data_metrics'].get('row_count', 0)
+            logger.debug(f"Falling back to row_count: {total_entities}")
+            
+        # If still 0, try counting from grouped_summary
+        if total_entities == 0 and 'grouped_summary' in results:
+            # Sum all test counts across leaders
+            for leader_stats in results['grouped_summary'].values():
+                total_entities += leader_stats.get('total_rules', 0)
+            logger.debug(f"Calculated total_entities from grouped_summary: {total_entities}")
+        
+        num_leaders = len(results.get('grouped_summary', {}))
+        
+        # Write header
+        ws[f'A{start_row}'] = "IAG Overall Results and Rating"
+        ws[f'A{start_row}'].font = Font(bold=True, size=14)
+        
+        # Write executive metrics
+        ws[f'A{start_row+1}'] = "Total Analytics Tested:"
+        ws[f'B{start_row+1}'] = total_rules
+        ws[f'B{start_row+1}'].alignment = Alignment(horizontal='center')
+        
+        ws[f'A{start_row+2}'] = "Total Data Points Reviewed:"
+        ws[f'B{start_row+2}'] = total_entities
+        ws[f'B{start_row+2}'].number_format = '#,##0'  # Number with thousands separator
+        ws[f'B{start_row+2}'].alignment = Alignment(horizontal='center')
+        
+        ws[f'A{start_row+3}'] = "Number of Audit Leaders:"
+        ws[f'B{start_row+3}'] = num_leaders
+        ws[f'B{start_row+3}'].alignment = Alignment(horizontal='center')
+        
+        ws[f'A{start_row+4}'] = "Overall Compliance Rate:"
+        if weighted_score != "N/A":
+            ws[f'B{start_row+4}'] = weighted_score
+            ws[f'B{start_row+4}'].number_format = '0.0%'  # Format as percentage with 1 decimal
+        else:
+            ws[f'B{start_row+4}'] = "N/A"
+        ws[f'B{start_row+4}'].alignment = Alignment(horizontal='center')
+        
+        # Add explanation note
+        if rule_results_by_leader:
+            note_text = "Compliance rate calculated using IAG weighted scoring (GC=5, PC=3, DNC=1 points) with severity weighting (Critical=3x, High=2x, Medium/Low=1x)"
+        else:
+            note_text = "Compliance rate calculated using standard IAG weighted scoring (GC=5, PC=3, DNC=1 points)"
+        
+        ws[f'D{start_row+4}'] = note_text
+        ws[f'D{start_row+4}'].font = Font(italic=True, size=9)
+        ws[f'D{start_row+4}'].alignment = Alignment(wrap_text=True, vertical='top')
+        ws.merge_cells(f'D{start_row+4}:H{start_row+5}')
+        
+        ws[f'A{start_row+5}'] = "Overall Rating:"
+        ws[f'B{start_row+5}'] = rating
+        ws[f'B{start_row+5}'].alignment = Alignment(horizontal='center')
+        self._apply_rating_color(ws[f'B{start_row+5}'])
+        
+        # Override fields
+        ws[f'A{start_row+6}'] = "Override Rating:"
+        ws[f'B{start_row+6}'] = ""  # Blank for manual entry
+        ws[f'B{start_row+6}'].alignment = Alignment(horizontal='center')
+        ws[f'C{start_row+6}'] = "Rationale:"
+        ws[f'D{start_row+6}'] = ""  # Blank for manual entry
+        ws.merge_cells(f'D{start_row+6}:H{start_row+6}')
+        
+        # Summary sentence
+        if weighted_score != "N/A":
+            compliance_pct = f"{weighted_score * 100:.1f}%"
+            scoring_type = "severity-weighted" if rule_results_by_leader else "IAG-weighted"
+        else:
+            compliance_pct = "N/A"
+            scoring_type = ""
+            
+        summary_text = (f"Summary: Tested {total_rules} analytics across {num_leaders} audit leaders. "
+                       f"The department achieved a {compliance_pct} {scoring_type} compliance rate, "
+                       f"resulting in a \"{rating}\" rating. See Section 2 for individual audit leader "
+                       f"performance and detailed test tabs for specific results.")
+        
+        ws[f'A{start_row+8}'] = summary_text
+        ws[f'A{start_row+8}'].font = Font(size=11)
+        ws[f'A{start_row+8}'].alignment = Alignment(wrap_text=True, vertical='top')
+        ws.merge_cells(f'A{start_row+8}:H{start_row+9}')
+        
+        return start_row + 10
+    
+    def _apply_rating_color(self, cell):
+        """Apply IAG-specific colors to rating cells."""
+        from openpyxl.styles import PatternFill, Font
+        
+        if cell.value == 'GC':
+            cell.fill = PatternFill("solid", start_color="90EE90")  # Light green
+        elif cell.value == 'PC':
+            cell.fill = PatternFill("solid", start_color="FFFF99")  # Light yellow
+        elif cell.value == 'DNC':
+            cell.fill = PatternFill("solid", start_color="FF6B6B")  # Light red
+        elif cell.value in ['NA', 'N/A']:
+            cell.fill = PatternFill("solid", start_color="D3D3D3")  # Gray
+            cell.font = Font(italic=True)  # Italicize NA values
+    
+    def _apply_column_widths(self, ws):
+        """Apply appropriate column widths for better readability."""
+        from openpyxl.utils import get_column_letter
+        
+        # Set column widths based on content
+        ws.column_dimensions['A'].width = 45  # Labels/Audit Leader names
+        ws.column_dimensions['B'].width = 15  # Values
+        ws.column_dimensions['C'].width = 15
+        ws.column_dimensions['D'].width = 20
+        ws.column_dimensions['E'].width = 15
+        ws.column_dimensions['F'].width = 20
+        ws.column_dimensions['G'].width = 30
+    
+    def _generate_section2_leader_results(self, ws, results: Dict[str, Any], 
+                                         responsible_party_column: str, start_row: int) -> int:
+        """Generate Section 2: Audit Leader Overall Results and Ratings."""
+        from core.scoring.iag_scoring_calculator import IAGScoringCalculator
+        from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+        
+        calculator = IAGScoringCalculator()
+        
+        # Write section header
+        ws[f'A{start_row}'] = "Audit Leader Overall Results and Ratings"
+        ws[f'A{start_row}'].font = Font(bold=True, size=12)
+        
+        # Column headers
+        headers = ['Audit Leader', 'Total Tests', 'GC', 'PC', 'DNC', 'NA', 
+                   'Compliance Rate', 'Rating', 'Override Rating', 'Rationale']
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=start_row+1, column=col, value=header)
+            cell.font = Font(bold=True)
+            cell.alignment = Alignment(horizontal='center')
+            # Add bottom border
+            cell.border = Border(bottom=Side(style='thin'))
+        
+        current_row = start_row + 2
+        
+        # Get grouped summary data
+        grouped_summary = results.get('grouped_summary', {})
+        
+        # Process each audit leader
+        for leader_name in sorted(grouped_summary.keys()):
+            leader_data = grouped_summary[leader_name]
+            
+            # Calculate IAG score for this leader
+            gc_count = leader_data.get('GC', 0)
+            pc_count = leader_data.get('PC', 0)
+            dnc_count = leader_data.get('DNC', 0)
+            na_count = leader_data.get('NA', 0)
+            total_applicable = gc_count + pc_count + dnc_count
+            
+            if total_applicable > 0:
+                score = (gc_count * 5 + pc_count * 3 + dnc_count * 1) / (total_applicable * 5)
+            else:
+                score = 0
+            
+            rating = calculator.assign_rating(score)
+            
+            # Write leader data
+            ws[f'A{current_row}'] = leader_name
+            ws[f'B{current_row}'] = leader_data.get('total_rules', 0)
+            ws[f'C{current_row}'] = gc_count
+            ws[f'D{current_row}'] = pc_count
+            ws[f'E{current_row}'] = dnc_count
+            ws[f'F{current_row}'] = na_count
+            
+            # Write compliance rate as a number, not text
+            if total_applicable > 0:
+                ws[f'G{current_row}'] = score
+                ws[f'G{current_row}'].number_format = '0.0%'
+            else:
+                ws[f'G{current_row}'] = "N/A"
+            
+            ws[f'H{current_row}'] = rating
+            ws[f'I{current_row}'] = ""  # Override Rating - blank for manual entry
+            ws[f'J{current_row}'] = ""  # Rationale - blank for manual entry
+            
+            # Apply alternating row colors for readability (but not to rating column)
+            if (current_row - start_row - 2) % 2 == 1:
+                for col in range(1, 11):
+                    if col != 8:  # Skip column H (rating column)
+                        ws.cell(row=current_row, column=col).fill = PatternFill("solid", start_color="F0F0F0")
+            
+            # Apply rating color AFTER alternating rows so it doesn't get overwritten
+            self._apply_rating_color(ws[f'H{current_row}'])
+            
+            current_row += 1
+        
+        # Add totals row
+        current_row += 1
+        ws[f'A{current_row}'] = "TOTALS"
+        ws[f'A{current_row}'].font = Font(bold=True)
+        
+        # Calculate totals
+        total_gc = sum(data.get('GC', 0) for data in grouped_summary.values())
+        total_pc = sum(data.get('PC', 0) for data in grouped_summary.values())
+        total_dnc = sum(data.get('DNC', 0) for data in grouped_summary.values())
+        total_na = sum(data.get('NA', 0) for data in grouped_summary.values())
+        total_tests = sum(data.get('total_rules', 0) for data in grouped_summary.values())
+        
+        ws[f'B{current_row}'] = total_tests
+        ws[f'C{current_row}'] = total_gc
+        ws[f'D{current_row}'] = total_pc
+        ws[f'E{current_row}'] = total_dnc
+        ws[f'F{current_row}'] = total_na
+        
+        # Add top border to totals row
+        for col in range(1, 11):
+            ws.cell(row=current_row, column=col).border = Border(top=Side(style='thin'))
+        
+        # Adjust column widths for Section 2
+        ws.column_dimensions['I'].width = 15  # Override Rating
+        ws.column_dimensions['J'].width = 30  # Rationale
+        
+        return current_row + 2
+    
+    def _generate_section3_detailed_analytics(self, ws, results: Dict[str, Any],
+                                            responsible_party_column: str, start_row: int) -> None:
+        """Generate Section 3: Detailed Analytics Section."""
+        from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+        from openpyxl.utils import get_column_letter
+        from openpyxl.comments import Comment
+        
+        # Write section header
+        ws[f'A{start_row}'] = "Detailed Analytics Section"
+        ws[f'A{start_row}'].font = Font(bold=True, size=12)
+        
+        # Create a matrix: Analytics (rows) x Audit Leaders (columns)
+        grouped_summary = results.get('grouped_summary', {})
+        rule_results = results.get('rule_results', {})
+        
+        # Get sorted lists
+        leaders = sorted(grouped_summary.keys())
+        rule_ids = sorted(rule_results.keys())
+        
+        # Column headers: Analytic ID, Name, Severity, then each leader
+        current_row = start_row + 2
+        ws[f'A{current_row}'] = "Analytic ID"
+        ws[f'B{current_row}'] = "Analytic Name"
+        ws[f'C{current_row}'] = "Severity"
+        ws[f'D{current_row}'] = "Error Threshold"
+        
+        # Add leader names as column headers
+        for col_idx, leader in enumerate(leaders, 5):
+            col_letter = get_column_letter(col_idx)
+            ws[f'{col_letter}{current_row}'] = leader
+            ws[f'{col_letter}{current_row}'].alignment = Alignment(horizontal='center', text_rotation=45)
+            ws.column_dimensions[col_letter].width = 12
+        
+        # Style the header row
+        for col in range(1, len(leaders) + 5):
+            cell = ws.cell(row=current_row, column=col)
+            cell.font = Font(bold=True)
+            cell.border = Border(bottom=Side(style='thin'))
+            if col >= 5:  # Leader columns
+                cell.alignment = Alignment(horizontal='center', text_rotation=45)
+        
+        current_row += 1
+        
+        # Process each rule
+        for rule_idx, rule_id in enumerate(rule_ids):
+            rule_result = rule_results[rule_id]
+            
+            # Get rule metadata
+            rule = self.rule_manager.get_rule(rule_id)
+            using_fallback = False
+            
+            if rule:
+                severity = rule.severity if hasattr(rule, 'severity') else 'medium'
+                threshold = rule.threshold if hasattr(rule, 'threshold') else 0.0
+                if not hasattr(rule, 'threshold'):
+                    using_fallback = True
+            else:
+                severity = 'medium'
+                threshold = 0.0  # Default error threshold - safer to show 0% than assume any errors are OK
+                using_fallback = True
+                logger.warning(f"Rule {rule_id} not found in rule manager, using fallback values")
+            
+            # Write rule info
+            ws[f'A{current_row}'] = rule_id
+            ws[f'B{current_row}'] = rule_result.get('rule_name', rule_id)
+            ws[f'C{current_row}'] = severity.capitalize()
+            ws[f'D{current_row}'] = threshold
+            ws[f'D{current_row}'].number_format = '0%'  # Format as percentage
+            
+            # Highlight threshold cell if using fallback
+            if using_fallback:
+                ws[f'D{current_row}'].fill = PatternFill("solid", start_color="FFFF99")  # Yellow
+                ws[f'D{current_row}'].comment = Comment("Using default value - rule metadata not found", "System")
+            
+            # Get party_results if available, otherwise calculate from grouped data
+            party_results = rule_result.get('party_results', {})
+            
+            # Apply alternating row colors FIRST (skipping the leader status columns)
+            if rule_idx % 2 == 1:
+                for col in range(1, 5):  # Only columns A-D (rule info)
+                    ws.cell(row=current_row, column=col).fill = PatternFill("solid", start_color="F0F0F0")
+            
+            # For each leader, determine the compliance status for this rule
+            for col_idx, leader in enumerate(leaders, 5):
+                col_letter = get_column_letter(col_idx)
+                
+                if party_results and leader in party_results:
+                    # Use party_results if available
+                    status = party_results[leader].get('status', 'NA')
+                else:
+                    # Fallback: use overall rule status for all leaders
+                    # This is a simplification when party_results aren't available
+                    status = rule_result.get('compliance_status', 'NA')
+                
+                ws[f'{col_letter}{current_row}'] = status
+                ws[f'{col_letter}{current_row}'].alignment = Alignment(horizontal='center')
+                
+                # Apply color based on status (this will be the final color)
+                cell = ws[f'{col_letter}{current_row}']
+                self._apply_rating_color(cell)
+            
+            current_row += 1
+        
+        # Add note about color coding (moved up since we removed the totals row)
+        current_row += 1
+        ws[f'A{current_row}'] = "Note: GC = Generally Conforms (Green), PC = Partially Conforms (Yellow), DNC = Does Not Conform (Red), NA = Not Applicable (Gray)"
+        ws[f'A{current_row}'].font = Font(italic=True, size=9)
+        ws.merge_cells(f'A{current_row}:J{current_row}')
+    
+    def _extract_fields_from_formula(self, formula: str) -> List[str]:
+        """Extract field names from Excel formula (e.g., [FieldName])"""
+        import re
+        # Find all bracketed field names in the formula
+        fields = re.findall(r'\[([^\]]+)\]', formula)
+        return list(set(fields))  # Remove duplicates
+    
+    def _create_test_tab(self, wb, rule_id: str, rule_result: Dict[str, Any], 
+                        results: Dict[str, Any]) -> None:
+        """Create individual test tab with summary and detailed results."""
+        from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+        from openpyxl.utils import get_column_letter
+        
+        # Load rule metadata
+        rule = self.rule_manager.get_rule(rule_id)
+        if not rule:
+            logger.warning(f"Rule {rule_id} not found, skipping test tab creation")
+            return
+            
+        # Create worksheet with truncated title if necessary
+        title = rule.name[:31] if len(rule.name) > 31 else rule.name
+        ws = wb.create_sheet(title=title)
+        
+        # SECTION 1: Test Header (rows 1-5)
+        ws['A1'] = "Test Name:"
+        ws['B1'] = rule.metadata.get('title', rule.name)
+        ws['A2'] = "Description:"
+        ws['B2'] = rule.description
+        ws['A3'] = "Risk Rating:"
+        ws['B3'] = rule.severity.upper() if hasattr(rule, 'severity') else 'MEDIUM'
+        ws['A4'] = "Population:"
+        ws['B4'] = results.get('data_metrics', {}).get('row_count', 0)
+        ws['B4'].number_format = '#,##0'
+        ws['A5'] = "Error Threshold:"
+        ws['B5'] = rule.threshold if hasattr(rule, 'threshold') else 0.1
+        ws['B5'].number_format = '0%'
+        
+        # Apply header formatting
+        for row in range(1, 6):
+            ws[f'A{row}'].font = Font(bold=True)
+            ws[f'B{row}'].alignment = Alignment(horizontal='left')
+        
+        # SECTION 2: Leader Summary (starting row 7)
+        ws['A7'] = "Audit Leader Summary"
+        ws['A7'].font = Font(bold=True, size=12)
+        
+        # Leader summary column headers
+        headers = ["Audit Leader", "Items Tested", "GC", "PC", "DNC", "NA", 
+                   "Compliance Rate", "Status"]
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=8, column=col, value=header)
+            cell.font = Font(bold=True)
+            cell.alignment = Alignment(horizontal='center')
+            cell.border = Border(bottom=Side(style='thin'))
+        
+        # Process leader results from party_results if available
+        current_row = 9
+        party_results = rule_result.get('party_results', {})
+        
+        # Calculate counts from detailed results if available
+        leader_counts = {}
+        if '_result_details' in rule_result and rule_result['_result_details']:
+            result_details_df = pd.DataFrame(rule_result['_result_details'])
+            result_column = rule_result.get('_result_column', f"Result_{rule.name}")
+            leader_column = rule.metadata.get('responsible_party_column', 'AuditLeader')
+            
+            if leader_column in result_details_df.columns and result_column in result_details_df.columns:
+                for leader in result_details_df[leader_column].unique():
+                    leader_df = result_details_df[result_details_df[leader_column] == leader]
+                    
+                    # Count statuses after boolean conversion
+                    status_counts = {'GC': 0, 'PC': 0, 'DNC': 0, 'NA': 0}
+                    for _, row in leader_df.iterrows():
+                        raw_status = row.get(result_column, 'NA')
+                        if isinstance(raw_status, bool) or str(raw_status).upper() in ['TRUE', 'FALSE']:
+                            status = 'GC' if str(raw_status).upper() == 'TRUE' or raw_status is True else 'DNC'
+                        else:
+                            status = str(raw_status) if raw_status in ['GC', 'PC', 'DNC', 'NA'] else 'NA'
+                        status_counts[status] = status_counts.get(status, 0) + 1
+                    
+                    leader_counts[leader] = {
+                        'gc_count': status_counts['GC'],
+                        'pc_count': status_counts['PC'],
+                        'dnc_count': status_counts['DNC'],
+                        'na_count': status_counts['NA'],
+                        'total_count': len(leader_df)
+                    }
+        
+        if party_results:
+            for leader_name in sorted(party_results.keys()):
+                leader_data = party_results[leader_name]
+                
+                ws[f'A{current_row}'] = leader_name
+                
+                # Get counts from leader data, with fallback to calculated counts
+                if leader_name in leader_counts:
+                    gc_count = leader_counts[leader_name]['gc_count']
+                    pc_count = leader_counts[leader_name]['pc_count']
+                    dnc_count = leader_counts[leader_name]['dnc_count']
+                    na_count = leader_counts[leader_name]['na_count']
+                    total_items = leader_counts[leader_name]['total_count']
+                else:
+                    gc_count = leader_data.get('gc_count', 0)
+                    pc_count = leader_data.get('pc_count', 0)
+                    dnc_count = leader_data.get('dnc_count', 0)
+                    na_count = leader_data.get('na_count', 0)
+                    total_items = leader_data.get('total_count', gc_count + pc_count + dnc_count + na_count)
+                
+                ws[f'B{current_row}'] = total_items
+                ws[f'C{current_row}'] = gc_count
+                ws[f'D{current_row}'] = pc_count
+                ws[f'E{current_row}'] = dnc_count
+                ws[f'F{current_row}'] = na_count
+                
+                # Calculate compliance rate (GC / (GC + PC + DNC))
+                total_applicable = gc_count + pc_count + dnc_count
+                if total_applicable > 0:
+                    compliance_rate = gc_count / total_applicable
+                    ws[f'G{current_row}'] = compliance_rate
+                    ws[f'G{current_row}'].number_format = '0.0%'
+                else:
+                    ws[f'G{current_row}'] = "N/A"
+                
+                # Status
+                status = leader_data.get('status', 'NA')
+                ws[f'H{current_row}'] = status
+                ws[f'H{current_row}'].alignment = Alignment(horizontal='center')
+                self._apply_rating_color(ws[f'H{current_row}'])
+                
+                current_row += 1
+        else:
+            # No party results - show overall summary
+            ws[f'A{current_row}'] = "All Leaders (Combined)"
+            ws[f'B{current_row}'] = rule_result.get('total_items', 0)
+            ws[f'C{current_row}'] = rule_result.get('gc_count', 0)
+            ws[f'D{current_row}'] = rule_result.get('pc_count', 0)
+            ws[f'E{current_row}'] = rule_result.get('dnc_count', 0)
+            ws[f'F{current_row}'] = 0  # NA count
+            
+            # Compliance rate
+            if rule_result.get('total_items', 0) > 0:
+                ws[f'G{current_row}'] = rule_result.get('compliance_rate', 0)
+                ws[f'G{current_row}'].number_format = '0.0%'
+            else:
+                ws[f'G{current_row}'] = "N/A"
+            
+            ws[f'H{current_row}'] = rule_result.get('compliance_status', 'NA')
+            self._apply_rating_color(ws[f'H{current_row}'])
+            current_row += 1
+        
+        # SECTION 3: Detailed Results (starting ~row 15 or after summary)
+        detail_start_row = current_row + 3
+        ws[f'A{detail_start_row}'] = "Detailed Test Results (100% Population Coverage)"
+        ws[f'A{detail_start_row}'].font = Font(bold=True, size=12)
+        
+        # Parse formula to determine which fields to display
+        formula_fields = self._extract_fields_from_formula(rule.formula)
+        
+        # Detail section headers
+        detail_headers = ["Item ID", "Audit Leader"] + formula_fields + \
+                        ["Status", "Failure Reason", "Internal Notes", "Audit Leader Response"]
+        
+        header_row = detail_start_row + 1
+        for col, header in enumerate(detail_headers, 1):
+            cell = ws.cell(row=header_row, column=col, value=header)
+            cell.font = Font(bold=True)
+            cell.alignment = Alignment(horizontal='center')
+            cell.border = Border(bottom=Side(style='thin'))
+        
+        # Get detailed results if available
+        detail_row = header_row + 1
+        
+        # Check if we have detailed results stored
+        if '_result_details' in rule_result and rule_result['_result_details']:
+            # Convert back to DataFrame for processing
+            result_df = pd.DataFrame(rule_result['_result_details'])
+            result_column = rule_result.get('_result_column', f"Result_{rule.name}")
+            
+            # Sort by status: DNC first, then PC, then GC
+            status_order = {'DNC': 0, 'PC': 1, 'GC': 2, 'NA': 3}
+            if result_column in result_df.columns:
+                result_df['_sort_order'] = result_df[result_column].map(status_order).fillna(4)
+                result_df = result_df.sort_values('_sort_order')
+                
+                # Write each row
+                for idx, row in result_df.iterrows():
+                    col_idx = 1
+                    # Item ID
+                    ws.cell(row=detail_row, column=col_idx, value=row.get('AuditEntityID', idx))
+                    col_idx += 1
+                    
+                    # Audit Leader
+                    ws.cell(row=detail_row, column=col_idx, value=row.get(rule.metadata.get('responsible_party_column', 'AuditLeader'), ''))
+                    col_idx += 1
+                    
+                    # Formula field values
+                    for field in formula_fields:
+                        field_value = row.get(field, '')
+                        # Handle NaT (Not a Time) values
+                        if pd.isna(field_value) or str(field_value) == 'NaT':
+                            field_value = ''
+                        ws.cell(row=detail_row, column=col_idx, value=field_value)
+                        col_idx += 1
+                    
+                    # Status - convert boolean to GC/DNC
+                    raw_status = row.get(result_column, 'NA')
+                    if isinstance(raw_status, bool) or str(raw_status).upper() in ['TRUE', 'FALSE']:
+                        # Convert boolean to compliance status
+                        if str(raw_status).upper() == 'TRUE' or raw_status is True:
+                            status = 'GC'
+                        else:
+                            status = 'DNC'
+                    else:
+                        # Already a compliance status or NA
+                        status = raw_status
+                    
+                    status_cell = ws.cell(row=detail_row, column=col_idx, value=status)
+                    self._apply_rating_color(status_cell)
+                    status_cell.alignment = Alignment(horizontal='center')
+                    col_idx += 1
+                    
+                    # Failure reason (populate for DNC/PC items)
+                    if status in ['DNC', 'PC']:
+                        ws.cell(row=detail_row, column=col_idx, 
+                               value=rule.metadata.get('error_message', 'Does not meet requirements'))
+                    col_idx += 1
+                    
+                    # Leave Internal Notes and Audit Leader Response blank
+                    # These are for manual entry
+                    
+                    detail_row += 1
+                    
+                # Clean up sort column
+                if '_sort_order' in result_df.columns:
+                    result_df.drop('_sort_order', axis=1, inplace=True)
+        else:
+            # No detailed results available yet
+            ws[f'A{detail_row}'] = "Note: Detailed item-level results will be available when result_df is stored during validation"
+            ws[f'A{detail_row}'].font = Font(italic=True, color="666666")
+            ws.merge_cells(f'A{detail_row}:D{detail_row}')
+        
+        # Apply column widths
+        ws.column_dimensions['A'].width = 20
+        ws.column_dimensions['B'].width = 25
+        for col in range(3, len(detail_headers) + 1):
+            ws.column_dimensions[get_column_letter(col)].width = 15
+    
+    def _create_guide_tab_content(self, ws):
+        """Add guide content to the provided worksheet."""
+        from openpyxl.styles import Font, Alignment, PatternFill
+        from openpyxl.utils import get_column_letter
+        
+        # Title
+        ws['A1'] = "HOW TO READ THIS REPORT"
+        ws['A1'].font = Font(bold=True, size=16)
+        ws.merge_cells('A1:F1')
+        
+        # Status Meanings Section
+        row = 3
+        ws[f'A{row}'] = "STATUS MEANINGS"
+        ws[f'A{row}'].font = Font(bold=True, size=14)
+        row += 2
+        
+        status_meanings = [
+            ("GC (Generally Conforms)", "PASS", "The item met all validation criteria", "90EE90"),
+            ("PC (Partially Conforms)", "PARTIAL", "The item had minor issues", "FFFF99"),
+            ("DNC (Does Not Conform)", "FAIL", "The item failed validation criteria", "FF6B6B"),
+            ("NA (Not Applicable)", "N/A", "The test didn't apply to this item", "D3D3D3")
+        ]
+        
+        for status, result, description, color in status_meanings:
+            ws[f'A{row}'] = status
+            ws[f'B{row}'] = f"({result})"  # Changed from "= {result}" to avoid Excel formula
+            ws[f'C{row}'] = f"- {description}"
+            ws[f'A{row}'].fill = PatternFill("solid", start_color=color)
+            ws[f'A{row}'].font = Font(bold=True)
+            ws.merge_cells(f'C{row}:F{row}')
+            row += 1
+        
+        # Report Sections
+        row += 2
+        ws[f'A{row}'] = "REPORT SECTIONS"
+        ws[f'A{row}'].font = Font(bold=True, size=14)
+        row += 2
+        
+        ws[f'A{row}'] = "1. IAG Summary Report Tab"
+        ws[f'A{row}'].font = Font(bold=True)
+        row += 1
+        
+        sections = [
+            "   • Section 1: Overall department compliance score",
+            "   • Section 2: Individual audit leader scores",
+            "   • Section 3: Matrix showing which leaders passed which tests"
+        ]
+        
+        for section in sections:
+            ws[f'A{row}'] = section
+            ws.merge_cells(f'A{row}:F{row}')
+            row += 1
+        
+        row += 1
+        ws[f'A{row}'] = "2. Individual Test Tabs"
+        ws[f'A{row}'].font = Font(bold=True)
+        row += 1
+        
+        tab_sections = [
+            "   • Header: What this test checks",
+            "   • Summary: How each leader performed",
+            "   • Details: Every item tested (failures shown first)",
+            "   • Response Columns: For documenting remediation actions"
+        ]
+        
+        for section in tab_sections:
+            ws[f'A{row}'] = section
+            ws.merge_cells(f'A{row}:F{row}')
+            row += 1
+        
+        # What to Do
+        row += 2
+        ws[f'A{row}'] = "WHAT TO DO"
+        ws[f'A{row}'].font = Font(bold=True, size=14)
+        row += 2
+        
+        actions = [
+            "1. Review your compliance score in Section 2 of the IAG Summary",
+            "2. Check individual test tabs for your failures (sorted to top)",
+            "3. Document your remediation plan in the \"Audit Leader Response\" column",
+            "4. Save and return the file by [due date]"
+        ]
+        
+        for action in actions:
+            ws[f'A{row}'] = action
+            ws.merge_cells(f'A{row}:F{row}')
+            row += 1
+        
+        # How Compliance Scores Are Calculated
+        row += 2
+        ws[f'A{row}'] = "HOW COMPLIANCE SCORES ARE CALCULATED"
+        ws[f'A{row}'].font = Font(bold=True, size=14)
+        row += 2
+        
+        ws[f'A{row}'] = "Basic Scoring:"
+        ws[f'A{row}'].font = Font(bold=True)
+        row += 1
+        
+        ws[f'A{row}'] = "Each test result receives points based on compliance level:"
+        ws.merge_cells(f'A{row}:F{row}')
+        row += 1
+        
+        scoring_rules = [
+            "• GC (Generally Conforms/Pass) = 5 points",
+            "• PC (Partially Conforms) = 3 points",
+            "• DNC (Does Not Conform/Fail) = 1 point",
+            "• NA (Not Applicable) = 0 points"
+        ]
+        
+        for rule in scoring_rules:
+            ws[f'A{row}'] = rule
+            ws.merge_cells(f'A{row}:F{row}')
+            row += 1
+        
+        row += 1
+        ws[f'A{row}'] = "Compliance Rate = Total Points Earned ÷ Maximum Possible Points"
+        ws[f'A{row}'].font = Font(bold=True)
+        ws.merge_cells(f'A{row}:F{row}')
+        
+        # Example
+        row += 2
+        ws[f'A{row}'] = "Example:"
+        ws[f'A{row}'].font = Font(bold=True)
+        row += 1
+        
+        example_text = [
+            "If you have 3 tests with results: GC, PC, DNC",
+            "• Points earned: 5 + 3 + 1 = 9 points",
+            "• Maximum possible: 3 tests × 5 points = 15 points",
+            "• Compliance rate: 9 ÷ 15 = 60%"
+        ]
+        
+        for text in example_text:
+            ws[f'A{row}'] = text
+            ws.merge_cells(f'A{row}:F{row}')
+            row += 1
+        
+        # Risk-Based Weighting
+        row += 2
+        ws[f'A{row}'] = "Risk-Based Weighting:"
+        ws[f'A{row}'].font = Font(bold=True)
+        row += 1
+        
+        ws[f'A{row}'] = "Critical tests count more than routine tests:"
+        ws.merge_cells(f'A{row}:F{row}')
+        row += 1
+        
+        weighting_rules = [
+            "• Critical Risk Tests: Count 3x (triple weight)",
+            "• High Risk Tests: Count 2x (double weight)",
+            "• Medium/Low Risk Tests: Count 1x (normal weight)"
+        ]
+        
+        for rule in weighting_rules:
+            ws[f'A{row}'] = rule
+            ws.merge_cells(f'A{row}:F{row}')
+            row += 1
+        
+        # Weighted Example
+        row += 2
+        ws[f'A{row}'] = "Example with Risk Weighting:"
+        ws[f'A{row}'].font = Font(bold=True)
+        row += 1
+        
+        weighted_example = [
+            "• Critical test (DNC): 1 point × 3 = 3 weighted points",
+            "• High test (GC): 5 points × 2 = 10 weighted points",
+            "• Medium test (GC): 5 points × 1 = 5 weighted points",
+            "Total: 18 points out of possible 40 = 45%"
+        ]
+        
+        for text in weighted_example:
+            ws[f'A{row}'] = text
+            ws.merge_cells(f'A{row}:F{row}')
+            row += 1
+        
+        # Overall Ratings
+        row += 2
+        ws[f'A{row}'] = "Overall Ratings:"
+        ws[f'A{row}'].font = Font(bold=True)
+        row += 1
+        
+        rating_thresholds = [
+            "• GC Rating: 80% or higher",
+            "• PC Rating: 50% to 79%",
+            "• DNC Rating: Below 50%"
+        ]
+        
+        for threshold in rating_thresholds:
+            ws[f'A{row}'] = threshold
+            ws.merge_cells(f'A{row}:F{row}')
+            row += 1
+        
+        # Set column widths for readability
+        ws.column_dimensions['A'].width = 50
+        ws.column_dimensions['B'].width = 15
+        ws.column_dimensions['C'].width = 50
+    
+    def _create_guide_tab(self, wb):
+        """Create a Guide tab with instructions on how to read the report."""
+        ws = wb.create_sheet(title="Guide")
+        self._create_guide_tab_content(ws)
+    
+    def split_report_by_leader(self, master_file_path: str, output_dir: Optional[str] = None) -> Dict[str, str]:
+        """
+        Split master Excel report into individual files for each audit leader.
+        
+        Args:
+            master_file_path: Path to the master Excel report
+            output_dir: Directory to save leader files (defaults to same dir as master)
+            
+        Returns:
+            Dictionary mapping leader names to their file paths
+        """
+        from openpyxl import load_workbook, Workbook
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+        from openpyxl.utils import get_column_letter
+        import datetime
+        import os
+        
+        # Load the master workbook
+        logger.info(f"Loading master report from {master_file_path}")
+        master_wb = load_workbook(master_file_path, data_only=False)
+        
+        # Determine output directory
+        if output_dir is None:
+            output_dir = os.path.dirname(master_file_path)
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Get list of audit leaders from Section 2 of IAG Summary Report
+        summary_ws = master_wb['IAG Summary Report']
+        leaders = []
+        
+        # Find Section 2 header
+        section2_row = None
+        for row in range(1, 50):
+            if summary_ws[f'A{row}'].value == "Audit Leader Overall Results and Ratings":
+                section2_row = row
+                break
+        
+        if not section2_row:
+            raise ValueError("Could not find Section 2 in IAG Summary Report")
+        
+        # Find Section 3 to know where Section 2 ends
+        section3_row = None
+        for row in range(section2_row + 1, summary_ws.max_row + 1):
+            if summary_ws[f'A{row}'].value == "Detailed Analytics Section":
+                section3_row = row
+                break
+        
+        # Extract leader names (skip header row and totals row)
+        leader_start_row = section2_row + 2
+        end_row = section3_row - 1 if section3_row else summary_ws.max_row
+        
+        for row in range(leader_start_row, end_row):
+            leader_name = summary_ws[f'A{row}'].value
+            if leader_name and leader_name not in ["Totals", "TOTALS", None, ""]:
+                # Additional check - make sure this looks like a leader row by checking if there's data
+                if summary_ws[f'B{row}'].value is not None:  # Total Tests column should have data
+                    leaders.append(leader_name)
+        
+        logger.info(f"Found {len(leaders)} audit leaders: {leaders}")
+        
+        # Create timestamp for filenames
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # Create individual files for each leader
+        leader_files = {}
+        
+        for leader in leaders:
+            logger.info(f"Creating report for {leader}")
+            
+            # Create new workbook for this leader
+            leader_wb = Workbook()
+            
+            # Remove default sheet (we'll create Guide as the first)
+            default_sheet = leader_wb.active
+            
+            # 1. Copy Guide tab as first tab
+            self._copy_guide_tab(master_wb, leader_wb)
+            
+            # Now remove the default sheet
+            leader_wb.remove(default_sheet)
+            
+            # 2. Copy IAG Summary Report with filtered data
+            self._copy_iag_summary_for_leader(master_wb, leader_wb, leader)
+            
+            # 3. Copy only test tabs where this leader has results
+            self._copy_test_tabs_for_leader(master_wb, leader_wb, leader)
+            
+            # Save the leader's file
+            safe_leader_name = leader.replace(' ', '_').replace('/', '_')
+            filename = f"QA_Results_{safe_leader_name}_{timestamp}.xlsx"
+            filepath = os.path.join(output_dir, filename)
+            
+            leader_wb.save(filepath)
+            leader_files[leader] = filepath
+            logger.info(f"Saved report for {leader} to {filepath}")
+        
+        return leader_files
+    
+    def _copy_iag_summary_for_leader(self, master_wb, leader_wb, leader: str):
+        """Copy IAG Summary Report with only this leader's data."""
+        from openpyxl.utils import get_column_letter
+        from copy import copy
+        
+        master_ws = master_wb['IAG Summary Report']
+        leader_ws = leader_wb.create_sheet('IAG Summary Report')
+        
+        # Find key sections
+        section1_row = section2_row = section3_row = None
+        for row in range(1, 100):
+            cell_value = master_ws[f'A{row}'].value
+            if cell_value == "IAG Overall Results and Rating":
+                section1_row = row
+            elif cell_value == "Audit Leader Overall Results and Ratings":
+                section2_row = row
+            elif cell_value == "Detailed Analytics Section":
+                section3_row = row
+        
+        # Copy Section 1 as-is (overall department data)
+        if section1_row and section2_row:
+            self._copy_range(master_ws, leader_ws, 1, section2_row - 1)
+        
+        # Copy Section 2 header and only this leader's row
+        if section2_row and section3_row:
+            # Copy header rows
+            self._copy_range(master_ws, leader_ws, section2_row, section2_row + 1)
+            
+            # Find and copy only this leader's row
+            for row in range(section2_row + 2, section3_row):
+                if master_ws[f'A{row}'].value == leader:
+                    # Calculate destination row (header + 1 data row)
+                    dest_row = section2_row + 2
+                    self._copy_row(master_ws, leader_ws, row, dest_row)
+                    break
+        
+        # Copy Section 3 with only this leader's column
+        if section3_row:
+            # First find which column belongs to this leader
+            leader_col = None
+            header_row = section3_row + 1
+            
+            for col in range(2, master_ws.max_column + 1):
+                if master_ws.cell(row=header_row, column=col).value == leader:
+                    leader_col = col
+                    break
+            
+            if leader_col:
+                # Copy section header
+                self._copy_row(master_ws, leader_ws, section3_row, section3_row)
+                
+                # Copy header row with only first column and leader's column
+                dest_row = section3_row + 1
+                # Copy row headers (column A)
+                self._copy_cell(master_ws, leader_ws, dest_row, 1, dest_row, 1)
+                # Copy leader's header
+                self._copy_cell(master_ws, leader_ws, dest_row, leader_col, dest_row, 2)
+                
+                # Copy data rows with only the leader's data
+                for row in range(section3_row + 2, master_ws.max_row + 1):
+                    if master_ws[f'A{row}'].value:  # If there's a row header
+                        # Copy the row header
+                        self._copy_cell(master_ws, leader_ws, row, 1, row, 1)
+                        # Copy the leader's data
+                        self._copy_cell(master_ws, leader_ws, row, leader_col, row, 2)
+        
+        # Apply column widths
+        self._apply_column_widths(leader_ws)
+    
+    def _copy_test_tabs_for_leader(self, master_wb, leader_wb, leader: str):
+        """Copy only test tabs where this leader has results."""
+        from openpyxl.utils import get_column_letter
+        
+        # Get all sheet names except IAG Summary and Guide
+        test_sheets = [name for name in master_wb.sheetnames 
+                      if name not in ['IAG Summary Report', 'Guide']]
+        
+        for sheet_name in test_sheets:
+            master_ws = master_wb[sheet_name]
+            
+            # Check if this leader has data in this test
+            has_leader_data = False
+            
+            # Look for leader in the Audit Leader Summary section
+            for row in range(1, min(30, master_ws.max_row + 1)):
+                if master_ws[f'A{row}'].value == "Audit Leader Summary":
+                    # Check the data rows below
+                    for data_row in range(row + 2, min(row + 20, master_ws.max_row + 1)):
+                        if master_ws[f'A{data_row}'].value == leader:
+                            has_leader_data = True
+                            break
+                    break
+            
+            if has_leader_data:
+                logger.debug(f"Including test tab '{sheet_name}' for {leader}")
+                leader_ws = leader_wb.create_sheet(sheet_name)
+                
+                # Copy header section (rows 1-5)
+                self._copy_range(master_ws, leader_ws, 1, 5)
+                
+                # Find and copy Audit Leader Summary section with only this leader
+                for row in range(6, 30):
+                    if master_ws[f'A{row}'].value == "Audit Leader Summary":
+                        # Copy section header and column headers
+                        self._copy_range(master_ws, leader_ws, row, row + 1)
+                        
+                        # Find and copy only this leader's row
+                        for data_row in range(row + 2, row + 20):
+                            if master_ws[f'A{data_row}'].value == leader:
+                                dest_row = row + 2
+                                self._copy_row(master_ws, leader_ws, data_row, dest_row)
+                                break
+                        
+                        # Find detailed results section
+                        detail_start = None
+                        for detail_row in range(row + 3, master_ws.max_row + 1):
+                            cell_val = master_ws[f'A{detail_row}'].value
+                            if cell_val and "Detailed Test Results" in str(cell_val):
+                                detail_start = detail_row
+                                break
+                        
+                        if detail_start:
+                            # Copy detail section header
+                            self._copy_row(master_ws, leader_ws, detail_start, detail_start)
+                            self._copy_row(master_ws, leader_ws, detail_start + 1, detail_start + 1)
+                            
+                            # Copy only this leader's detailed results
+                            dest_detail_row = detail_start + 2
+                            for src_row in range(detail_start + 2, master_ws.max_row + 1):
+                                # Check if this row belongs to the leader (column B)
+                                if master_ws[f'B{src_row}'].value == leader:
+                                    self._copy_row(master_ws, leader_ws, src_row, dest_detail_row)
+                                    dest_detail_row += 1
+                        break
+                
+                # Apply column widths
+                leader_ws.column_dimensions['A'].width = 20
+                leader_ws.column_dimensions['B'].width = 25
+                for col in range(3, 10):
+                    leader_ws.column_dimensions[get_column_letter(col)].width = 15
+    
+    def _copy_guide_tab(self, master_wb, leader_wb):
+        """Copy the Guide tab as-is."""
+        if 'Guide' in master_wb.sheetnames:
+            master_ws = master_wb['Guide']
+            leader_ws = leader_wb.create_sheet('Guide')
+            
+            # Copy all content
+            for row in range(1, master_ws.max_row + 1):
+                for col in range(1, master_ws.max_column + 1):
+                    self._copy_cell(master_ws, leader_ws, row, col, row, col)
+            
+            # Copy column widths
+            for col_letter in ['A', 'B', 'C', 'D', 'E', 'F']:
+                if col_letter in master_ws.column_dimensions:
+                    leader_ws.column_dimensions[col_letter].width = master_ws.column_dimensions[col_letter].width
+    
+    def _copy_range(self, source_ws, dest_ws, start_row: int, end_row: int):
+        """Copy a range of rows from source to destination worksheet."""
+        for row in range(start_row, end_row + 1):
+            self._copy_row(source_ws, dest_ws, row, row)
+    
+    def _copy_row(self, source_ws, dest_ws, source_row: int, dest_row: int):
+        """Copy entire row from source to destination worksheet."""
+        for col in range(1, source_ws.max_column + 1):
+            self._copy_cell(source_ws, dest_ws, source_row, col, dest_row, col)
+    
+    def _copy_cell(self, source_ws, dest_ws, source_row: int, source_col: int, 
+                   dest_row: int, dest_col: int):
+        """Copy a single cell with value and formatting."""
+        from copy import copy
+        from openpyxl.utils import get_column_letter
+        
+        source_cell = source_ws.cell(row=source_row, column=source_col)
+        dest_cell = dest_ws.cell(row=dest_row, column=dest_col)
+        
+        # Check if this cell is part of a merged range in the source
+        for merged_range in source_ws.merged_cells.ranges:
+            if source_cell.coordinate in merged_range:
+                # This cell is part of a merged range
+                if source_row == merged_range.min_row and source_col == merged_range.min_col:
+                    # This is the top-left cell of the merge - copy value and create merge
+                    dest_cell.value = source_cell.value
+                    
+                    # Calculate destination merge range
+                    dest_min_row = dest_row
+                    dest_max_row = dest_row + (merged_range.max_row - merged_range.min_row)
+                    dest_min_col = dest_col
+                    dest_max_col = dest_col + (merged_range.max_col - merged_range.min_col)
+                    
+                    merge_range = f"{get_column_letter(dest_min_col)}{dest_min_row}:{get_column_letter(dest_max_col)}{dest_max_row}"
+                    try:
+                        dest_ws.merge_cells(merge_range)
+                    except:
+                        pass  # Already merged
+                # For other cells in the merge, don't copy value (handled by merge)
+                break
+        else:
+            # Not part of a merged range - copy value normally
+            try:
+                dest_cell.value = source_cell.value
+            except AttributeError:
+                # In case it's still a MergedCell, skip value copy
+                pass
+        
+        # Copy formatting (always copy, even for merged cells)
+        if source_cell.has_style:
+            dest_cell.font = copy(source_cell.font)
+            dest_cell.fill = copy(source_cell.fill)
+            dest_cell.border = copy(source_cell.border)
+            dest_cell.alignment = copy(source_cell.alignment)
+            dest_cell.number_format = source_cell.number_format
+    
+    def generate_and_split_reports(self, validation_results_path: str, 
+                                  output_dir: Optional[str] = None,
+                                  master_filename: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Generate master report and split into individual leader files in one operation.
+        
+        Args:
+            validation_results_path: Path to validation results JSON file
+            output_dir: Directory for all output files (defaults to output/)
+            master_filename: Name for master file (defaults to QA_Master_Report_[timestamp].xlsx)
+            
+        Returns:
+            Dictionary with:
+                - master_path: Path to master report
+                - leader_files: Dict mapping leader names to their file paths
+        """
+        import datetime
+        import os
+        
+        # Set output directory
+        if output_dir is None:
+            output_dir = str(self.output_dir)
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Generate master report
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        if master_filename is None:
+            master_filename = f"QA_Master_Report_{timestamp}.xlsx"
+        
+        master_path = os.path.join(output_dir, master_filename)
+        self.generate_excel_report(validation_results_path, master_path)
+        
+        # Create subdirectory for leader files
+        leader_dir = os.path.join(output_dir, f"leader_reports_{timestamp}")
+        os.makedirs(leader_dir, exist_ok=True)
+        
+        # Split into leader files
+        leader_files = self.split_report_by_leader(master_path, leader_dir)
+        
+        logger.info(f"Master report: {master_path}")
+        logger.info(f"Leader files: {leader_dir}")
+        
+        return {
+            'master_path': master_path,
+            'leader_files': leader_files,
+            'output_dir': output_dir,
+            'leader_dir': leader_dir,
+            'timestamp': timestamp
+        }
