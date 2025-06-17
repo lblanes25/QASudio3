@@ -1,11 +1,12 @@
 {
-  "window_geometry": "AdnQywADAAAAAAmVAAAAAAAADkQAAAQGAAAJlQAAAB8AAA5EAAAEBgAAAAEAAAAAB4AAAAmVAAAAHwAADkQAAAQG",
+  "window_geometry": "AdnQywADAAAAAAIVAAAAAAAABsQAAAQGAAACFQAAAB8AAAbEAAAEBgAAAAAAAAAAB4AAAAIVAAAAHwAABsQAAAQG",
   "splitter_state": "AAAA/wAAAAEAAAACAAAB8QAAAqcB/////wEAAAABAA==",
-  "active_mode": 1,
+  "active_mode": 0,
   "last_data_directory": "C:\\Users\\luria\\PycharmProjects\\QAStudiov3\\tests",
   "last_output_directory": "./output",
   "recent_files": [
     "C:\\Users\\luria\\PycharmProjects\\QAStudiov3\\tests\\business_monitoring_dummy_data.xlsx",
+    "C:\\Users\\luria\\PycharmProjects\\QAStudiov3\\lookup_test_data\\audit_data.xlsx",
     "C:\\Users\\luria\\PycharmProjects\\AuditQAStudio2\\test_data\\audit_workpapers_2025Q2.xlsx"
   ],
   "recent_rule_sets": [],

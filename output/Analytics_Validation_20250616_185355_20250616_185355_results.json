@@ -1,0 +1,35 @@
+{
+  "status": "FAILED",
+  "timestamp": "2025-06-16T18:53:55.120632",
+  "summary": {
+    "total_rules": 0,
+    "passed_rules": 0,
+    "failed_rules": 0,
+    "skipped_rules": 0,
+    "compliance_counts": {},
+    "compliance_rate": 0.0
+  },
+  "rule_results": {},
+  "execution_time": 0.124511,
+  "data_source": "business_monitoring_dummy_data.xlsx",
+  "responsible_party_column": "AuditLeader",
+  "output_files": [],
+  "errors": [
+    {
+      "type": "ValidationError",
+      "message": "'ValidationRule' object has no attribute 'id'"
+    }
+  ],
+  "valid": false,
+  "analytic_id": "Analytics_Validation_20250616_185355",
+  "data_metrics": {
+    "row_count": 0,
+    "column_count": 0,
+    "columns": [],
+    "total_unique_entities": 0
+  },
+  "schema_validation": {
+    "valid": true,
+    "errors": []
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "file_analyzed": "output/Analytics_Validation_20250617_150810_20250617_150812_results.json",
+  "has_rule_results": true,
+  "rule_count": 4,
+  "has_raw_results": true,
+  "status": "NON_COMPLIANT",
+  "summary": {
+    "total_rules": 4,
+    "compliance_counts": {
+      "GC": 0,
+      "PC": 0,
+      "DNC": 4,
+      "NA": 0
+    },
+    "compliance_rate": 0.0,
+    "rule_stats": {
+      "by_category": {
+        "data_quality": {
+          "count": 3,
+          "GC": 0,
+          "PC": 0,
+          "DNC": 3,
+          "NA": 0
+        },
+        "compliance": {
+          "count": 1,
+          "GC": 0,
+          "PC": 0,
+          "DNC": 1,
+          "NA": 0
+        }
+      },
+      "by_severity": {
+        "medium": {
+          "count": 2,
+          "GC": 0,
+          "PC": 0,
+          "DNC": 2,
+          "NA": 0
+        },
+        "high": {
+          "count": 2,
+          "GC": 0,
+          "PC": 0,
+          "DNC": 2,
+          "NA": 0
+        }
+      }
+    }
+  }
+}

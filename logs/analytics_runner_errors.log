@@ -3454,3 +3454,62 @@ AttributeError: 'DynamicIndividualTemplateProcessorV5' object has no attribute '
 2025-06-16 14:37:32,667 - ui.common.error_handler - CRITICAL - RuntimeError: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
 2025-06-16 14:37:33,649 - __main__ - ERROR - ERROR: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
 2025-06-16 14:37:34,120 - __main__ - ERROR - ERROR: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-17 13:53:44,522 - ExcelFormulaProcessor - ERROR - [Session 5fd2947a] Error setting formula '=LOOKUP(AuditLeader, 'hr_data', 'Title') = 'Audit Manager'': (-2147352567, 'Exception occurred.', (0, None, None, None, 0, -2146827284), None)
+2025-06-17 13:54:37,311 - services.validation_service - ERROR - Error evaluating rule 1a57a653-28da-421a-8782-1fc19843538c: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 13:54:37,311 - services.validation_service - ERROR - Error evaluating rule QA-ID-1: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 13:54:37,311 - services.validation_service - ERROR - Error evaluating rule QA-ID-2: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 13:54:37,312 - services.validation_service - ERROR - Error evaluating rule QA-ID-3: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 13:54:37,312 - services.validation_service - ERROR - Error evaluating rule QA-ID-4: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 13:54:37,312 - services.validation_service - ERROR - Error evaluating rule QA-ID-5: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 13:54:37,312 - services.validation_service - ERROR - Error evaluating rule QA-ID-6: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 13:54:37,312 - services.validation_service - ERROR - Error evaluating rule QA-ID-7: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:03:07,542 - services.validation_service - ERROR - Error evaluating rule 1a57a653-28da-421a-8782-1fc19843538c: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:03:07,543 - services.validation_service - ERROR - Error evaluating rule QA-ID-1: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:03:07,543 - services.validation_service - ERROR - Error evaluating rule QA-ID-2: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:03:07,543 - services.validation_service - ERROR - Error evaluating rule QA-ID-3: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:03:07,543 - services.validation_service - ERROR - Error evaluating rule QA-ID-4: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:03:07,543 - services.validation_service - ERROR - Error evaluating rule QA-ID-5: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:03:07,543 - services.validation_service - ERROR - Error evaluating rule QA-ID-6: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:03:07,543 - services.validation_service - ERROR - Error evaluating rule QA-ID-7: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:35:47,180 - services.validation_service - ERROR - Error evaluating rule 1a57a653-28da-421a-8782-1fc19843538c: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:35:47,181 - services.validation_service - ERROR - Error evaluating rule QA-ID-1: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:35:47,181 - services.validation_service - ERROR - Error evaluating rule QA-ID-2: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:35:47,181 - services.validation_service - ERROR - Error evaluating rule QA-ID-3: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:35:47,181 - services.validation_service - ERROR - Error evaluating rule QA-ID-4: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:35:47,181 - services.validation_service - ERROR - Error evaluating rule QA-ID-5: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:35:47,181 - services.validation_service - ERROR - Error evaluating rule QA-ID-6: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:35:47,181 - services.validation_service - ERROR - Error evaluating rule QA-ID-7: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:35:47,181 - services.validation_service - ERROR - Error evaluating rule test_lookup_001: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 15:08:11,768 - services.validation_service - ERROR - Error evaluating rule QA-ID-1: Rule validation failed: Formula references non-existent columns: DateActivityOccurred
+2025-06-17 15:08:11,768 - services.validation_service - ERROR - Error evaluating rule QA-ID-2: Rule validation failed: Formula references non-existent columns: Attendees
+2025-06-17 15:08:11,768 - services.validation_service - ERROR - Error evaluating rule QA-ID-3: Rule validation failed: Formula references non-existent columns: SummaryOfResults
+2025-06-17 15:08:11,768 - services.validation_service - ERROR - Error evaluating rule QA-ID-4: Rule validation failed: Formula references non-existent columns: WasADataDrivenAuditingProcedureUtilized
+2025-06-17 15:08:11,768 - services.validation_service - ERROR - Error evaluating rule QA-ID-5: Rule validation failed: Formula references non-existent columns: WasADataDrivenAuditingProcedureUtilized, DDAPTypeUtilized
+2025-06-17 15:08:11,768 - services.validation_service - ERROR - Error evaluating rule QA-ID-6: Rule validation failed: Formula references non-existent columns: ImpactOccurred, ImpactDescription
+2025-06-17 15:08:11,768 - services.validation_service - ERROR - Error evaluating rule QA-ID-7: Rule validation failed: Formula references non-existent columns: ImpactOccurred, CaseSource, BusinessMonitoringCase, ResponsibleForAction, ActionItemDescription
+2025-06-17 15:08:12,881 - ui.common.error_handler - CRITICAL - RuntimeError: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-17 15:08:15,656 - __main__ - ERROR - ERROR: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-17 15:18:17,367 - services.validation_service - ERROR - Error evaluating rule QA-ID-1: Rule validation failed: Formula references non-existent columns: DateActivityOccurred
+2025-06-17 15:18:17,367 - services.validation_service - ERROR - Error evaluating rule QA-ID-2: Rule validation failed: Formula references non-existent columns: Attendees
+2025-06-17 15:18:17,367 - services.validation_service - ERROR - Error evaluating rule QA-ID-3: Rule validation failed: Formula references non-existent columns: SummaryOfResults
+2025-06-17 15:18:17,367 - services.validation_service - ERROR - Error evaluating rule QA-ID-4: Rule validation failed: Formula references non-existent columns: WasADataDrivenAuditingProcedureUtilized
+2025-06-17 15:18:17,367 - services.validation_service - ERROR - Error evaluating rule QA-ID-5: Rule validation failed: Formula references non-existent columns: WasADataDrivenAuditingProcedureUtilized, DDAPTypeUtilized
+2025-06-17 15:18:17,367 - services.validation_service - ERROR - Error evaluating rule QA-ID-6: Rule validation failed: Formula references non-existent columns: ImpactOccurred, ImpactDescription
+2025-06-17 15:18:17,367 - services.validation_service - ERROR - Error evaluating rule QA-ID-7: Rule validation failed: Formula references non-existent columns: ImpactOccurred, CaseSource, BusinessMonitoringCase, ResponsibleForAction, ActionItemDescription
+2025-06-17 15:32:27,376 - services.validation_service - ERROR - Error evaluating rule QA-ID-1: Rule validation failed: Formula references non-existent columns: DateActivityOccurred
+2025-06-17 15:32:27,376 - services.validation_service - ERROR - Error evaluating rule QA-ID-2: Rule validation failed: Formula references non-existent columns: Attendees
+2025-06-17 15:32:27,376 - services.validation_service - ERROR - Error evaluating rule QA-ID-3: Rule validation failed: Formula references non-existent columns: SummaryOfResults
+2025-06-17 15:32:27,376 - services.validation_service - ERROR - Error evaluating rule QA-ID-4: Rule validation failed: Formula references non-existent columns: WasADataDrivenAuditingProcedureUtilized
+2025-06-17 15:32:27,376 - services.validation_service - ERROR - Error evaluating rule QA-ID-5: Rule validation failed: Formula references non-existent columns: WasADataDrivenAuditingProcedureUtilized, DDAPTypeUtilized
+2025-06-17 15:32:27,376 - services.validation_service - ERROR - Error evaluating rule QA-ID-6: Rule validation failed: Formula references non-existent columns: ImpactOccurred, ImpactDescription
+2025-06-17 15:32:27,376 - services.validation_service - ERROR - Error evaluating rule QA-ID-7: Rule validation failed: Formula references non-existent columns: ImpactOccurred, CaseSource, BusinessMonitoringCase, ResponsibleForAction, ActionItemDescription
+2025-06-17 15:33:35,196 - ExcelFormulaProcessor - ERROR - [Session 5a23e9e3] Error processing formulas: Cannot convert tz-naive Timestamp, use tz_localize to localize
+2025-06-17 15:33:35,251 - services.validation_service - ERROR - Error evaluating rule 09373c45-072e-47f3-a4f1-827e8e6cb08f: Cannot convert tz-naive Timestamp, use tz_localize to localize
+2025-06-17 15:33:35,686 - ExcelFormulaProcessor - ERROR - [Session 8d6ee12f] Error processing formulas: Cannot convert tz-naive Timestamp, use tz_localize to localize
+2025-06-17 15:33:35,737 - services.validation_service - ERROR - Error evaluating rule 1a57a653-28da-421a-8782-1fc19843538c: Cannot convert tz-naive Timestamp, use tz_localize to localize
+2025-06-17 15:33:40,095 - ExcelFormulaProcessor - ERROR - [Session 661b8e1f] Error processing formulas: Cannot convert tz-naive Timestamp, use tz_localize to localize
+2025-06-17 15:33:40,149 - services.validation_service - ERROR - Error evaluating rule test_lookup_001: Cannot convert tz-naive Timestamp, use tz_localize to localize
+2025-06-17 15:33:40,625 - ExcelFormulaProcessor - ERROR - [Session e33d127b] Error processing formulas: Cannot convert tz-naive Timestamp, use tz_localize to localize
+2025-06-17 15:33:40,674 - services.validation_service - ERROR - Error evaluating rule test_lookup_rule: Cannot convert tz-naive Timestamp, use tz_localize to localize
+2025-06-17 15:33:40,728 - ui.common.error_handler - CRITICAL - RuntimeError: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-17 15:33:43,664 - __main__ - ERROR - ERROR: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.

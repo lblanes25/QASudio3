@@ -1,0 +1,14 @@
+{
+  "rule_id": "test_lookup_001",
+  "name": "Test LOOKUP Rule",
+  "formula": "=LOOKUP([AuditLeader], 'Employee_Name', 'Title') = 'Audit Manager'",
+  "description": "Test rule to check if AuditLeader is an Audit Manager",
+  "threshold": 0.8,
+  "metadata": {
+    "severity": "high",
+    "category": "data_quality",
+    "tags": [],
+    "title": "Test LOOKUP Rule",
+    "created_at": "2025-06-17T14:34:31.308101"
+  }
+}

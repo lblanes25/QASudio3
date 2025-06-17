@@ -39,7 +39,8 @@ class ValidationPipeline:
                  archive_dir: Optional[str] = None,
                  max_workers: int = 4,
                  rule_config_paths: Optional[List[str]] = None,
-                 report_config_path: Optional[str] = None):
+                 report_config_path: Optional[str] = None,
+                 lookup_manager: Optional[Any] = None):
         """
         Initialize the validation pipeline.
 
@@ -52,10 +53,12 @@ class ValidationPipeline:
             max_workers: Maximum number of worker threads for parallel processing
             rule_config_paths: List of paths to YAML rule configuration files
             report_config_path: Path to YAML report configuration file
+            lookup_manager: Optional SmartLookupManager for LOOKUP operations
         """
         self.rule_manager = rule_manager or ValidationRuleManager()
         self.evaluator = evaluator or RuleEvaluator(rule_manager=self.rule_manager)
         self.data_importer = data_importer or DataImporter()
+        self.lookup_manager = lookup_manager
         # ReportGenerator removed - using generate_excel_report method instead
 
         # Set output directory
@@ -230,9 +233,17 @@ class ValidationPipeline:
             if use_parallel and len(rules) > 1:
                 rule_results = self._evaluate_rules_parallel(rules, data_df, responsible_party_column)
             else:
-                rule_results = self.evaluator.evaluate_multiple_rules(
-                    rules, data_df, responsible_party_column
-                )
+                # For serial evaluation, we need to handle lookup_manager differently
+                rule_results = {}
+                for rule in rules:
+                    try:
+                        result = self.evaluator.evaluate_rule(
+                            rule, data_df, responsible_party_column, self.lookup_manager
+                        )
+                        rule_results[rule.rule_id] = result
+                    except Exception as e:
+                        logger.error(f"Error evaluating rule {rule.rule_id}: {str(e)}")
+                        # Continue with other rules even if one fails
 
             # Process evaluation results including grouping by responsible party
             self._process_evaluation_results(rule_results, results, responsible_party_column, data_df)
@@ -761,7 +772,7 @@ class ValidationPipeline:
             for rule in rules:
                 # Create a copy of the DataFrame for each rule to avoid threading issues
                 rule_df = data_df.copy()
-                futures.append(executor.submit(self._evaluate_single_rule, rule, rule_df, responsible_party_column))
+                futures.append(executor.submit(self._evaluate_single_rule, rule, rule_df, responsible_party_column, self.lookup_manager))
 
             # Process futures as they complete
             for future in concurrent.futures.as_completed(futures):
@@ -781,7 +792,7 @@ class ValidationPipeline:
 
         return results
 
-    def _evaluate_single_rule(self, rule, data_df, responsible_party_column):
+    def _evaluate_single_rule(self, rule, data_df, responsible_party_column, lookup_manager=None):
         """
         Worker function to evaluate a single rule with thread isolation.
 
@@ -793,7 +804,7 @@ class ValidationPipeline:
             logger.debug(f"COM initialized in thread {threading.current_thread().ident} for rule {rule.rule_id}")
 
             # Use with statement to ensure proper cleanup
-            with ExcelFormulaProcessor(visible=False) as processor:
+            with ExcelFormulaProcessor(visible=False, lookup_manager=lookup_manager) as processor:
                 # Create a dedicated evaluator for this thread
                 thread_evaluator = RuleEvaluator(
                     rule_manager=self.rule_manager,
@@ -803,7 +814,7 @@ class ValidationPipeline:
 
                 # Evaluate the rule
                 result = thread_evaluator.evaluate_rule(
-                    rule, data_df, responsible_party_column
+                    rule, data_df, responsible_party_column, lookup_manager
                 )
 
                 # Return the result
@@ -2218,8 +2229,21 @@ class ValidationPipeline:
         # Parse formula to determine which fields to display
         formula_fields = self._extract_fields_from_formula(rule.formula)
         
+        # Check if formula contains LOOKUP and we have lookup operations
+        lookup_columns = []
+        if 'LOOKUP' in rule.formula and 'lookup_operations' in rule_result:
+            # Extract unique lookup return columns from lookup operations
+            lookup_ops = rule_result['lookup_operations']
+            if lookup_ops:
+                # Get unique return columns from lookup operations
+                return_columns = set()
+                for op in lookup_ops:
+                    if 'return_column' in op:
+                        return_columns.add(op['return_column'])
+                lookup_columns = sorted(list(return_columns))
+        
         # Detail section headers
-        detail_headers = ["Item ID", "Audit Leader"] + formula_fields + \
+        detail_headers = ["Item ID", "Audit Leader"] + formula_fields + lookup_columns + \
                         ["Status", "Failure Reason", "Internal Notes", "Audit Leader Response"]
         
         header_row = detail_start_row + 1
@@ -2245,7 +2269,7 @@ class ValidationPipeline:
                 result_df = result_df.sort_values('_sort_order')
                 
                 # Write each row
-                for idx, row in result_df.iterrows():
+                for df_idx, (idx, row) in enumerate(result_df.iterrows()):
                     col_idx = 1
                     # Item ID
                     ws.cell(row=detail_row, column=col_idx, value=row.get('AuditEntityID', idx))
@@ -2263,6 +2287,23 @@ class ValidationPipeline:
                             field_value = ''
                         ws.cell(row=detail_row, column=col_idx, value=field_value)
                         col_idx += 1
+                    
+                    # Lookup values
+                    if lookup_columns and 'lookup_operations' in rule_result:
+                        # Create a map of lookup values for this row
+                        lookup_values = {}
+                        # Get the original row index before sorting
+                        original_idx = result_df.index.tolist().index(idx)
+                        
+                        for op in rule_result['lookup_operations']:
+                            if op.get('row_index') == original_idx and op.get('success'):
+                                lookup_values[op['return_column']] = op.get('result', '')
+                        
+                        # Add lookup values in the same order as headers
+                        for lookup_col in lookup_columns:
+                            value = lookup_values.get(lookup_col, '')
+                            ws.cell(row=detail_row, column=col_idx, value=value)
+                            col_idx += 1
                     
                     # Status - convert boolean to GC/DNC
                     raw_status = row.get(result_column, 'NA')

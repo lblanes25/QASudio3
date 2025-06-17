@@ -7,17 +7,20 @@ import os
 import logging
 from pathlib import Path
 from typing import Optional, Dict, Any, List
+import pandas as pd
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QComboBox, QTableWidget, QTableWidgetItem, QFrame, QMessageBox, QFileDialog, QHeaderView,
 )
-from PySide6.QtCore import Signal, QThread
+from PySide6.QtCore import Signal, QThread, Qt
 
 from ui.common.stylesheet import AnalyticsRunnerStylesheet
 from ui.common.widgets.pre_validation_widget import PreValidationWidget
+from ui.common.widgets.clickable_label import ClickableLabel
 from ui.analytics_runner.dialogs.save_data_source_dialog import SaveDataSourceDialog
 from ui.analytics_runner.data_source_registry import DataSourceRegistry
+from core.lookup.smart_lookup_manager import SmartLookupManager
 
 logger = logging.getLogger(__name__)
 
@@ -115,6 +118,7 @@ class DataSourcePanel(QWidget):
     sheetChanged = Signal(str)  # Sheet name for Excel files
     previewUpdated = Signal(object)  # Preview DataFrame
     columnsDetected = Signal(list)  # List of column names when data is loaded
+    lookupFileLoaded = Signal(str)  # Message when file is loaded for LOOKUP
 
     def __init__(self, session_manager=None, parent: Optional[QWidget] = None):
         super().__init__(parent)
@@ -128,6 +132,9 @@ class DataSourcePanel(QWidget):
 
         # Initialize data source registry
         self.data_source_registry = DataSourceRegistry(session_manager=session_manager)
+
+        # Initialize SmartLookupManager
+        self.lookup_manager = SmartLookupManager()
 
         # Worker threads
         self._preview_worker = None
@@ -301,6 +308,14 @@ class DataSourcePanel(QWidget):
         self.recent_button.setFont(AnalyticsRunnerStylesheet.get_fonts()['regular'])
         self.recent_button.clicked.connect(self._show_recent_files)
         selection_layout.addWidget(self.recent_button)
+        
+        # Add lookup files button
+        self.lookup_files_button = QPushButton("Add Lookup Files")
+        self.lookup_files_button.setProperty("buttonStyle", "secondary")
+        self.lookup_files_button.setFont(AnalyticsRunnerStylesheet.get_fonts()['regular'])
+        self.lookup_files_button.setToolTip("Load multiple files for LOOKUP operations")
+        self.lookup_files_button.clicked.connect(self._browse_lookup_files)
+        selection_layout.addWidget(self.lookup_files_button)
 
         # Clear button (only shown when file selected)
         self.clear_button = QPushButton("Clear")
@@ -333,7 +348,50 @@ class DataSourcePanel(QWidget):
         self._setup_drag_drop(file_frame)
 
         self.main_layout.addWidget(file_frame)
+        
+        # Lookup status section
+        self._create_lookup_status_section()
 
+    def _create_lookup_status_section(self):
+        """Create the lookup status section with clickable label."""
+        # Create a frame for the lookup status
+        lookup_frame = QFrame()
+        lookup_frame.setStyleSheet(f"""
+            QFrame {{
+                background-color: {AnalyticsRunnerStylesheet.SURFACE_COLOR};
+                border: 1px solid {AnalyticsRunnerStylesheet.BORDER_COLOR};
+                border-radius: 8px;
+                padding: {AnalyticsRunnerStylesheet.STANDARD_SPACING}px;
+                margin-top: 8px;
+            }}
+        """)
+        
+        lookup_layout = QHBoxLayout(lookup_frame)
+        lookup_layout.setSpacing(AnalyticsRunnerStylesheet.STANDARD_SPACING)
+        
+        # Create the clickable lookup status label
+        self.lookup_status = ClickableLabel("📁 No lookup files loaded")
+        self.lookup_status.setStyleSheet(f"""
+            QLabel {{
+                color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                font-size: {AnalyticsRunnerStylesheet.REGULAR_FONT_SIZE}px;
+                padding: 4px;
+                background-color: transparent;
+            }}
+            QLabel:hover {{
+                color: {AnalyticsRunnerStylesheet.HOVER_COLOR};
+            }}
+        """)
+        self.lookup_status.clicked.connect(self._show_lookup_details)
+        
+        lookup_layout.addWidget(self.lookup_status)
+        lookup_layout.addStretch()
+        
+        self.main_layout.addWidget(lookup_frame)
+        
+        # Initialize the status
+        self.update_lookup_status()
+    
     def _create_sheet_selection_section(self):
         """Create Excel sheet selection section."""
         self.sheet_frame = QFrame()
@@ -512,16 +570,33 @@ class DataSourcePanel(QWidget):
 
     # Event handlers
     def _browse_file(self):
-        """Open file browser dialog."""
-        file_path, _ = QFileDialog.getOpenFileName(
+        """Open file browser dialog with multi-file selection support."""
+        file_paths, _ = QFileDialog.getOpenFileNames(
             self,
-            "Select Data Source File",
+            "Select Data Source Files (Multi-select enabled)",
             "",
             "Data Files (*.csv *.xlsx *.xls);;CSV Files (*.csv);;Excel Files (*.xlsx *.xls);;All Files (*)"
         )
 
-        if file_path:
-            self._set_file(file_path)
+        if file_paths:
+            if len(file_paths) == 1:
+                # Single file selected - use existing flow
+                self._set_file(file_paths[0])
+            else:
+                # Multiple files selected - process as lookup files
+                self._load_multiple_files(file_paths)
+    
+    def _browse_lookup_files(self):
+        """Open file browser specifically for loading lookup files."""
+        file_paths, _ = QFileDialog.getOpenFileNames(
+            self,
+            "Select Files for LOOKUP Operations",
+            "",
+            "Data Files (*.csv *.xlsx *.xls);;CSV Files (*.csv);;Excel Files (*.xlsx *.xls);;All Files (*)"
+        )
+
+        if file_paths:
+            self._load_multiple_files(file_paths)
 
     def _show_recent_files(self):
         """Show recent files menu."""
@@ -734,6 +809,9 @@ class DataSourcePanel(QWidget):
         # Emit columns detected signal
         if preview_df is not None and not preview_df.empty:
             self.columnsDetected.emit(list(preview_df.columns))
+            
+        # Note: Full file registration with lookup manager will happen when the file is actually loaded
+        # This is just a preview, so we don't register it yet
 
         logger.info(f"Preview loaded: {len(preview_df)} rows, {len(preview_df.columns)} columns")
 
@@ -841,15 +919,21 @@ class DataSourcePanel(QWidget):
 
     # Drag and drop events
     def _drag_enter_event(self, event):
-        """Handle drag enter event."""
+        """Handle drag enter event - supports multiple files."""
         if event.mimeData().hasUrls():
             urls = event.mimeData().urls()
-            if len(urls) == 1 and urls[0].isLocalFile():
-                file_path = urls[0].toLocalFile()
-                file_ext = Path(file_path).suffix.lower()
-
-                if file_ext in ['.csv', '.xlsx', '.xls']:
-                    event.acceptProposedAction()
+            # Check if all URLs are valid data files
+            valid_files = []
+            for url in urls:
+                if url.isLocalFile():
+                    file_path = url.toLocalFile()
+                    file_ext = Path(file_path).suffix.lower()
+                    if file_ext in ['.csv', '.xlsx', '.xls']:
+                        valid_files.append(file_path)
+            
+            if valid_files:
+                event.acceptProposedAction()
+                return
 
         event.ignore()
 
@@ -858,12 +942,25 @@ class DataSourcePanel(QWidget):
         pass
 
     def _drop_event(self, event):
-        """Handle drop event."""
+        """Handle drop event - supports multiple files."""
         if event.mimeData().hasUrls():
             urls = event.mimeData().urls()
-            if len(urls) == 1 and urls[0].isLocalFile():
-                file_path = urls[0].toLocalFile()
-                self._set_file(file_path)
+            valid_files = []
+            
+            for url in urls:
+                if url.isLocalFile():
+                    file_path = url.toLocalFile()
+                    file_ext = Path(file_path).suffix.lower()
+                    if file_ext in ['.csv', '.xlsx', '.xls']:
+                        valid_files.append(file_path)
+            
+            if valid_files:
+                if len(valid_files) == 1:
+                    # Single file - use existing flow
+                    self._set_file(valid_files[0])
+                else:
+                    # Multiple files - load for lookup
+                    self._load_multiple_files(valid_files)
                 event.acceptProposedAction()
                 return
 
@@ -892,6 +989,12 @@ class DataSourcePanel(QWidget):
 
     def clear_selection(self):
         """Clear the current data source selection - Enhanced to clear saved source metadata."""
+        # Unload from lookup manager if loaded
+        if self._current_file:
+            self.lookup_manager.unload_file(self._current_file)
+            logger.info(f"Unloaded {Path(self._current_file).name} from lookup manager")
+            self.update_lookup_status()
+        
         self._current_file = ""
         self._current_sheet = None
         self._preview_df = None
@@ -939,6 +1042,220 @@ class DataSourcePanel(QWidget):
 
         # Emit signals
         self.dataSourceChanged.emit("")
+
+    def load_full_file(self, auto_register: bool = True) -> Optional[pd.DataFrame]:
+        """
+        Load the full file (not just preview) and optionally register with lookup manager.
+        
+        Args:
+            auto_register: Whether to automatically register with lookup manager
+            
+        Returns:
+            The loaded DataFrame or None if loading fails
+        """
+        if not self._current_file:
+            return None
+            
+        try:
+            from data_integration.io.importer import DataImporter
+            importer = DataImporter()
+            
+            # Load full file
+            kwargs = {}
+            if self._current_sheet and self._is_excel_file:
+                kwargs['sheet_name'] = self._current_sheet
+                
+            df = importer.load_file(self._current_file, **kwargs)
+            
+            if df is not None and not df.empty and auto_register:
+                # Register with lookup manager
+                self._on_file_loaded(self._current_file, df, self._current_sheet)
+                
+            return df
+            
+        except Exception as e:
+            logger.error(f"Error loading full file: {e}")
+            return None
+    
+    def _on_file_loaded(self, filepath: str, df: pd.DataFrame, sheet_name: str = None):
+        """
+        Called when a full file is loaded (not just preview).
+        Registers the file with the lookup manager and shows informative message.
+        
+        Args:
+            filepath: Path to the loaded file
+            df: The loaded DataFrame
+            sheet_name: Optional sheet name for Excel files
+        """
+        if df is None or df.empty:
+            return
+            
+        # Register with lookup manager
+        alias = None
+        if sheet_name:
+            # For Excel files with sheets, create alias like "filename_sheetname"
+            base_name = Path(filepath).stem
+            alias = f"{base_name}_{sheet_name}"
+        
+        self.lookup_manager.add_file(filepath, df, alias=alias)
+        
+        # Log informative message
+        columns = len(df.columns)
+        rows = len(df)
+        file_name = Path(filepath).name
+        
+        message = (f"File loaded: {file_name} "
+                  f"({rows:,} rows, {columns} columns) - "
+                  f"available for LOOKUP operations")
+        
+        if sheet_name:
+            message = (f"File loaded: {file_name} [{sheet_name}] "
+                      f"({rows:,} rows, {columns} columns) - "
+                      f"available for LOOKUP operations")
+        
+        logger.info(message)
+        
+        # Emit signal to notify UI
+        self.lookupFileLoaded.emit(message)
+        
+        # Update the lookup status display
+        self.update_lookup_status()
+        
+    def update_lookup_status(self):
+        """Update the lookup status label with current file information."""
+        manager = self.lookup_manager
+        file_count = len(manager.file_metadata)
+        total_columns = len(manager.column_index)
+        
+        if file_count == 0:
+            self.lookup_status.setText("📁 No lookup files loaded")
+            self.lookup_status.setToolTip("No files available for LOOKUP operations")
+        else:
+            # Make it informative and actionable
+            status_text = f"📁 {file_count} files available | {total_columns} columns searchable | Click to see"
+            self.lookup_status.setText(status_text)
+            
+            # Build detailed tooltip
+            tooltip_lines = ["Files loaded for LOOKUP:"]
+            for filepath, metadata in manager.file_metadata.items():
+                alias = manager.file_aliases.get(filepath, Path(filepath).stem)
+                row_count = metadata.get('row_count', 0)
+                col_count = len(metadata.get('columns', []))
+                size_mb = metadata.get('size_mb', 0)
+                lazy_status = " (lazy)" if metadata.get('lazy', False) else ""
+                
+                tooltip_lines.append(
+                    f"• {alias}: {row_count:,} rows, {col_count} cols, {size_mb:.1f}MB{lazy_status}"
+                )
+            
+            self.lookup_status.setToolTip("\n".join(tooltip_lines))
+    
+    def _show_lookup_details(self):
+        """Show detailed lookup information when clicked."""
+        from ui.analytics_runner.dialogs.lookup_details_dialog import LookupDetailsDialog
+        dialog = LookupDetailsDialog(self.lookup_manager, self)
+        dialog.exec()
+    
+    def _load_multiple_files(self, file_paths: List[str]):
+        """
+        Load multiple files for lookup operations.
+        Shows progress and handles partial failures.
+        
+        Args:
+            file_paths: List of file paths to load
+        """
+        from PySide6.QtWidgets import QProgressDialog
+        
+        # Create progress dialog
+        progress = QProgressDialog(
+            "Loading files for LOOKUP operations...", 
+            "Cancel", 
+            0, 
+            len(file_paths), 
+            self
+        )
+        progress.setWindowTitle("Loading Multiple Files")
+        progress.setWindowModality(Qt.WindowModal)
+        progress.setMinimumDuration(0)
+        
+        loaded_count = 0
+        failed_files = []
+        
+        for i, file_path in enumerate(file_paths):
+            if progress.wasCanceled():
+                break
+                
+            file_name = Path(file_path).name
+            progress.setLabelText(f"Loading {file_name}...")
+            progress.setValue(i)
+            
+            try:
+                # Load the full file
+                df = self.load_full_file_for_lookup(file_path)
+                if df is not None and not df.empty:
+                    loaded_count += 1
+                    logger.info(f"Successfully loaded {file_name} for lookup")
+                else:
+                    failed_files.append((file_name, "Empty or invalid file"))
+            except Exception as e:
+                failed_files.append((file_name, str(e)))
+                logger.error(f"Failed to load {file_name}: {e}")
+        
+        progress.setValue(len(file_paths))
+        
+        # Show summary
+        if loaded_count > 0:
+            message = f"Successfully loaded {loaded_count} file(s) for LOOKUP operations."
+            if failed_files:
+                message += f"\n\nFailed to load {len(failed_files)} file(s):"
+                for fname, error in failed_files[:3]:  # Show first 3 errors
+                    message += f"\n• {fname}: {error}"
+                if len(failed_files) > 3:
+                    message += f"\n• ... and {len(failed_files) - 3} more"
+            
+            QMessageBox.information(self, "Files Loaded", message)
+        elif failed_files:
+            QMessageBox.warning(
+                self, 
+                "Loading Failed", 
+                f"Failed to load all {len(failed_files)} file(s).\n\n" +
+                "\n".join([f"• {fname}: {error}" for fname, error in failed_files[:5]])
+            )
+    
+    def load_full_file_for_lookup(self, file_path: str) -> Optional[pd.DataFrame]:
+        """
+        Load a file specifically for lookup operations (not as primary data source).
+        
+        Args:
+            file_path: Path to the file to load
+            
+        Returns:
+            The loaded DataFrame or None if loading fails
+        """
+        try:
+            from data_integration.io.importer import DataImporter
+            importer = DataImporter()
+            
+            # For Excel files, we might need to handle sheets
+            if Path(file_path).suffix.lower() in ['.xlsx', '.xls']:
+                # For lookup files, just load the first sheet by default
+                df = importer.load_file(file_path, sheet_name=0)
+            else:
+                df = importer.load_file(file_path)
+            
+            if df is not None and not df.empty:
+                # Register with lookup manager
+                self._on_file_loaded(file_path, df)
+                
+            return df
+            
+        except Exception as e:
+            logger.error(f"Error loading file for lookup: {e}")
+            return None
+    
+    def get_lookup_manager(self) -> SmartLookupManager:
+        """Get the SmartLookupManager instance."""
+        return self.lookup_manager
 
     def cleanup(self):
         """Clean up resources."""

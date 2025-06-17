@@ -23,7 +23,8 @@ class RuleEvaluationResult:
                  result_column: str,
                  compliance_status: ComplianceStatus,
                  compliance_metrics: Dict[str, Any],
-                 party_results: Optional[Dict[str, Dict[str, Any]]] = None):
+                 party_results: Optional[Dict[str, Dict[str, Any]]] = None,
+                 lookup_operations: Optional[List[Dict[str, Any]]] = None):
         """
         Initialize evaluation result.
 
@@ -34,6 +35,7 @@ class RuleEvaluationResult:
             compliance_status: Overall compliance status
             compliance_metrics: Dictionary of compliance metrics
             party_results: Results grouped by responsible party
+            lookup_operations: List of lookup operations performed during evaluation
         """
         self.rule = rule
         self.result_df = result_df
@@ -41,6 +43,7 @@ class RuleEvaluationResult:
         self.compliance_status = compliance_status
         self.compliance_metrics = compliance_metrics
         self.party_results = party_results or {}
+        self.lookup_operations = lookup_operations or []
 
     @property
     def summary(self) -> Dict[str, Any]:
@@ -88,6 +91,10 @@ class RuleEvaluationResult:
                 if not failing_items.empty:
                     result['_result_details'] = failing_items.to_dict('records')
                     result['_result_column'] = self.result_column
+        
+        # Include lookup operations if any were tracked
+        if self.lookup_operations:
+            result['lookup_operations'] = self.lookup_operations
                     
         return result
 
@@ -204,6 +211,22 @@ class RuleEvaluationResult:
         if len(df) > 0:  # Only sort if not empty
             return df.sort_values('Compliance_Rate', ascending=False)
         return df
+    
+    def group_lookup_operations_by_row(self) -> Dict[int, List[Dict[str, Any]]]:
+        """
+        Group lookup operations by DataFrame row index.
+        
+        Returns:
+            Dictionary mapping row indices to lists of lookup operations for that row
+        """
+        operations_by_row = {}
+        for operation in self.lookup_operations:
+            row_index = operation.get('row_index')
+            if row_index is not None:
+                if row_index not in operations_by_row:
+                    operations_by_row[row_index] = []
+                operations_by_row[row_index].append(operation)
+        return operations_by_row
 
 
 class RuleEvaluator:
@@ -230,7 +253,8 @@ class RuleEvaluator:
     def evaluate_rule(self,
                       rule: Union[str, ValidationRule],
                       data_df: pd.DataFrame,
-                      responsible_party_column: Optional[str] = None) -> RuleEvaluationResult:
+                      responsible_party_column: Optional[str] = None,
+                      lookup_manager: Optional[Any] = None) -> RuleEvaluationResult:
         """
         Evaluate a validation rule against a DataFrame.
 
@@ -238,6 +262,7 @@ class RuleEvaluator:
             rule: ValidationRule or rule_id to evaluate
             data_df: Data to validate
             responsible_party_column: Column identifying responsible parties
+            lookup_manager: Optional SmartLookupManager for tracking lookup operations
 
         Returns:
             RuleEvaluationResult with evaluation details
@@ -265,9 +290,19 @@ class RuleEvaluator:
         current_thread_id = threading.current_thread().ident
         logger.debug(f"Processing rule {rule_obj.rule_id} in thread {current_thread_id}")
 
-        with ExcelFormulaProcessor(visible=self.excel_visible, track_errors=True) as processor:
+        # Enable lookup tracking if lookup_manager is provided
+        lookup_operations = []
+        if lookup_manager:
+            lookup_manager.enable_tracking()
+
+        with ExcelFormulaProcessor(visible=self.excel_visible, track_errors=True, lookup_manager=lookup_manager) as processor:
             result_df = processor.process_formulas(data_df, formula_map)
             result_df.index = data_df.index  # ✅ Fix: align result index to input
+            
+            # Capture lookup operations if tracking was enabled
+            if lookup_manager:
+                lookup_operations = lookup_manager.get_tracked_operations()
+                lookup_manager.disable_tracking()
 
         # Convert string "TRUE"/"FALSE" values to boolean for proper handling
         if result_column in result_df.columns:
@@ -304,7 +339,8 @@ class RuleEvaluator:
                 result_column=result_column,
                 compliance_status=compliance_status,
                 compliance_metrics=compliance_metrics,
-                party_results=party_results
+                party_results=party_results,
+                lookup_operations=lookup_operations
             )
 
     def evaluate_multiple_rules(self,

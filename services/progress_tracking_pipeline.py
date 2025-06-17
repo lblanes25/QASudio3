@@ -22,9 +22,10 @@ class ProgressTrackingEvaluator:
     Wrapper for RuleEvaluator that tracks progress during rule evaluation.
     """
     
-    def __init__(self, base_evaluator, progress_callback: Optional[Callable] = None):
+    def __init__(self, base_evaluator, progress_callback: Optional[Callable] = None, lookup_manager: Optional[Any] = None):
         self.base_evaluator = base_evaluator
         self.progress_callback = progress_callback
+        self.lookup_manager = lookup_manager
         self._total_rules = 0
         self._completed_rules = 0
         self._current_rule_name = ""
@@ -34,6 +35,22 @@ class ProgressTrackingEvaluator:
     def cancel(self):
         """Request cancellation."""
         self._cancel_requested.set()
+        
+    def evaluate_rule(self, rule, data_df, responsible_party_column=None, lookup_manager=None):
+        """
+        Evaluate a single rule - delegates to base evaluator.
+        This method is needed for compatibility when the ProgressTrackingEvaluator
+        replaces the pipeline's evaluator.
+        """
+        # Use the lookup_manager passed in or the one from initialization
+        lm = lookup_manager or self.lookup_manager
+        return self.base_evaluator.evaluate_rule(rule, data_df, responsible_party_column, lm)
+    
+    # Delegate other methods to maintain full compatibility
+    @property
+    def rule_manager(self):
+        """Access to rule manager through base evaluator."""
+        return self.base_evaluator.rule_manager
         
     def evaluate_multiple_rules(
         self,
@@ -84,7 +101,7 @@ class ProgressTrackingEvaluator:
                 
             try:
                 # Evaluate the rule using base evaluator
-                result = self.base_evaluator.evaluate_rule(rule, data_df, responsible_party_column)
+                result = self.base_evaluator.evaluate_rule(rule, data_df, responsible_party_column, self.lookup_manager)
                 results[rule_id] = result
                 
             except Exception as e:
@@ -172,7 +189,8 @@ class ProgressTrackingPipeline:
             # Create progress tracking evaluator
             self._progress_evaluator = ProgressTrackingEvaluator(
                 original_evaluator, 
-                progress_callback
+                progress_callback,
+                self.pipeline.lookup_manager
             )
             
             # Temporarily replace the pipeline's evaluator

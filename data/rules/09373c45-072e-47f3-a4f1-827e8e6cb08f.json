@@ -1,0 +1,14 @@
+{
+  "rule_id": "09373c45-072e-47f3-a4f1-827e8e6cb08f",
+  "name": "Test100",
+  "formula": "=LOOKUP([AuditLeader], \"EmployeeName\", \"JobTitle\") = \"Audit Manager\"",
+  "description": "Test100",
+  "threshold": 1.0,
+  "metadata": {
+    "severity": "medium",
+    "category": "data_quality",
+    "tags": [],
+    "title": "Test100",
+    "created_at": "2025-06-17T15:07:03.598968"
+  }
+}

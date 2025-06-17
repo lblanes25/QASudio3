@@ -460,8 +460,38 @@ class ResultsTreeWidget(QWidget):
             loader.signals.error.connect(self._on_loading_error)
             
             self.threadpool.start(loader)
+        elif isinstance(result, dict) and '_result_details' in result:
+            # For dictionary results with _result_details, extract failing items
+            self.loading_bar.setVisible(False)
+            
+            # Get all result details
+            all_details = result.get('_result_details', [])
+            result_column = result.get('_result_column', 'Result')
+            
+            # Filter for failing items (False values or DNC/PC status)
+            failing_items = []
+            for item in all_details:
+                if isinstance(item, dict):
+                    result_value = item.get(result_column)
+                    compliance_status = item.get('compliance_status')
+                    
+                    # Check if this is a failing item
+                    if (result_value is False or 
+                        compliance_status in ['DNC', 'PC', 'DOES_NOT_COMPLY', 'PARTIALLY_COMPLIANT']):
+                        failing_items.append(item)
+            
+            # Convert to DataFrame for display
+            if failing_items:
+                df = pd.DataFrame(failing_items)
+                self._on_failing_items_loaded(rule_id, df)
+                self.items_count_label.setText(f"Showing {len(failing_items)} failing items")
+            else:
+                self.items_count_label.setText("No failing items found")
+                self.failing_items_table.setRowCount(0)
+            
+            self.export_button.setEnabled(len(failing_items) > 0)
         else:
-            # For dictionary results, show a message
+            # For dictionary results without details, show a message
             self.loading_bar.setVisible(False)
             self.items_count_label.setText("Detailed failure data not available")
             self.export_button.setEnabled(False)

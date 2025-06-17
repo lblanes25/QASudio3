@@ -78,7 +78,8 @@ class CancellableValidationWorker(QRunnable):
                  responsible_party_column: Optional[str] = None,
                  generate_leader_packs: bool = False,
                  analytic_title: Optional[str] = None,
-                 use_template: bool = False):
+                 use_template: bool = False,
+                 lookup_manager: Optional[Any] = None):
         super().__init__()
         
         # Validation parameters
@@ -95,6 +96,7 @@ class CancellableValidationWorker(QRunnable):
         self.generate_individual_reports = generate_leader_packs  # Use clearer name internally
         self.analytic_title = analytic_title
         self.use_template = use_template
+        self.lookup_manager = lookup_manager
         
         # Execution management
         self._cancel_event = threading.Event()
@@ -200,7 +202,8 @@ class CancellableValidationWorker(QRunnable):
                 rule_manager = ValidationRuleManager(rules_directory="./data/rules")
                 self.pipeline = ValidationPipeline(
                     rule_manager=rule_manager,
-                    output_dir=self.output_dir
+                    output_dir=self.output_dir,
+                    lookup_manager=self.lookup_manager
                 )
                 
             # Create progress tracking wrapper with cancellation support

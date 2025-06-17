@@ -24468,3 +24468,1464 @@ AttributeError: 'DynamicIndividualTemplateProcessorV5' object has no attribute '
 2025-06-16 14:44:18,763 - __main__ - INFO - Application closing
 2025-06-16 14:44:18,766 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel cleaned up
 2025-06-16 14:44:18,771 - __main__ - INFO - Application state saved
+2025-06-16 18:54:29,098 - ui.common.error_handler - INFO - Error handler initialized
+2025-06-16 18:54:29,098 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-06-16 18:54:29,098 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-06-16 18:54:29,099 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-16 18:54:29,099 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-16 18:54:29,101 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-16 18:54:29,101 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-16 18:54:29,204 - ui.analytics_runner.rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-06-16 18:54:29,225 - ui.analytics_runner.rule_selector_panel - INFO - Loaded 7 rules from rule manager
+2025-06-16 18:54:29,251 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-06-16 18:54:29,324 - __main__ - INFO - Application state restored - defaulted to Simple Mode
+2025-06-16 18:54:29,324 - __main__ - INFO - Backend systems initialized
+2025-06-16 18:54:29,324 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-06-16 18:54:31,264 - __main__ - INFO - Data source changed: business_monitoring_dummy_data.xlsx
+2025-06-16 18:54:31,269 - __main__ - INFO - Data source validation: File appears valid
+2025-06-16 18:54:31,269 - ui.common.workflow_state_simple - INFO - Workflow state: initial -> data_loaded
+2025-06-16 18:54:31,269 - ui.common.workflow_state - INFO - State transition: INITIAL -> DATA_LOADED
+2025-06-16 18:54:31,269 - __main__ - INFO - Data loaded successfully
+2025-06-16 18:54:31,605 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-06-16 18:54:31,606 - __main__ - INFO - Data preview loaded: 30 rows, 13 columns
+2025-06-16 18:54:31,617 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-16 18:54:31,621 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> responsible_party_selected
+2025-06-16 18:54:31,621 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-16 18:54:31,621 - __main__ - INFO - Responsible party column set: AuditLeader
+2025-06-16 18:54:31,622 - __main__ - INFO - Responsible party column defaulted to: AuditLeader
+2025-06-16 18:54:31,622 - ui.common.workflow_state - INFO - State transition: COLUMN_SELECTED -> DATA_LOADED
+2025-06-16 18:54:31,622 - __main__ - INFO - Data source changed. Previous selections cleared.
+2025-06-16 18:54:31,622 - __main__ - INFO - Responsible party column changed. Rule selection cleared.
+2025-06-16 18:54:31,626 - __main__ - INFO - Updated rule editor with 13 columns
+2025-06-16 18:54:31,636 - ui.analytics_runner.data_source_panel - INFO - Preview loaded: 30 rows, 13 columns
+2025-06-16 18:54:31,654 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation passed - will auto-collapse
+2025-06-16 18:54:31,654 - ui.analytics_runner.data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-06-16 18:54:31,654 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-06-16 18:54:31,655 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> data_loaded
+2025-06-16 18:54:31,660 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-06-16 18:54:34,727 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-16 18:54:34,734 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> responsible_party_selected
+2025-06-16 18:54:34,734 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-16 18:54:34,734 - __main__ - INFO - Responsible party column set: AuditLeader
+2025-06-16 18:54:35,524 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> rules_selected
+2025-06-16 18:54:35,524 - ui.common.workflow_state - INFO - State transition: COLUMN_SELECTED -> RULES_SELECTED
+2025-06-16 18:54:35,524 - __main__ - INFO - 1 rules selected
+2025-06-16 18:54:35,524 - ui.common.workflow_state - INFO - State transition: RULES_SELECTED -> VALIDATION_READY
+2025-06-16 18:54:35,525 - __main__ - INFO - Ready to start validation
+2025-06-16 18:54:35,532 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-16 18:54:35,532 - __main__ - INFO - 2 rules selected
+2025-06-16 18:54:35,540 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-16 18:54:35,541 - __main__ - INFO - 3 rules selected
+2025-06-16 18:54:35,550 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-16 18:54:35,550 - __main__ - INFO - 4 rules selected
+2025-06-16 18:54:35,559 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-16 18:54:35,559 - __main__ - INFO - 5 rules selected
+2025-06-16 18:54:35,569 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-16 18:54:35,569 - __main__ - INFO - 6 rules selected
+2025-06-16 18:54:35,579 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-16 18:54:35,579 - __main__ - INFO - 7 rules selected
+2025-06-16 18:54:37,248 - __main__ - INFO - Starting validation with 7 tests
+2025-06-16 18:54:37,248 - __main__ - INFO - Using Excel sheet: Sheet1
+2025-06-16 18:54:37,248 - ui.common.workflow_state - INFO - State transition: VALIDATION_READY -> VALIDATION_RUNNING
+2025-06-16 18:54:37,249 - __main__ - INFO - Validation started
+2025-06-16 18:54:37,249 - __main__ - INFO - Validation in progress. Controls are locked.
+2025-06-16 18:54:37,255 - __main__ - INFO - Analytic ID: Analytics_Validation_20250616_185437
+2025-06-16 18:54:37,256 - __main__ - INFO - Execution Mode: Serial
+2025-06-16 18:54:37,256 - __main__ - INFO - Responsible Party Column: AuditLeader
+2025-06-16 18:54:37,256 - __main__ - INFO - Report generation enabled: True
+2025-06-16 18:54:37,256 - __main__ - INFO - Report formats requested: ['iag_excel', 'json']
+2025-06-16 18:54:37,256 - __main__ - INFO - Output directory: ./output
+2025-06-16 18:54:37,256 - __main__ - INFO - Individual Leader Reports will be generated
+2025-06-16 18:54:37,258 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 2382515b: Created output directory: ./output
+2025-06-16 18:54:37,258 - services.validation_service - INFO - Initializing report generator with default configuration
+2025-06-16 18:54:37,258 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 2382515b: Starting validation
+2025-06-16 18:54:37,262 - __main__ - INFO - Validation session started: 2382515b
+2025-06-16 18:54:37,262 - __main__ - INFO - Validation started
+2025-06-16 18:54:37,265 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> execution_active
+2025-06-16 18:54:37,278 - data_integration.io.importer - INFO - Processing date columns for file: C:\Users\luria\PycharmProjects\QAStudiov3\tests\business_monitoring_dummy_data.xlsx
+2025-06-16 18:54:37,368 - services.validation_service - INFO - Found 7 rules to apply
+2025-06-16 18:54:37,368 - services.validation_service - INFO - Rule IDs: ['QA-ID-1', 'QA-ID-2', 'QA-ID-3', 'QA-ID-4', 'QA-ID-5']...
+2025-06-16 18:54:37,368 - ExcelFormulaProcessor - INFO - [Session 92fa113c] Starting Excel application
+2025-06-16 18:54:37,368 - __main__ - INFO - Evaluating test 1/7: Date_Activity_Required
+2025-06-16 18:54:37,964 - ExcelFormulaProcessor - INFO - [Session 92fa113c] Excel application startup complete
+2025-06-16 18:54:38,059 - ExcelFormulaProcessor - INFO - [Session 92fa113c] Cleaning up Excel resources
+2025-06-16 18:54:38,187 - ExcelFormulaProcessor - INFO - [Session f55d7567] Starting Excel application
+2025-06-16 18:54:38,188 - __main__ - INFO - Evaluating test 2/7: Attendees_Required
+2025-06-16 18:54:38,579 - ExcelFormulaProcessor - INFO - [Session f55d7567] Excel application startup complete
+2025-06-16 18:54:38,658 - ExcelFormulaProcessor - INFO - [Session f55d7567] Cleaning up Excel resources
+2025-06-16 18:54:38,743 - ExcelFormulaProcessor - INFO - [Session 7c180b96] Starting Excel application
+2025-06-16 18:54:38,744 - __main__ - INFO - Evaluating test 3/7: Summary_Results_Required
+2025-06-16 18:54:39,156 - ExcelFormulaProcessor - INFO - [Session 7c180b96] Excel application startup complete
+2025-06-16 18:54:39,226 - ExcelFormulaProcessor - INFO - [Session 7c180b96] Cleaning up Excel resources
+2025-06-16 18:54:39,310 - ExcelFormulaProcessor - INFO - [Session 1c940a70] Starting Excel application
+2025-06-16 18:54:39,311 - __main__ - INFO - Evaluating test 4/7: DDAP_Indicator_Required
+2025-06-16 18:54:39,696 - ExcelFormulaProcessor - INFO - [Session 1c940a70] Excel application startup complete
+2025-06-16 18:54:39,765 - ExcelFormulaProcessor - INFO - [Session 1c940a70] Cleaning up Excel resources
+2025-06-16 18:54:39,839 - ExcelFormulaProcessor - INFO - [Session 9a5a4eba] Starting Excel application
+2025-06-16 18:54:39,840 - __main__ - INFO - Evaluating test 5/7: DDAP_Type_If_Used
+2025-06-16 18:54:40,259 - ExcelFormulaProcessor - INFO - [Session 9a5a4eba] Excel application startup complete
+2025-06-16 18:54:40,327 - ExcelFormulaProcessor - INFO - [Session 9a5a4eba] Cleaning up Excel resources
+2025-06-16 18:54:40,411 - ExcelFormulaProcessor - INFO - [Session 50c0ab3c] Starting Excel application
+2025-06-16 18:54:40,412 - __main__ - INFO - Evaluating test 6/7: Impact_Description_If_Impact
+2025-06-16 18:54:40,798 - ExcelFormulaProcessor - INFO - [Session 50c0ab3c] Excel application startup complete
+2025-06-16 18:54:40,865 - ExcelFormulaProcessor - INFO - [Session 50c0ab3c] Cleaning up Excel resources
+2025-06-16 18:54:40,942 - ExcelFormulaProcessor - INFO - [Session cf147706] Starting Excel application
+2025-06-16 18:54:40,942 - __main__ - INFO - Evaluating test 7/7: Followup_Fields_If_Impact
+2025-06-16 18:54:41,334 - ExcelFormulaProcessor - INFO - [Session cf147706] Excel application startup complete
+2025-06-16 18:54:41,414 - ExcelFormulaProcessor - INFO - [Session cf147706] Cleaning up Excel resources
+2025-06-16 18:54:41,517 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 2382515b: Processing validation results
+2025-06-16 18:54:41,519 - __main__ - INFO - Validation completed successfully
+2025-06-16 18:54:41,520 - ui.common.workflow_state - INFO - State transition: VALIDATION_RUNNING -> VALIDATION_COMPLETE
+2025-06-16 18:54:41,520 - __main__ - INFO - Validation completed successfully
+2025-06-16 18:54:41,529 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 2382515b: Saved validation results to ./output\Analytics_Validation_20250616_185437_20250616_185441_results.json
+2025-06-16 18:54:41,531 - __main__ - INFO - Updating reports tab with 1 files
+2025-06-16 18:54:41,539 - __main__ - INFO - Report generation started
+2025-06-16 18:54:41,544 - services.validation_service - INFO - Starting _generate_section1_iag_overall with 7 rules
+2025-06-16 18:54:41,544 - services.validation_service - INFO - rule_results_by_leader has 5 leaders
+2025-06-16 18:54:41,683 - services.validation_service - INFO - Excel report generated: ./output\Analytics_Validation_20250616_185437_20250616_185441_report.xlsx
+2025-06-16 18:54:41,683 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 2382515b: Generating individual leader reports
+2025-06-16 18:54:41,683 - services.validation_service - INFO - Loading master report from ./output\Analytics_Validation_20250616_185437_20250616_185441_report.xlsx
+2025-06-16 18:54:41,703 - services.validation_service - INFO - Found 5 audit leaders: ['Angela Wilson', 'Jonathan Johnson', 'Kevin Nicholson', 'Kristen Walker', 'Michelle Ware']
+2025-06-16 18:54:41,703 - services.validation_service - INFO - Creating report for Angela Wilson
+2025-06-16 18:54:41,897 - services.validation_service - INFO - Saved report for Angela Wilson to ./output\leader_reports_20250616_185441\QA_Results_Angela_Wilson_20250616_185441.xlsx
+2025-06-16 18:54:41,897 - services.validation_service - INFO - Creating report for Jonathan Johnson
+2025-06-16 18:54:42,080 - services.validation_service - INFO - Saved report for Jonathan Johnson to ./output\leader_reports_20250616_185441\QA_Results_Jonathan_Johnson_20250616_185441.xlsx
+2025-06-16 18:54:42,080 - services.validation_service - INFO - Creating report for Kevin Nicholson
+2025-06-16 18:54:42,262 - services.validation_service - INFO - Saved report for Kevin Nicholson to ./output\leader_reports_20250616_185441\QA_Results_Kevin_Nicholson_20250616_185441.xlsx
+2025-06-16 18:54:42,262 - services.validation_service - INFO - Creating report for Kristen Walker
+2025-06-16 18:54:42,440 - services.validation_service - INFO - Saved report for Kristen Walker to ./output\leader_reports_20250616_185441\QA_Results_Kristen_Walker_20250616_185441.xlsx
+2025-06-16 18:54:42,440 - services.validation_service - INFO - Creating report for Michelle Ware
+2025-06-16 18:54:42,619 - services.validation_service - INFO - Saved report for Michelle Ware to ./output\leader_reports_20250616_185441\QA_Results_Michelle_Ware_20250616_185441.xlsx
+2025-06-16 18:54:42,620 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 2382515b: Reports generated: ['./output\\Analytics_Validation_20250616_185437_20250616_185441_results.json', './output\\Analytics_Validation_20250616_185437_20250616_185441_report.xlsx']
+2025-06-16 18:54:42,620 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 2382515b: Validation completed successfully
+2025-06-16 18:54:42,620 - __main__ - INFO - Successfully generated 5 Audit Leader-Specific Workbooks
+2025-06-16 18:54:42,620 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 2382515b: Cleanup completed
+2025-06-16 18:54:42,620 - __main__ - INFO - Updating reports tab with 1 files
+2025-06-16 18:54:42,623 - __main__ - INFO - Reports generated successfully
+2025-06-16 18:54:42,624 - __main__ - INFO - Updating reports tab with 2 files
+2025-06-16 18:54:42,628 - ui.common.workflow_state_simple - INFO - Workflow state: execution_active -> execution_completed
+2025-06-16 18:54:47,394 - __main__ - INFO - Opened folder: ./output\leader_reports_20250616_185441
+2025-06-16 18:54:51,136 - __main__ - INFO - Application closing
+2025-06-16 18:54:51,138 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-06-16 18:54:51,141 - __main__ - INFO - Application state saved
+2025-06-17 13:34:15,759 - ui.common.error_handler - INFO - Error handler initialized
+2025-06-17 13:34:15,762 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-06-17 13:34:15,762 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-06-17 13:34:15,764 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-17 13:34:15,764 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-17 13:34:15,776 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-17 13:34:15,776 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-17 13:34:15,776 - core.lookup.smart_lookup_manager - INFO - SmartLookupManager initialized with lazy threshold: 50MB
+2025-06-17 13:34:17,073 - ui.analytics_runner.rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-06-17 13:34:17,097 - ui.analytics_runner.rule_selector_panel - INFO - Loaded 7 rules from rule manager
+2025-06-17 13:34:17,123 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-06-17 13:34:17,229 - __main__ - INFO - Application state restored - defaulted to Simple Mode
+2025-06-17 13:34:17,229 - __main__ - INFO - Backend systems initialized
+2025-06-17 13:34:17,229 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-06-17 13:45:36,021 - __main__ - INFO - Data source changed: business_monitoring_dummy_data.xlsx
+2025-06-17 13:45:36,025 - __main__ - INFO - Data source validation: File appears valid
+2025-06-17 13:45:36,025 - ui.common.workflow_state_simple - INFO - Workflow state: initial -> data_loaded
+2025-06-17 13:45:36,026 - ui.common.workflow_state - INFO - State transition: INITIAL -> DATA_LOADED
+2025-06-17 13:45:36,026 - __main__ - INFO - Data loaded successfully
+2025-06-17 13:45:36,279 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-06-17 13:45:36,280 - __main__ - INFO - Data preview loaded: 30 rows, 13 columns
+2025-06-17 13:45:36,292 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-17 13:45:36,296 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> responsible_party_selected
+2025-06-17 13:45:36,296 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-17 13:45:36,297 - __main__ - INFO - Responsible party column set: AuditLeader
+2025-06-17 13:45:36,297 - __main__ - INFO - Responsible party column defaulted to: AuditLeader
+2025-06-17 13:45:36,297 - ui.common.workflow_state - INFO - State transition: COLUMN_SELECTED -> DATA_LOADED
+2025-06-17 13:45:36,297 - __main__ - INFO - Data source changed. Previous selections cleared.
+2025-06-17 13:45:36,297 - __main__ - INFO - Responsible party column changed. Rule selection cleared.
+2025-06-17 13:45:36,302 - __main__ - INFO - Updated rule editor with 13 columns
+2025-06-17 13:45:36,312 - ui.analytics_runner.data_source_panel - INFO - Preview loaded: 30 rows, 13 columns
+2025-06-17 13:45:36,326 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation passed - will auto-collapse
+2025-06-17 13:45:36,327 - ui.analytics_runner.data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-06-17 13:45:36,327 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-06-17 13:45:36,327 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> data_loaded
+2025-06-17 13:45:36,333 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-06-17 13:50:17,554 - data_integration.io.importer - INFO - Processing date columns for file: C:/Users/luria/OneDrive/Desktop/hr_titles.xlsx
+2025-06-17 13:50:17,583 - core.lookup.smart_lookup_manager - INFO - Loaded hr_titles (0.0MB, 18 rows)
+2025-06-17 13:50:17,587 - ui.analytics_runner.data_source_panel - INFO - File loaded: hr_titles.xlsx (18 rows, 2 columns) - available for LOOKUP operations
+2025-06-17 13:50:17,587 - ui.analytics_runner.data_source_panel - INFO - Successfully loaded hr_titles.xlsx for lookup
+2025-06-17 13:50:31,424 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-17 13:50:31,432 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> responsible_party_selected
+2025-06-17 13:50:31,432 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-17 13:50:31,433 - __main__ - INFO - Responsible party column set: AuditLeader
+2025-06-17 13:50:32,830 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> rules_selected
+2025-06-17 13:50:32,830 - ui.common.workflow_state - INFO - State transition: COLUMN_SELECTED -> RULES_SELECTED
+2025-06-17 13:50:32,830 - __main__ - INFO - 1 rules selected
+2025-06-17 13:50:32,830 - ui.common.workflow_state - INFO - State transition: RULES_SELECTED -> VALIDATION_READY
+2025-06-17 13:50:32,830 - __main__ - INFO - Ready to start validation
+2025-06-17 13:50:32,838 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:50:32,838 - __main__ - INFO - 2 rules selected
+2025-06-17 13:50:32,848 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:50:32,848 - __main__ - INFO - 3 rules selected
+2025-06-17 13:50:32,856 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:50:32,856 - __main__ - INFO - 4 rules selected
+2025-06-17 13:50:32,867 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:50:32,867 - __main__ - INFO - 5 rules selected
+2025-06-17 13:50:32,878 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:50:32,878 - __main__ - INFO - 6 rules selected
+2025-06-17 13:50:32,888 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:50:32,889 - __main__ - INFO - 7 rules selected
+2025-06-17 13:50:36,900 - ui.analytics_runner.rule_editor_panel - INFO - Created new rule with ID: 1a57a653-28da-421a-8782-1fc19843538c
+2025-06-17 13:50:36,901 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:50:36,911 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:50:36,922 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:50:36,934 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:50:36,945 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:50:36,956 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:50:36,968 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:50:36,980 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:50:36,991 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:50:37,004 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:50:37,015 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:50:37,026 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:50:37,037 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:50:37,050 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:53:43,993 - ExcelFormulaProcessor - INFO - [Session 5fd2947a] Starting Excel application
+2025-06-17 13:53:44,416 - ExcelFormulaProcessor - INFO - [Session 5fd2947a] Excel application startup complete
+2025-06-17 13:53:44,522 - ExcelFormulaProcessor - ERROR - [Session 5fd2947a] Error setting formula '=LOOKUP(AuditLeader, 'hr_data', 'Title') = 'Audit Manager'': (-2147352567, 'Exception occurred.', (0, None, None, None, 0, -2146827284), None)
+2025-06-17 13:53:44,526 - ExcelFormulaProcessor - INFO - [Session 5fd2947a] Cleaning up Excel resources
+2025-06-17 13:53:44,661 - ui.analytics_runner.rule_editor_panel - INFO - Test results displayed: DNC, 30 failures out of 30 items
+2025-06-17 13:53:47,723 - ui.analytics_runner.rule_editor_panel - INFO - Created new rule: HRDataTest (1a57a653-28da-421a-8782-1fc19843538c)
+2025-06-17 13:53:47,723 - ui.analytics_runner.rule_selector_panel - INFO - Rule created: 1a57a653-28da-421a-8782-1fc19843538c
+2025-06-17 13:53:47,726 - ui.analytics_runner.rule_selector_panel - INFO - Loaded 8 rules from rule manager
+2025-06-17 13:53:47,727 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:53:47,739 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:53:47,752 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:53:47,764 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:53:47,776 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:53:47,788 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:53:47,800 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:53:47,812 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:53:47,824 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:53:47,836 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:53:47,849 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:53:47,860 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:53:47,872 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:53:47,884 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:53:47,897 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:53:47,908 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 13:53:47,921 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 13:53:47,931 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:47,932 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 13:53:47,942 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:47,944 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 13:53:47,954 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:47,956 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 13:53:47,967 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:47,969 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 13:53:47,979 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:47,981 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 13:53:47,991 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:47,993 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 13:53:48,004 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:48,006 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 13:53:48,016 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:48,017 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 13:53:48,028 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:48,030 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 13:53:48,040 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:48,042 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 13:53:48,052 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:48,054 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 13:53:48,064 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:48,066 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 13:53:48,077 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:48,079 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 13:53:48,089 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:48,091 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 13:53:48,102 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:48,104 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 13:53:48,115 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:48,117 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 13:53:48,127 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:48,131 - ui.analytics_runner.rule_editor_panel - INFO - Rule 'HRDataTest' created successfully
+2025-06-17 13:53:57,369 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:57,369 - __main__ - INFO - 6 rules selected
+2025-06-17 13:53:57,378 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:57,378 - __main__ - INFO - 5 rules selected
+2025-06-17 13:53:57,386 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:57,386 - __main__ - INFO - 4 rules selected
+2025-06-17 13:53:57,395 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:57,395 - __main__ - INFO - 3 rules selected
+2025-06-17 13:53:57,401 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:57,401 - __main__ - INFO - 2 rules selected
+2025-06-17 13:53:57,408 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:57,408 - __main__ - INFO - 1 rules selected
+2025-06-17 13:53:57,414 - ui.common.workflow_state - INFO - State transition: VALIDATION_READY -> COLUMN_SELECTED
+2025-06-17 13:53:57,414 - __main__ - INFO - No rules selected
+2025-06-17 13:53:57,855 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:57,855 - ui.common.workflow_state - INFO - State transition: COLUMN_SELECTED -> RULES_SELECTED
+2025-06-17 13:53:57,856 - __main__ - INFO - 1 rules selected
+2025-06-17 13:53:57,856 - ui.common.workflow_state - INFO - State transition: RULES_SELECTED -> VALIDATION_READY
+2025-06-17 13:53:57,856 - __main__ - INFO - Ready to start validation
+2025-06-17 13:53:57,862 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:57,862 - __main__ - INFO - 2 rules selected
+2025-06-17 13:53:57,870 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:57,871 - __main__ - INFO - 3 rules selected
+2025-06-17 13:53:57,879 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:57,879 - __main__ - INFO - 4 rules selected
+2025-06-17 13:53:57,888 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:57,888 - __main__ - INFO - 5 rules selected
+2025-06-17 13:53:57,897 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:57,898 - __main__ - INFO - 6 rules selected
+2025-06-17 13:53:57,907 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:53:57,907 - __main__ - INFO - 7 rules selected
+2025-06-17 13:54:00,889 - __main__ - INFO - Application closing
+2025-06-17 13:54:00,891 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-06-17 13:54:00,896 - __main__ - INFO - Application state saved
+2025-06-17 13:54:05,181 - ui.common.error_handler - INFO - Error handler initialized
+2025-06-17 13:54:05,183 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-06-17 13:54:05,183 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-06-17 13:54:05,183 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-17 13:54:05,184 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-17 13:54:05,186 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-17 13:54:05,186 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-17 13:54:05,186 - core.lookup.smart_lookup_manager - INFO - SmartLookupManager initialized with lazy threshold: 50MB
+2025-06-17 13:54:05,589 - ui.analytics_runner.rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-06-17 13:54:05,611 - ui.analytics_runner.rule_selector_panel - INFO - Loaded 8 rules from rule manager
+2025-06-17 13:54:05,639 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-06-17 13:54:05,717 - __main__ - INFO - Application state restored - defaulted to Simple Mode
+2025-06-17 13:54:05,717 - __main__ - INFO - Backend systems initialized
+2025-06-17 13:54:05,717 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-06-17 13:54:07,777 - __main__ - INFO - Data source changed: business_monitoring_dummy_data.xlsx
+2025-06-17 13:54:07,781 - __main__ - INFO - Data source validation: File appears valid
+2025-06-17 13:54:07,781 - ui.common.workflow_state_simple - INFO - Workflow state: initial -> data_loaded
+2025-06-17 13:54:07,781 - ui.common.workflow_state - INFO - State transition: INITIAL -> DATA_LOADED
+2025-06-17 13:54:07,782 - __main__ - INFO - Data loaded successfully
+2025-06-17 13:54:07,943 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-06-17 13:54:07,944 - __main__ - INFO - Data preview loaded: 30 rows, 13 columns
+2025-06-17 13:54:07,954 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-17 13:54:07,959 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> responsible_party_selected
+2025-06-17 13:54:07,959 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-17 13:54:07,959 - __main__ - INFO - Responsible party column set: AuditLeader
+2025-06-17 13:54:07,959 - __main__ - INFO - Responsible party column defaulted to: AuditLeader
+2025-06-17 13:54:07,959 - ui.common.workflow_state - INFO - State transition: COLUMN_SELECTED -> DATA_LOADED
+2025-06-17 13:54:07,959 - __main__ - INFO - Data source changed. Previous selections cleared.
+2025-06-17 13:54:07,959 - __main__ - INFO - Responsible party column changed. Rule selection cleared.
+2025-06-17 13:54:07,963 - __main__ - INFO - Updated rule editor with 13 columns
+2025-06-17 13:54:07,974 - ui.analytics_runner.data_source_panel - INFO - Preview loaded: 30 rows, 13 columns
+2025-06-17 13:54:07,987 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation passed - will auto-collapse
+2025-06-17 13:54:07,987 - ui.analytics_runner.data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-06-17 13:54:07,987 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-06-17 13:54:07,987 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> data_loaded
+2025-06-17 13:54:07,994 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-06-17 13:54:27,286 - data_integration.io.importer - INFO - Processing date columns for file: C:/Users/luria/OneDrive/Desktop/hr_titles.xlsx
+2025-06-17 13:54:27,302 - core.lookup.smart_lookup_manager - INFO - Loaded hr_titles (0.0MB, 18 rows)
+2025-06-17 13:54:27,303 - ui.analytics_runner.data_source_panel - INFO - File loaded: hr_titles.xlsx (18 rows, 2 columns) - available for LOOKUP operations
+2025-06-17 13:54:27,303 - ui.analytics_runner.data_source_panel - INFO - Successfully loaded hr_titles.xlsx for lookup
+2025-06-17 13:54:31,570 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-17 13:54:31,578 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> responsible_party_selected
+2025-06-17 13:54:31,578 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-17 13:54:31,578 - __main__ - INFO - Responsible party column set: AuditLeader
+2025-06-17 13:54:34,713 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> rules_selected
+2025-06-17 13:54:34,713 - ui.common.workflow_state - INFO - State transition: COLUMN_SELECTED -> RULES_SELECTED
+2025-06-17 13:54:34,713 - __main__ - INFO - 1 rules selected
+2025-06-17 13:54:34,713 - ui.common.workflow_state - INFO - State transition: RULES_SELECTED -> VALIDATION_READY
+2025-06-17 13:54:34,713 - __main__ - INFO - Ready to start validation
+2025-06-17 13:54:34,721 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:54:34,721 - __main__ - INFO - 2 rules selected
+2025-06-17 13:54:34,730 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:54:34,730 - __main__ - INFO - 3 rules selected
+2025-06-17 13:54:34,740 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:54:34,740 - __main__ - INFO - 4 rules selected
+2025-06-17 13:54:34,750 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:54:34,750 - __main__ - INFO - 5 rules selected
+2025-06-17 13:54:34,760 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:54:34,760 - __main__ - INFO - 6 rules selected
+2025-06-17 13:54:34,772 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:54:34,773 - __main__ - INFO - 7 rules selected
+2025-06-17 13:54:34,784 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 13:54:34,784 - __main__ - INFO - 8 rules selected
+2025-06-17 13:54:37,190 - __main__ - INFO - Starting validation with 8 tests
+2025-06-17 13:54:37,190 - __main__ - INFO - Using Excel sheet: Sheet1
+2025-06-17 13:54:37,191 - ui.common.workflow_state - INFO - State transition: VALIDATION_READY -> VALIDATION_RUNNING
+2025-06-17 13:54:37,191 - __main__ - INFO - Validation started
+2025-06-17 13:54:37,191 - __main__ - INFO - Validation in progress. Controls are locked.
+2025-06-17 13:54:37,198 - __main__ - INFO - Analytic ID: Analytics_Validation_20250617_135437
+2025-06-17 13:54:37,198 - __main__ - INFO - Execution Mode: Serial
+2025-06-17 13:54:37,198 - __main__ - INFO - Responsible Party Column: AuditLeader
+2025-06-17 13:54:37,198 - __main__ - INFO - Report generation enabled: True
+2025-06-17 13:54:37,198 - __main__ - INFO - Report formats requested: ['iag_excel', 'json']
+2025-06-17 13:54:37,198 - __main__ - INFO - Output directory: ./output
+2025-06-17 13:54:37,198 - __main__ - INFO - Individual Leader Reports will be generated
+2025-06-17 13:54:37,202 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 285b0309: Created output directory: ./output
+2025-06-17 13:54:37,203 - services.validation_service - INFO - Initializing report generator with default configuration
+2025-06-17 13:54:37,203 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 285b0309: Starting validation
+2025-06-17 13:54:37,206 - __main__ - INFO - Validation session started: 285b0309
+2025-06-17 13:54:37,206 - __main__ - INFO - Validation started
+2025-06-17 13:54:37,210 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> execution_active
+2025-06-17 13:54:37,223 - data_integration.io.importer - INFO - Processing date columns for file: C:\Users\luria\PycharmProjects\QAStudiov3\tests\business_monitoring_dummy_data.xlsx
+2025-06-17 13:54:37,311 - services.validation_service - INFO - Found 8 rules to apply
+2025-06-17 13:54:37,311 - services.validation_service - INFO - Rule IDs: ['1a57a653-28da-421a-8782-1fc19843538c', 'QA-ID-1', 'QA-ID-2', 'QA-ID-3', 'QA-ID-4']...
+2025-06-17 13:54:37,311 - services.validation_service - ERROR - Error evaluating rule 1a57a653-28da-421a-8782-1fc19843538c: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 13:54:37,311 - services.validation_service - ERROR - Error evaluating rule QA-ID-1: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 13:54:37,311 - services.validation_service - ERROR - Error evaluating rule QA-ID-2: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 13:54:37,312 - services.validation_service - ERROR - Error evaluating rule QA-ID-3: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 13:54:37,312 - services.validation_service - ERROR - Error evaluating rule QA-ID-4: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 13:54:37,312 - services.validation_service - ERROR - Error evaluating rule QA-ID-5: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 13:54:37,312 - services.validation_service - ERROR - Error evaluating rule QA-ID-6: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 13:54:37,312 - services.validation_service - ERROR - Error evaluating rule QA-ID-7: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 13:54:37,312 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 285b0309: Processing validation results
+2025-06-17 13:54:37,313 - __main__ - INFO - Validation completed successfully
+2025-06-17 13:54:37,313 - ui.common.workflow_state - INFO - State transition: VALIDATION_RUNNING -> VALIDATION_COMPLETE
+2025-06-17 13:54:37,313 - __main__ - INFO - Validation completed successfully
+2025-06-17 13:54:37,313 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 285b0309: Saved validation results to ./output\Analytics_Validation_20250617_135437_20250617_135437_results.json
+2025-06-17 13:54:37,321 - services.validation_service - INFO - Starting _generate_section1_iag_overall with 0 rules
+2025-06-17 13:54:37,321 - services.validation_service - INFO - rule_results_by_leader has 0 leaders
+2025-06-17 13:54:37,330 - __main__ - INFO - Updating reports tab with 1 files
+2025-06-17 13:54:37,337 - __main__ - INFO - Report generation started
+2025-06-17 13:54:37,347 - services.validation_service - INFO - Excel report generated: ./output\Analytics_Validation_20250617_135437_20250617_135437_report.xlsx
+2025-06-17 13:54:37,347 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 285b0309: Generating individual leader reports
+2025-06-17 13:54:37,348 - services.validation_service - INFO - Loading master report from ./output\Analytics_Validation_20250617_135437_20250617_135437_report.xlsx
+2025-06-17 13:54:37,356 - services.validation_service - INFO - Found 0 audit leaders: []
+2025-06-17 13:54:37,356 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 285b0309: Reports generated: ['./output\\Analytics_Validation_20250617_135437_20250617_135437_results.json', './output\\Analytics_Validation_20250617_135437_20250617_135437_report.xlsx']
+2025-06-17 13:54:37,356 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 285b0309: Validation completed successfully
+2025-06-17 13:54:37,356 - __main__ - INFO - Successfully generated 0 Audit Leader-Specific Workbooks
+2025-06-17 13:54:37,356 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 285b0309: Cleanup completed
+2025-06-17 13:54:37,356 - __main__ - INFO - Updating reports tab with 1 files
+2025-06-17 13:54:37,359 - __main__ - INFO - Reports generated successfully
+2025-06-17 13:54:37,360 - __main__ - INFO - Updating reports tab with 2 files
+2025-06-17 13:54:37,363 - ui.common.workflow_state_simple - INFO - Workflow state: execution_active -> execution_completed
+2025-06-17 13:55:44,300 - __main__ - INFO - Application closing
+2025-06-17 13:55:44,302 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-06-17 13:55:44,307 - __main__ - INFO - Application state saved
+2025-06-17 14:02:48,020 - ui.common.error_handler - INFO - Error handler initialized
+2025-06-17 14:02:48,021 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-06-17 14:02:48,021 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-06-17 14:02:48,021 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-17 14:02:48,021 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-17 14:02:48,024 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-17 14:02:48,024 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-17 14:02:48,024 - core.lookup.smart_lookup_manager - INFO - SmartLookupManager initialized with lazy threshold: 50MB
+2025-06-17 14:02:48,318 - ui.analytics_runner.rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-06-17 14:02:48,339 - ui.analytics_runner.rule_selector_panel - INFO - Loaded 8 rules from rule manager
+2025-06-17 14:02:48,366 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-06-17 14:02:48,436 - __main__ - INFO - Application state restored - defaulted to Simple Mode
+2025-06-17 14:02:48,436 - __main__ - INFO - Backend systems initialized
+2025-06-17 14:02:48,436 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-06-17 14:02:50,565 - __main__ - INFO - Data source changed: business_monitoring_dummy_data.xlsx
+2025-06-17 14:02:50,569 - __main__ - INFO - Data source validation: File appears valid
+2025-06-17 14:02:50,569 - ui.common.workflow_state_simple - INFO - Workflow state: initial -> data_loaded
+2025-06-17 14:02:50,569 - ui.common.workflow_state - INFO - State transition: INITIAL -> DATA_LOADED
+2025-06-17 14:02:50,570 - __main__ - INFO - Data loaded successfully
+2025-06-17 14:02:50,705 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-06-17 14:02:50,705 - __main__ - INFO - Data preview loaded: 30 rows, 13 columns
+2025-06-17 14:02:50,716 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-17 14:02:50,720 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> responsible_party_selected
+2025-06-17 14:02:50,720 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-17 14:02:50,721 - __main__ - INFO - Responsible party column set: AuditLeader
+2025-06-17 14:02:50,721 - __main__ - INFO - Responsible party column defaulted to: AuditLeader
+2025-06-17 14:02:50,721 - ui.common.workflow_state - INFO - State transition: COLUMN_SELECTED -> DATA_LOADED
+2025-06-17 14:02:50,721 - __main__ - INFO - Data source changed. Previous selections cleared.
+2025-06-17 14:02:50,721 - __main__ - INFO - Responsible party column changed. Rule selection cleared.
+2025-06-17 14:02:50,725 - __main__ - INFO - Updated rule editor with 13 columns
+2025-06-17 14:02:50,736 - ui.analytics_runner.data_source_panel - INFO - Preview loaded: 30 rows, 13 columns
+2025-06-17 14:02:50,749 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation passed - will auto-collapse
+2025-06-17 14:02:50,749 - ui.analytics_runner.data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-06-17 14:02:50,749 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-06-17 14:02:50,749 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> data_loaded
+2025-06-17 14:02:50,756 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-06-17 14:02:59,287 - data_integration.io.importer - INFO - Processing date columns for file: C:/Users/luria/OneDrive/Desktop/hr_titles.xlsx
+2025-06-17 14:02:59,301 - core.lookup.smart_lookup_manager - INFO - Loaded hr_titles (0.0MB, 18 rows)
+2025-06-17 14:02:59,302 - ui.analytics_runner.data_source_panel - INFO - File loaded: hr_titles.xlsx (18 rows, 2 columns) - available for LOOKUP operations
+2025-06-17 14:02:59,302 - ui.analytics_runner.data_source_panel - INFO - Successfully loaded hr_titles.xlsx for lookup
+2025-06-17 14:03:04,239 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-17 14:03:04,247 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> responsible_party_selected
+2025-06-17 14:03:04,248 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-17 14:03:04,248 - __main__ - INFO - Responsible party column set: AuditLeader
+2025-06-17 14:03:05,452 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> rules_selected
+2025-06-17 14:03:05,452 - ui.common.workflow_state - INFO - State transition: COLUMN_SELECTED -> RULES_SELECTED
+2025-06-17 14:03:05,452 - __main__ - INFO - 1 rules selected
+2025-06-17 14:03:05,452 - ui.common.workflow_state - INFO - State transition: RULES_SELECTED -> VALIDATION_READY
+2025-06-17 14:03:05,452 - __main__ - INFO - Ready to start validation
+2025-06-17 14:03:05,461 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 14:03:05,461 - __main__ - INFO - 2 rules selected
+2025-06-17 14:03:05,470 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 14:03:05,470 - __main__ - INFO - 3 rules selected
+2025-06-17 14:03:05,480 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 14:03:05,480 - __main__ - INFO - 4 rules selected
+2025-06-17 14:03:05,490 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 14:03:05,490 - __main__ - INFO - 5 rules selected
+2025-06-17 14:03:05,501 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 14:03:05,501 - __main__ - INFO - 6 rules selected
+2025-06-17 14:03:05,513 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 14:03:05,513 - __main__ - INFO - 7 rules selected
+2025-06-17 14:03:05,526 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 14:03:05,526 - __main__ - INFO - 8 rules selected
+2025-06-17 14:03:07,427 - __main__ - INFO - Starting validation with 8 tests
+2025-06-17 14:03:07,427 - __main__ - INFO - Using Excel sheet: Sheet1
+2025-06-17 14:03:07,427 - ui.common.workflow_state - INFO - State transition: VALIDATION_READY -> VALIDATION_RUNNING
+2025-06-17 14:03:07,427 - __main__ - INFO - Validation started
+2025-06-17 14:03:07,427 - __main__ - INFO - Validation in progress. Controls are locked.
+2025-06-17 14:03:07,434 - __main__ - INFO - Analytic ID: Analytics_Validation_20250617_140307
+2025-06-17 14:03:07,434 - __main__ - INFO - Execution Mode: Serial
+2025-06-17 14:03:07,434 - __main__ - INFO - Responsible Party Column: AuditLeader
+2025-06-17 14:03:07,434 - __main__ - INFO - Report generation enabled: True
+2025-06-17 14:03:07,434 - __main__ - INFO - Report formats requested: ['iag_excel', 'json']
+2025-06-17 14:03:07,434 - __main__ - INFO - Output directory: ./output
+2025-06-17 14:03:07,434 - __main__ - INFO - Individual Leader Reports will be generated
+2025-06-17 14:03:07,434 - __main__ - INFO - Passing lookup manager with 1 loaded files to validation
+2025-06-17 14:03:07,437 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 45f1d235: Created output directory: ./output
+2025-06-17 14:03:07,437 - services.validation_service - INFO - Initializing report generator with default configuration
+2025-06-17 14:03:07,437 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 45f1d235: Starting validation
+2025-06-17 14:03:07,441 - __main__ - INFO - Validation session started: 45f1d235
+2025-06-17 14:03:07,441 - __main__ - INFO - Validation started
+2025-06-17 14:03:07,444 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> execution_active
+2025-06-17 14:03:07,457 - data_integration.io.importer - INFO - Processing date columns for file: C:\Users\luria\PycharmProjects\QAStudiov3\tests\business_monitoring_dummy_data.xlsx
+2025-06-17 14:03:07,542 - services.validation_service - INFO - Found 8 rules to apply
+2025-06-17 14:03:07,542 - services.validation_service - INFO - Rule IDs: ['1a57a653-28da-421a-8782-1fc19843538c', 'QA-ID-1', 'QA-ID-2', 'QA-ID-3', 'QA-ID-4']...
+2025-06-17 14:03:07,542 - services.validation_service - ERROR - Error evaluating rule 1a57a653-28da-421a-8782-1fc19843538c: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:03:07,543 - services.validation_service - ERROR - Error evaluating rule QA-ID-1: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:03:07,543 - services.validation_service - ERROR - Error evaluating rule QA-ID-2: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:03:07,543 - services.validation_service - ERROR - Error evaluating rule QA-ID-3: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:03:07,543 - services.validation_service - ERROR - Error evaluating rule QA-ID-4: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:03:07,543 - services.validation_service - ERROR - Error evaluating rule QA-ID-5: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:03:07,543 - services.validation_service - ERROR - Error evaluating rule QA-ID-6: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:03:07,543 - services.validation_service - ERROR - Error evaluating rule QA-ID-7: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:03:07,543 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 45f1d235: Processing validation results
+2025-06-17 14:03:07,544 - __main__ - INFO - Validation completed successfully
+2025-06-17 14:03:07,544 - ui.common.workflow_state - INFO - State transition: VALIDATION_RUNNING -> VALIDATION_COMPLETE
+2025-06-17 14:03:07,544 - __main__ - INFO - Validation completed successfully
+2025-06-17 14:03:07,545 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 45f1d235: Saved validation results to ./output\Analytics_Validation_20250617_140307_20250617_140307_results.json
+2025-06-17 14:03:07,546 - __main__ - INFO - Updating reports tab with 1 files
+2025-06-17 14:03:07,552 - __main__ - INFO - Report generation started
+2025-06-17 14:03:07,557 - services.validation_service - INFO - Starting _generate_section1_iag_overall with 0 rules
+2025-06-17 14:03:07,557 - services.validation_service - INFO - rule_results_by_leader has 0 leaders
+2025-06-17 14:03:07,577 - services.validation_service - INFO - Excel report generated: ./output\Analytics_Validation_20250617_140307_20250617_140307_report.xlsx
+2025-06-17 14:03:07,577 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 45f1d235: Generating individual leader reports
+2025-06-17 14:03:07,578 - services.validation_service - INFO - Loading master report from ./output\Analytics_Validation_20250617_140307_20250617_140307_report.xlsx
+2025-06-17 14:03:07,584 - services.validation_service - INFO - Found 0 audit leaders: []
+2025-06-17 14:03:07,584 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 45f1d235: Reports generated: ['./output\\Analytics_Validation_20250617_140307_20250617_140307_results.json', './output\\Analytics_Validation_20250617_140307_20250617_140307_report.xlsx']
+2025-06-17 14:03:07,584 - __main__ - INFO - Successfully generated 0 Audit Leader-Specific Workbooks
+2025-06-17 14:03:07,585 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 45f1d235: Validation completed successfully
+2025-06-17 14:03:07,585 - __main__ - INFO - Updating reports tab with 1 files
+2025-06-17 14:03:07,585 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 45f1d235: Cleanup completed
+2025-06-17 14:03:07,588 - __main__ - INFO - Reports generated successfully
+2025-06-17 14:03:07,588 - __main__ - INFO - Updating reports tab with 2 files
+2025-06-17 14:03:07,592 - ui.common.workflow_state_simple - INFO - Workflow state: execution_active -> execution_completed
+2025-06-17 14:04:25,924 - __main__ - INFO - Opened folder: ./output\leader_reports_20250617_140307
+2025-06-17 14:04:28,995 - __main__ - INFO - Application closing
+2025-06-17 14:04:28,999 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-06-17 14:04:29,004 - __main__ - INFO - Application state saved
+2025-06-17 14:35:30,334 - ui.common.error_handler - INFO - Error handler initialized
+2025-06-17 14:35:30,335 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-06-17 14:35:30,336 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-06-17 14:35:30,337 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-17 14:35:30,337 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-17 14:35:30,349 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-17 14:35:30,349 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-17 14:35:30,349 - core.lookup.smart_lookup_manager - INFO - SmartLookupManager initialized with lazy threshold: 50MB
+2025-06-17 14:35:30,805 - ui.analytics_runner.rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-06-17 14:35:30,828 - ui.analytics_runner.rule_selector_panel - INFO - Loaded 9 rules from rule manager
+2025-06-17 14:35:30,859 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-06-17 14:35:30,937 - __main__ - INFO - Application state restored - defaulted to Simple Mode
+2025-06-17 14:35:30,937 - __main__ - INFO - Backend systems initialized
+2025-06-17 14:35:30,937 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-06-17 14:35:33,211 - __main__ - INFO - Data source changed: business_monitoring_dummy_data.xlsx
+2025-06-17 14:35:33,215 - __main__ - INFO - Data source validation: File appears valid
+2025-06-17 14:35:33,215 - ui.common.workflow_state_simple - INFO - Workflow state: initial -> data_loaded
+2025-06-17 14:35:33,215 - ui.common.workflow_state - INFO - State transition: INITIAL -> DATA_LOADED
+2025-06-17 14:35:33,216 - __main__ - INFO - Data loaded successfully
+2025-06-17 14:35:33,359 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-06-17 14:35:33,360 - __main__ - INFO - Data preview loaded: 30 rows, 13 columns
+2025-06-17 14:35:33,370 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-17 14:35:33,375 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> responsible_party_selected
+2025-06-17 14:35:33,375 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-17 14:35:33,375 - __main__ - INFO - Responsible party column set: AuditLeader
+2025-06-17 14:35:33,376 - __main__ - INFO - Responsible party column defaulted to: AuditLeader
+2025-06-17 14:35:33,376 - ui.common.workflow_state - INFO - State transition: COLUMN_SELECTED -> DATA_LOADED
+2025-06-17 14:35:33,376 - __main__ - INFO - Data source changed. Previous selections cleared.
+2025-06-17 14:35:33,376 - __main__ - INFO - Responsible party column changed. Rule selection cleared.
+2025-06-17 14:35:33,380 - __main__ - INFO - Updated rule editor with 13 columns
+2025-06-17 14:35:33,393 - ui.analytics_runner.data_source_panel - INFO - Preview loaded: 30 rows, 13 columns
+2025-06-17 14:35:33,406 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation passed - will auto-collapse
+2025-06-17 14:35:33,407 - ui.analytics_runner.data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-06-17 14:35:33,407 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-06-17 14:35:33,407 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> data_loaded
+2025-06-17 14:35:33,413 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-06-17 14:35:39,424 - data_integration.io.importer - INFO - Processing date columns for file: C:/Users/luria/OneDrive/Desktop/hr_titles.xlsx
+2025-06-17 14:35:39,439 - core.lookup.smart_lookup_manager - INFO - Loaded hr_titles (0.0MB, 18 rows)
+2025-06-17 14:35:39,441 - ui.analytics_runner.data_source_panel - INFO - File loaded: hr_titles.xlsx (18 rows, 2 columns) - available for LOOKUP operations
+2025-06-17 14:35:39,441 - ui.analytics_runner.data_source_panel - INFO - Successfully loaded hr_titles.xlsx for lookup
+2025-06-17 14:35:43,711 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-17 14:35:43,719 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> responsible_party_selected
+2025-06-17 14:35:43,719 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-17 14:35:43,720 - __main__ - INFO - Responsible party column set: AuditLeader
+2025-06-17 14:35:44,857 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> rules_selected
+2025-06-17 14:35:44,857 - ui.common.workflow_state - INFO - State transition: COLUMN_SELECTED -> RULES_SELECTED
+2025-06-17 14:35:44,858 - __main__ - INFO - 1 rules selected
+2025-06-17 14:35:44,858 - ui.common.workflow_state - INFO - State transition: RULES_SELECTED -> VALIDATION_READY
+2025-06-17 14:35:44,858 - __main__ - INFO - Ready to start validation
+2025-06-17 14:35:44,866 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 14:35:44,866 - __main__ - INFO - 2 rules selected
+2025-06-17 14:35:44,874 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 14:35:44,874 - __main__ - INFO - 3 rules selected
+2025-06-17 14:35:44,884 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 14:35:44,884 - __main__ - INFO - 4 rules selected
+2025-06-17 14:35:44,894 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 14:35:44,894 - __main__ - INFO - 5 rules selected
+2025-06-17 14:35:44,904 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 14:35:44,904 - __main__ - INFO - 6 rules selected
+2025-06-17 14:35:44,914 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 14:35:44,914 - __main__ - INFO - 7 rules selected
+2025-06-17 14:35:44,926 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 14:35:44,927 - __main__ - INFO - 8 rules selected
+2025-06-17 14:35:44,938 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 14:35:44,939 - __main__ - INFO - 9 rules selected
+2025-06-17 14:35:47,062 - __main__ - INFO - Starting validation with 9 tests
+2025-06-17 14:35:47,062 - __main__ - INFO - Using Excel sheet: Sheet1
+2025-06-17 14:35:47,062 - ui.common.workflow_state - INFO - State transition: VALIDATION_READY -> VALIDATION_RUNNING
+2025-06-17 14:35:47,063 - __main__ - INFO - Validation started
+2025-06-17 14:35:47,063 - __main__ - INFO - Validation in progress. Controls are locked.
+2025-06-17 14:35:47,070 - __main__ - INFO - Analytic ID: Analytics_Validation_20250617_143547
+2025-06-17 14:35:47,070 - __main__ - INFO - Execution Mode: Serial
+2025-06-17 14:35:47,070 - __main__ - INFO - Responsible Party Column: AuditLeader
+2025-06-17 14:35:47,070 - __main__ - INFO - Report generation enabled: True
+2025-06-17 14:35:47,070 - __main__ - INFO - Report formats requested: ['iag_excel', 'json']
+2025-06-17 14:35:47,070 - __main__ - INFO - Output directory: ./output
+2025-06-17 14:35:47,070 - __main__ - INFO - Individual Leader Reports will be generated
+2025-06-17 14:35:47,071 - __main__ - INFO - Passing lookup manager with 1 loaded files to validation
+2025-06-17 14:35:47,074 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 14c787dc: Created output directory: ./output
+2025-06-17 14:35:47,075 - services.validation_service - INFO - Initializing report generator with default configuration
+2025-06-17 14:35:47,075 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 14c787dc: Starting validation
+2025-06-17 14:35:47,078 - __main__ - INFO - Validation session started: 14c787dc
+2025-06-17 14:35:47,078 - __main__ - INFO - Validation started
+2025-06-17 14:35:47,081 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> execution_active
+2025-06-17 14:35:47,096 - data_integration.io.importer - INFO - Processing date columns for file: C:\Users\luria\PycharmProjects\QAStudiov3\tests\business_monitoring_dummy_data.xlsx
+2025-06-17 14:35:47,180 - services.validation_service - INFO - Found 9 rules to apply
+2025-06-17 14:35:47,180 - services.validation_service - INFO - Rule IDs: ['1a57a653-28da-421a-8782-1fc19843538c', 'QA-ID-1', 'QA-ID-2', 'QA-ID-3', 'QA-ID-4']...
+2025-06-17 14:35:47,180 - services.validation_service - ERROR - Error evaluating rule 1a57a653-28da-421a-8782-1fc19843538c: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:35:47,181 - services.validation_service - ERROR - Error evaluating rule QA-ID-1: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:35:47,181 - services.validation_service - ERROR - Error evaluating rule QA-ID-2: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:35:47,181 - services.validation_service - ERROR - Error evaluating rule QA-ID-3: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:35:47,181 - services.validation_service - ERROR - Error evaluating rule QA-ID-4: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:35:47,181 - services.validation_service - ERROR - Error evaluating rule QA-ID-5: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:35:47,181 - services.validation_service - ERROR - Error evaluating rule QA-ID-6: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:35:47,181 - services.validation_service - ERROR - Error evaluating rule QA-ID-7: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:35:47,181 - services.validation_service - ERROR - Error evaluating rule test_lookup_001: 'ProgressTrackingEvaluator' object has no attribute 'evaluate_rule'
+2025-06-17 14:35:47,182 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 14c787dc: Processing validation results
+2025-06-17 14:35:47,183 - __main__ - INFO - Validation completed successfully
+2025-06-17 14:35:47,183 - ui.common.workflow_state - INFO - State transition: VALIDATION_RUNNING -> VALIDATION_COMPLETE
+2025-06-17 14:35:47,183 - __main__ - INFO - Validation completed successfully
+2025-06-17 14:35:47,183 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 14c787dc: Saved validation results to ./output\Analytics_Validation_20250617_143547_20250617_143547_results.json
+2025-06-17 14:35:47,184 - __main__ - INFO - Updating reports tab with 1 files
+2025-06-17 14:35:47,191 - __main__ - INFO - Report generation started
+2025-06-17 14:35:47,196 - services.validation_service - INFO - Starting _generate_section1_iag_overall with 0 rules
+2025-06-17 14:35:47,196 - services.validation_service - INFO - rule_results_by_leader has 0 leaders
+2025-06-17 14:35:47,208 - services.validation_service - INFO - Excel report generated: ./output\Analytics_Validation_20250617_143547_20250617_143547_report.xlsx
+2025-06-17 14:35:47,208 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 14c787dc: Generating individual leader reports
+2025-06-17 14:35:47,208 - services.validation_service - INFO - Loading master report from ./output\Analytics_Validation_20250617_143547_20250617_143547_report.xlsx
+2025-06-17 14:35:47,214 - services.validation_service - INFO - Found 0 audit leaders: []
+2025-06-17 14:35:47,216 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 14c787dc: Reports generated: ['./output\\Analytics_Validation_20250617_143547_20250617_143547_results.json', './output\\Analytics_Validation_20250617_143547_20250617_143547_report.xlsx']
+2025-06-17 14:35:47,216 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 14c787dc: Validation completed successfully
+2025-06-17 14:35:47,216 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 14c787dc: Cleanup completed
+2025-06-17 14:35:47,216 - __main__ - INFO - Successfully generated 0 Audit Leader-Specific Workbooks
+2025-06-17 14:35:47,216 - __main__ - INFO - Updating reports tab with 1 files
+2025-06-17 14:35:47,219 - __main__ - INFO - Reports generated successfully
+2025-06-17 14:35:47,220 - __main__ - INFO - Updating reports tab with 2 files
+2025-06-17 14:35:47,225 - ui.common.workflow_state_simple - INFO - Workflow state: execution_active -> execution_completed
+2025-06-17 15:05:50,103 - __main__ - INFO - Application closing
+2025-06-17 15:05:50,119 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-06-17 15:05:50,124 - __main__ - INFO - Application state saved
+2025-06-17 15:06:36,511 - ui.common.error_handler - INFO - Error handler initialized
+2025-06-17 15:06:36,511 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-06-17 15:06:36,512 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-06-17 15:06:36,513 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-17 15:06:36,513 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-17 15:06:36,516 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-17 15:06:36,516 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-17 15:06:36,516 - core.lookup.smart_lookup_manager - INFO - SmartLookupManager initialized with lazy threshold: 50MB
+2025-06-17 15:06:36,940 - ui.analytics_runner.rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-06-17 15:06:36,964 - ui.analytics_runner.rule_selector_panel - INFO - Loaded 10 rules from rule manager
+2025-06-17 15:06:36,996 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-06-17 15:06:37,072 - __main__ - INFO - Application state restored - defaulted to Simple Mode
+2025-06-17 15:06:37,072 - __main__ - INFO - Backend systems initialized
+2025-06-17 15:06:37,072 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-06-17 15:06:45,510 - __main__ - INFO - Data source changed: audit_data.xlsx
+2025-06-17 15:06:45,515 - __main__ - INFO - Data source validation: File appears valid
+2025-06-17 15:06:45,515 - ui.common.workflow_state_simple - INFO - Workflow state: initial -> data_loaded
+2025-06-17 15:06:45,515 - ui.common.workflow_state - INFO - State transition: INITIAL -> DATA_LOADED
+2025-06-17 15:06:45,515 - __main__ - INFO - Data loaded successfully
+2025-06-17 15:06:45,700 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-06-17 15:06:45,701 - __main__ - INFO - Data preview loaded: 5 rows, 3 columns
+2025-06-17 15:06:45,711 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-17 15:06:45,715 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> responsible_party_selected
+2025-06-17 15:06:45,715 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-17 15:06:45,715 - __main__ - INFO - Responsible party column set: AuditLeader
+2025-06-17 15:06:45,716 - __main__ - INFO - Responsible party column defaulted to: AuditLeader
+2025-06-17 15:06:45,716 - ui.common.workflow_state - INFO - State transition: COLUMN_SELECTED -> DATA_LOADED
+2025-06-17 15:06:45,716 - __main__ - INFO - Data source changed. Previous selections cleared.
+2025-06-17 15:06:45,716 - __main__ - INFO - Responsible party column changed. Rule selection cleared.
+2025-06-17 15:06:45,720 - __main__ - INFO - Updated rule editor with 3 columns
+2025-06-17 15:06:45,732 - ui.analytics_runner.data_source_panel - INFO - Preview loaded: 5 rows, 3 columns
+2025-06-17 15:06:45,744 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation passed - will auto-collapse
+2025-06-17 15:06:45,744 - ui.analytics_runner.data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-06-17 15:06:45,744 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-06-17 15:06:45,744 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> data_loaded
+2025-06-17 15:06:45,750 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-06-17 15:06:48,978 - data_integration.io.importer - INFO - Processing date columns for file: C:/Users/luria/PycharmProjects/QAStudiov3/lookup_test_data/hr_reference.xlsx
+2025-06-17 15:06:48,990 - core.lookup.smart_lookup_manager - INFO - Loaded hr_reference (0.0MB, 5 rows)
+2025-06-17 15:06:48,993 - ui.analytics_runner.data_source_panel - INFO - File loaded: hr_reference.xlsx (5 rows, 3 columns) - available for LOOKUP operations
+2025-06-17 15:06:48,993 - ui.analytics_runner.data_source_panel - INFO - Successfully loaded hr_reference.xlsx for lookup
+2025-06-17 15:06:59,818 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:06:59,826 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:06:59,833 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:06:59,842 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:06:59,849 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:06:59,856 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:06:59,864 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:06:59,871 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:06:59,878 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:06:59,885 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:06:59,893 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:06:59,900 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:06:59,906 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:06:59,915 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:06:59,921 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:06:59,929 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:06:59,936 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:06:59,944 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:06:59,951 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:06:59,959 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,602 - ui.analytics_runner.rule_editor_panel - INFO - Created new rule with ID: 09373c45-072e-47f3-a4f1-827e8e6cb08f
+2025-06-17 15:07:03,603 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,611 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,618 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,626 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,633 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,640 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,647 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,654 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,661 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,669 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,676 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,685 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,693 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,700 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,708 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,717 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,724 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,731 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,738 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:03,746 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,743 - ui.analytics_runner.rule_editor_panel - INFO - Created new rule: Test100 (09373c45-072e-47f3-a4f1-827e8e6cb08f)
+2025-06-17 15:07:16,743 - ui.analytics_runner.rule_selector_panel - INFO - Rule created: 09373c45-072e-47f3-a4f1-827e8e6cb08f
+2025-06-17 15:07:16,744 - ui.analytics_runner.rule_selector_panel - INFO - Loaded 11 rules from rule manager
+2025-06-17 15:07:16,745 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,752 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,759 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,766 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,773 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,780 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,788 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,795 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,802 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,810 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,817 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,824 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,831 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,838 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,845 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,852 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,860 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,867 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,873 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,881 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,888 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,896 - __main__ - INFO - Rule selection changed: 0 rules selected
+2025-06-17 15:07:16,904 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:16,910 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> rules_selected
+2025-06-17 15:07:16,910 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:16,916 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:16,918 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:16,923 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:16,924 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:16,930 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:16,933 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:16,938 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:16,940 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:16,946 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:16,948 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:16,954 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:16,955 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:16,960 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:16,962 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:16,968 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:16,970 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:16,975 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:16,978 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:16,983 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:16,985 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:16,990 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:16,992 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:16,999 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:17,000 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:17,006 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:17,007 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:17,013 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:17,015 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:17,021 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:17,023 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:17,028 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:17,030 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:17,036 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:17,038 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:17,044 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:17,045 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:17,051 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:17,053 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:17,058 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:17,060 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:17,065 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:17,068 - __main__ - INFO - Rule selection changed: 1 rules selected
+2025-06-17 15:07:17,073 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:17,076 - ui.analytics_runner.rule_editor_panel - INFO - Rule 'Test100' created successfully
+2025-06-17 15:07:22,299 - __main__ - INFO - Responsible party column: AuditEntityID
+2025-06-17 15:07:22,305 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> responsible_party_selected
+2025-06-17 15:07:22,305 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-17 15:07:22,305 - __main__ - INFO - Responsible party column set: AuditEntityID
+2025-06-17 15:07:22,323 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-17 15:07:22,328 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> responsible_party_selected
+2025-06-17 15:07:22,345 - __main__ - INFO - Responsible party column: ReviewStatus
+2025-06-17 15:07:22,351 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> responsible_party_selected
+2025-06-17 15:07:28,288 - __main__ - INFO - Application closing
+2025-06-17 15:07:28,291 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-06-17 15:07:28,296 - __main__ - INFO - Application state saved
+2025-06-17 15:07:30,962 - ui.common.error_handler - INFO - Error handler initialized
+2025-06-17 15:07:30,962 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-06-17 15:07:30,962 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-06-17 15:07:30,962 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-17 15:07:30,962 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-17 15:07:30,964 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-17 15:07:30,964 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-17 15:07:30,964 - core.lookup.smart_lookup_manager - INFO - SmartLookupManager initialized with lazy threshold: 50MB
+2025-06-17 15:07:31,216 - ui.analytics_runner.rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-06-17 15:07:31,236 - ui.analytics_runner.rule_selector_panel - INFO - Loaded 11 rules from rule manager
+2025-06-17 15:07:31,271 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-06-17 15:07:31,339 - __main__ - INFO - Application state restored - defaulted to Simple Mode
+2025-06-17 15:07:31,340 - __main__ - INFO - Backend systems initialized
+2025-06-17 15:07:31,340 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-06-17 15:07:33,162 - __main__ - INFO - Data source changed: audit_data.xlsx
+2025-06-17 15:07:33,166 - __main__ - INFO - Data source validation: File appears valid
+2025-06-17 15:07:33,166 - ui.common.workflow_state_simple - INFO - Workflow state: initial -> data_loaded
+2025-06-17 15:07:33,166 - ui.common.workflow_state - INFO - State transition: INITIAL -> DATA_LOADED
+2025-06-17 15:07:33,166 - __main__ - INFO - Data loaded successfully
+2025-06-17 15:07:33,283 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-06-17 15:07:33,284 - __main__ - INFO - Data preview loaded: 5 rows, 3 columns
+2025-06-17 15:07:33,294 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-17 15:07:33,298 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> responsible_party_selected
+2025-06-17 15:07:33,298 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-17 15:07:33,298 - __main__ - INFO - Responsible party column set: AuditLeader
+2025-06-17 15:07:33,298 - __main__ - INFO - Responsible party column defaulted to: AuditLeader
+2025-06-17 15:07:33,298 - ui.common.workflow_state - INFO - State transition: COLUMN_SELECTED -> DATA_LOADED
+2025-06-17 15:07:33,298 - __main__ - INFO - Data source changed. Previous selections cleared.
+2025-06-17 15:07:33,298 - __main__ - INFO - Responsible party column changed. Rule selection cleared.
+2025-06-17 15:07:33,303 - __main__ - INFO - Updated rule editor with 3 columns
+2025-06-17 15:07:33,315 - ui.analytics_runner.data_source_panel - INFO - Preview loaded: 5 rows, 3 columns
+2025-06-17 15:07:33,326 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation passed - will auto-collapse
+2025-06-17 15:07:33,326 - ui.analytics_runner.data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-06-17 15:07:33,328 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-06-17 15:07:33,328 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> data_loaded
+2025-06-17 15:07:33,333 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-06-17 15:07:43,650 - data_integration.io.importer - INFO - Processing date columns for file: C:/Users/luria/PycharmProjects/QAStudiov3/lookup_test_data/hr_reference.xlsx
+2025-06-17 15:07:43,659 - core.lookup.smart_lookup_manager - INFO - Loaded hr_reference (0.0MB, 5 rows)
+2025-06-17 15:07:43,660 - ui.analytics_runner.data_source_panel - INFO - File loaded: hr_reference.xlsx (5 rows, 3 columns) - available for LOOKUP operations
+2025-06-17 15:07:43,661 - ui.analytics_runner.data_source_panel - INFO - Successfully loaded hr_reference.xlsx for lookup
+2025-06-17 15:07:48,898 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-17 15:07:48,906 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> responsible_party_selected
+2025-06-17 15:07:48,906 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-17 15:07:48,906 - __main__ - INFO - Responsible party column set: AuditLeader
+2025-06-17 15:07:51,285 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> rules_selected
+2025-06-17 15:07:51,285 - ui.common.workflow_state - INFO - State transition: COLUMN_SELECTED -> RULES_SELECTED
+2025-06-17 15:07:51,285 - __main__ - INFO - 1 rules selected
+2025-06-17 15:07:51,285 - ui.common.workflow_state - INFO - State transition: RULES_SELECTED -> VALIDATION_READY
+2025-06-17 15:07:51,285 - __main__ - INFO - Ready to start validation
+2025-06-17 15:07:51,293 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:51,293 - __main__ - INFO - 2 rules selected
+2025-06-17 15:07:51,302 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:51,302 - __main__ - INFO - 3 rules selected
+2025-06-17 15:07:51,311 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:51,311 - __main__ - INFO - 4 rules selected
+2025-06-17 15:07:51,320 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:51,320 - __main__ - INFO - 5 rules selected
+2025-06-17 15:07:51,330 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:51,331 - __main__ - INFO - 6 rules selected
+2025-06-17 15:07:51,342 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:51,342 - __main__ - INFO - 7 rules selected
+2025-06-17 15:07:51,352 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:51,353 - __main__ - INFO - 8 rules selected
+2025-06-17 15:07:51,365 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:51,365 - __main__ - INFO - 9 rules selected
+2025-06-17 15:07:51,377 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:51,377 - __main__ - INFO - 10 rules selected
+2025-06-17 15:07:51,390 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:51,390 - __main__ - INFO - 11 rules selected
+2025-06-17 15:07:53,128 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:53,128 - __main__ - INFO - 10 rules selected
+2025-06-17 15:07:53,139 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:53,139 - __main__ - INFO - 9 rules selected
+2025-06-17 15:07:53,149 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:53,150 - __main__ - INFO - 8 rules selected
+2025-06-17 15:07:53,159 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:53,160 - __main__ - INFO - 7 rules selected
+2025-06-17 15:07:53,169 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:53,170 - __main__ - INFO - 6 rules selected
+2025-06-17 15:07:53,179 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:53,179 - __main__ - INFO - 5 rules selected
+2025-06-17 15:07:53,187 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:53,187 - __main__ - INFO - 4 rules selected
+2025-06-17 15:07:53,195 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:53,195 - __main__ - INFO - 3 rules selected
+2025-06-17 15:07:53,203 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:53,203 - __main__ - INFO - 2 rules selected
+2025-06-17 15:07:53,210 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:53,210 - __main__ - INFO - 1 rules selected
+2025-06-17 15:07:53,216 - ui.common.workflow_state - INFO - State transition: VALIDATION_READY -> COLUMN_SELECTED
+2025-06-17 15:07:53,216 - __main__ - INFO - No rules selected
+2025-06-17 15:07:54,491 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:07:54,491 - ui.common.workflow_state - INFO - State transition: COLUMN_SELECTED -> RULES_SELECTED
+2025-06-17 15:07:54,491 - __main__ - INFO - 1 rules selected
+2025-06-17 15:07:54,491 - ui.common.workflow_state - INFO - State transition: RULES_SELECTED -> VALIDATION_READY
+2025-06-17 15:07:54,492 - __main__ - INFO - Ready to start validation
+2025-06-17 15:07:56,138 - __main__ - INFO - Starting validation with 1 tests
+2025-06-17 15:07:56,138 - __main__ - INFO - Using Excel sheet: Sheet1
+2025-06-17 15:07:56,138 - ui.common.workflow_state - INFO - State transition: VALIDATION_READY -> VALIDATION_RUNNING
+2025-06-17 15:07:56,138 - __main__ - INFO - Validation started
+2025-06-17 15:07:56,138 - __main__ - INFO - Validation in progress. Controls are locked.
+2025-06-17 15:07:56,143 - __main__ - INFO - Analytic ID: Analytics_Validation_20250617_150756
+2025-06-17 15:07:56,143 - __main__ - INFO - Execution Mode: Serial
+2025-06-17 15:07:56,143 - __main__ - INFO - Responsible Party Column: AuditLeader
+2025-06-17 15:07:56,143 - __main__ - INFO - Report generation enabled: True
+2025-06-17 15:07:56,143 - __main__ - INFO - Report formats requested: ['iag_excel', 'json']
+2025-06-17 15:07:56,143 - __main__ - INFO - Output directory: ./output
+2025-06-17 15:07:56,143 - __main__ - INFO - Individual Leader Reports will be generated
+2025-06-17 15:07:56,143 - __main__ - INFO - Passing lookup manager with 1 loaded files to validation
+2025-06-17 15:07:56,146 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 3f2a07e7: Created output directory: ./output
+2025-06-17 15:07:56,146 - services.validation_service - INFO - Initializing report generator with default configuration
+2025-06-17 15:07:56,146 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 3f2a07e7: Starting validation
+2025-06-17 15:07:56,150 - __main__ - INFO - Validation session started: 3f2a07e7
+2025-06-17 15:07:56,150 - __main__ - INFO - Validation started
+2025-06-17 15:07:56,153 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> execution_active
+2025-06-17 15:07:56,161 - data_integration.io.importer - INFO - Processing date columns for file: C:\Users\luria\PycharmProjects\QAStudiov3\lookup_test_data\audit_data.xlsx
+2025-06-17 15:07:56,166 - services.validation_service - INFO - Found 1 rules to apply
+2025-06-17 15:07:56,166 - services.validation_service - INFO - Rule IDs: ['09373c45-072e-47f3-a4f1-827e8e6cb08f']
+2025-06-17 15:07:56,166 - ExcelFormulaProcessor - INFO - [Session cd58a9cd] Starting Excel application
+2025-06-17 15:07:56,794 - ExcelFormulaProcessor - INFO - [Session cd58a9cd] Excel application startup complete
+2025-06-17 15:07:56,794 - ExcelFormulaProcessor - INFO - LOOKUP functions detected - using row-by-row processing for accurate results
+2025-06-17 15:07:56,826 - ExcelFormulaProcessor - INFO - [Session cd58a9cd] Cleaning up Excel resources
+2025-06-17 15:07:56,974 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 3f2a07e7: Processing validation results
+2025-06-17 15:07:56,978 - __main__ - INFO - Validation completed successfully
+2025-06-17 15:07:56,978 - ui.common.workflow_state - INFO - State transition: VALIDATION_RUNNING -> VALIDATION_COMPLETE
+2025-06-17 15:07:56,978 - __main__ - INFO - Validation completed successfully
+2025-06-17 15:07:56,978 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 3f2a07e7: Saved validation results to ./output\Analytics_Validation_20250617_150756_20250617_150756_results.json
+2025-06-17 15:07:56,980 - __main__ - INFO - Updating reports tab with 1 files
+2025-06-17 15:07:56,987 - __main__ - INFO - Report generation started
+2025-06-17 15:07:56,992 - services.validation_service - INFO - Starting _generate_section1_iag_overall with 1 rules
+2025-06-17 15:07:56,992 - services.validation_service - INFO - rule_results_by_leader has 5 leaders
+2025-06-17 15:07:57,038 - services.validation_service - INFO - Excel report generated: ./output\Analytics_Validation_20250617_150756_20250617_150756_report.xlsx
+2025-06-17 15:07:57,038 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 3f2a07e7: Generating individual leader reports
+2025-06-17 15:07:57,039 - services.validation_service - INFO - Loading master report from ./output\Analytics_Validation_20250617_150756_20250617_150756_report.xlsx
+2025-06-17 15:07:57,048 - services.validation_service - INFO - Found 5 audit leaders: ['Alice Smith', 'Bob Jones', 'Carol White', 'David Brown', 'Eve Green']
+2025-06-17 15:07:57,048 - services.validation_service - INFO - Creating report for Alice Smith
+2025-06-17 15:07:57,176 - services.validation_service - INFO - Saved report for Alice Smith to ./output\leader_reports_20250617_150756\QA_Results_Alice_Smith_20250617_150757.xlsx
+2025-06-17 15:07:57,176 - services.validation_service - INFO - Creating report for Bob Jones
+2025-06-17 15:07:57,292 - services.validation_service - INFO - Saved report for Bob Jones to ./output\leader_reports_20250617_150756\QA_Results_Bob_Jones_20250617_150757.xlsx
+2025-06-17 15:07:57,292 - services.validation_service - INFO - Creating report for Carol White
+2025-06-17 15:07:57,405 - services.validation_service - INFO - Saved report for Carol White to ./output\leader_reports_20250617_150756\QA_Results_Carol_White_20250617_150757.xlsx
+2025-06-17 15:07:57,405 - services.validation_service - INFO - Creating report for David Brown
+2025-06-17 15:07:57,518 - services.validation_service - INFO - Saved report for David Brown to ./output\leader_reports_20250617_150756\QA_Results_David_Brown_20250617_150757.xlsx
+2025-06-17 15:07:57,518 - services.validation_service - INFO - Creating report for Eve Green
+2025-06-17 15:07:57,633 - services.validation_service - INFO - Saved report for Eve Green to ./output\leader_reports_20250617_150756\QA_Results_Eve_Green_20250617_150757.xlsx
+2025-06-17 15:07:57,633 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 3f2a07e7: Reports generated: ['./output\\Analytics_Validation_20250617_150756_20250617_150756_results.json', './output\\Analytics_Validation_20250617_150756_20250617_150756_report.xlsx']
+2025-06-17 15:07:57,633 - __main__ - INFO - Successfully generated 5 Audit Leader-Specific Workbooks
+2025-06-17 15:07:57,633 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 3f2a07e7: Validation completed successfully
+2025-06-17 15:07:57,633 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 3f2a07e7: Cleanup completed
+2025-06-17 15:07:57,634 - __main__ - INFO - Updating reports tab with 1 files
+2025-06-17 15:07:57,636 - __main__ - INFO - Reports generated successfully
+2025-06-17 15:07:57,638 - __main__ - INFO - Updating reports tab with 2 files
+2025-06-17 15:07:57,642 - ui.common.workflow_state_simple - INFO - Workflow state: execution_active -> execution_completed
+2025-06-17 15:08:09,758 - ui.common.workflow_state_simple - INFO - Workflow state: execution_completed -> rules_selected
+2025-06-17 15:08:09,765 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:08:09,774 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:08:09,782 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:08:09,792 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:08:09,802 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:08:09,813 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:08:09,824 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:08:09,835 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:08:09,848 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:08:10,716 - __main__ - INFO - Starting validation with 11 tests
+2025-06-17 15:08:10,716 - __main__ - INFO - Using Excel sheet: Sheet1
+2025-06-17 15:08:10,716 - __main__ - INFO - Analytic ID: Analytics_Validation_20250617_150810
+2025-06-17 15:08:10,716 - __main__ - INFO - Execution Mode: Serial
+2025-06-17 15:08:10,717 - __main__ - INFO - Responsible Party Column: AuditLeader
+2025-06-17 15:08:10,717 - __main__ - INFO - Report generation enabled: True
+2025-06-17 15:08:10,717 - __main__ - INFO - Report formats requested: ['iag_excel', 'json']
+2025-06-17 15:08:10,717 - __main__ - INFO - Output directory: ./output
+2025-06-17 15:08:10,717 - __main__ - INFO - Individual Leader Reports will be generated
+2025-06-17 15:08:10,717 - __main__ - INFO - Passing lookup manager with 1 loaded files to validation
+2025-06-17 15:08:10,717 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 473de953: Created output directory: ./output
+2025-06-17 15:08:10,718 - services.validation_service - INFO - Initializing report generator with default configuration
+2025-06-17 15:08:10,718 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 473de953: Starting validation
+2025-06-17 15:08:10,718 - __main__ - INFO - Validation session started: 473de953
+2025-06-17 15:08:10,719 - __main__ - INFO - Validation started
+2025-06-17 15:08:10,721 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> execution_active
+2025-06-17 15:08:10,735 - data_integration.io.importer - INFO - Processing date columns for file: C:\Users\luria\PycharmProjects\QAStudiov3\lookup_test_data\audit_data.xlsx
+2025-06-17 15:08:10,740 - services.validation_service - INFO - Found 11 rules to apply
+2025-06-17 15:08:10,740 - services.validation_service - INFO - Rule IDs: ['09373c45-072e-47f3-a4f1-827e8e6cb08f', '1a57a653-28da-421a-8782-1fc19843538c', 'QA-ID-1', 'QA-ID-2', 'QA-ID-3']...
+2025-06-17 15:08:10,740 - ExcelFormulaProcessor - INFO - [Session 6d9230b7] Starting Excel application
+2025-06-17 15:08:11,131 - ExcelFormulaProcessor - INFO - [Session 6d9230b7] Excel application startup complete
+2025-06-17 15:08:11,131 - ExcelFormulaProcessor - INFO - LOOKUP functions detected - using row-by-row processing for accurate results
+2025-06-17 15:08:11,148 - ExcelFormulaProcessor - INFO - [Session 6d9230b7] Cleaning up Excel resources
+2025-06-17 15:08:11,238 - ExcelFormulaProcessor - INFO - [Session be0a37c1] Starting Excel application
+2025-06-17 15:08:11,647 - ExcelFormulaProcessor - INFO - [Session be0a37c1] Excel application startup complete
+2025-06-17 15:08:11,648 - ExcelFormulaProcessor - INFO - LOOKUP functions detected - using row-by-row processing for accurate results
+2025-06-17 15:08:11,674 - ExcelFormulaProcessor - INFO - [Session be0a37c1] Cleaning up Excel resources
+2025-06-17 15:08:11,768 - services.validation_service - ERROR - Error evaluating rule QA-ID-1: Rule validation failed: Formula references non-existent columns: DateActivityOccurred
+2025-06-17 15:08:11,768 - services.validation_service - ERROR - Error evaluating rule QA-ID-2: Rule validation failed: Formula references non-existent columns: Attendees
+2025-06-17 15:08:11,768 - services.validation_service - ERROR - Error evaluating rule QA-ID-3: Rule validation failed: Formula references non-existent columns: SummaryOfResults
+2025-06-17 15:08:11,768 - services.validation_service - ERROR - Error evaluating rule QA-ID-4: Rule validation failed: Formula references non-existent columns: WasADataDrivenAuditingProcedureUtilized
+2025-06-17 15:08:11,768 - services.validation_service - ERROR - Error evaluating rule QA-ID-5: Rule validation failed: Formula references non-existent columns: WasADataDrivenAuditingProcedureUtilized, DDAPTypeUtilized
+2025-06-17 15:08:11,768 - services.validation_service - ERROR - Error evaluating rule QA-ID-6: Rule validation failed: Formula references non-existent columns: ImpactOccurred, ImpactDescription
+2025-06-17 15:08:11,768 - services.validation_service - ERROR - Error evaluating rule QA-ID-7: Rule validation failed: Formula references non-existent columns: ImpactOccurred, CaseSource, BusinessMonitoringCase, ResponsibleForAction, ActionItemDescription
+2025-06-17 15:08:11,768 - ExcelFormulaProcessor - INFO - [Session edb4be44] Starting Excel application
+2025-06-17 15:08:12,175 - ExcelFormulaProcessor - INFO - [Session edb4be44] Excel application startup complete
+2025-06-17 15:08:12,175 - ExcelFormulaProcessor - INFO - LOOKUP functions detected - using row-by-row processing for accurate results
+2025-06-17 15:08:12,202 - ExcelFormulaProcessor - INFO - [Session edb4be44] Cleaning up Excel resources
+2025-06-17 15:08:12,313 - ExcelFormulaProcessor - INFO - [Session d26aff4e] Starting Excel application
+2025-06-17 15:08:12,741 - ExcelFormulaProcessor - INFO - [Session d26aff4e] Excel application startup complete
+2025-06-17 15:08:12,741 - ExcelFormulaProcessor - INFO - LOOKUP functions detected - using row-by-row processing for accurate results
+2025-06-17 15:08:12,760 - ExcelFormulaProcessor - INFO - [Session d26aff4e] Cleaning up Excel resources
+2025-06-17 15:08:12,856 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 473de953: Processing validation results
+2025-06-17 15:08:12,856 - __main__ - INFO - Validation completed successfully
+2025-06-17 15:08:12,859 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 473de953: Saved validation results to ./output\Analytics_Validation_20250617_150810_20250617_150812_results.json
+2025-06-17 15:08:12,864 - services.validation_service - INFO - Starting _generate_section1_iag_overall with 4 rules
+2025-06-17 15:08:12,864 - services.validation_service - INFO - rule_results_by_leader has 5 leaders
+2025-06-17 15:08:12,881 - ui.common.error_handler - CRITICAL - RuntimeError: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-17 15:08:12,899 - __main__ - INFO - Report generation started
+2025-06-17 15:08:12,932 - services.validation_service - INFO - Excel report generated: ./output\Analytics_Validation_20250617_150810_20250617_150812_report.xlsx
+2025-06-17 15:08:12,932 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 473de953: Generating individual leader reports
+2025-06-17 15:08:12,933 - services.validation_service - INFO - Loading master report from ./output\Analytics_Validation_20250617_150810_20250617_150812_report.xlsx
+2025-06-17 15:08:12,942 - services.validation_service - INFO - Found 5 audit leaders: ['Alice Smith', 'Bob Jones', 'Carol White', 'David Brown', 'Eve Green']
+2025-06-17 15:08:12,942 - services.validation_service - INFO - Creating report for Alice Smith
+2025-06-17 15:08:13,081 - services.validation_service - INFO - Saved report for Alice Smith to ./output\leader_reports_20250617_150812\QA_Results_Alice_Smith_20250617_150812.xlsx
+2025-06-17 15:08:13,081 - services.validation_service - INFO - Creating report for Bob Jones
+2025-06-17 15:08:13,230 - services.validation_service - INFO - Saved report for Bob Jones to ./output\leader_reports_20250617_150812\QA_Results_Bob_Jones_20250617_150812.xlsx
+2025-06-17 15:08:13,230 - services.validation_service - INFO - Creating report for Carol White
+2025-06-17 15:08:13,369 - services.validation_service - INFO - Saved report for Carol White to ./output\leader_reports_20250617_150812\QA_Results_Carol_White_20250617_150812.xlsx
+2025-06-17 15:08:13,369 - services.validation_service - INFO - Creating report for David Brown
+2025-06-17 15:08:13,511 - services.validation_service - INFO - Saved report for David Brown to ./output\leader_reports_20250617_150812\QA_Results_David_Brown_20250617_150812.xlsx
+2025-06-17 15:08:13,511 - services.validation_service - INFO - Creating report for Eve Green
+2025-06-17 15:08:13,681 - services.validation_service - INFO - Saved report for Eve Green to ./output\leader_reports_20250617_150812\QA_Results_Eve_Green_20250617_150812.xlsx
+2025-06-17 15:08:13,681 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 473de953: Reports generated: ['./output\\Analytics_Validation_20250617_150810_20250617_150812_results.json', './output\\Analytics_Validation_20250617_150810_20250617_150812_report.xlsx']
+2025-06-17 15:08:13,681 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 473de953: Validation completed successfully
+2025-06-17 15:08:13,681 - __main__ - INFO - Successfully generated 5 Audit Leader-Specific Workbooks
+2025-06-17 15:08:13,681 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 473de953: Cleanup completed
+2025-06-17 15:08:13,682 - __main__ - INFO - Updating reports tab with 1 files
+2025-06-17 15:08:13,685 - __main__ - INFO - Reports generated successfully
+2025-06-17 15:08:13,686 - __main__ - INFO - Updating reports tab with 2 files
+2025-06-17 15:08:13,690 - ui.common.workflow_state_simple - INFO - Workflow state: execution_active -> execution_completed
+2025-06-17 15:08:15,656 - __main__ - ERROR - ERROR: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-17 15:17:54,349 - __main__ - INFO - Application closing
+2025-06-17 15:17:54,350 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-06-17 15:17:54,354 - __main__ - INFO - Application state saved
+2025-06-17 15:17:57,042 - ui.common.error_handler - INFO - Error handler initialized
+2025-06-17 15:17:57,042 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-06-17 15:17:57,042 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-06-17 15:17:57,043 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-17 15:17:57,043 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-17 15:17:57,044 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-17 15:17:57,044 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-17 15:17:57,045 - core.lookup.smart_lookup_manager - INFO - SmartLookupManager initialized with lazy threshold: 50MB
+2025-06-17 15:17:57,452 - ui.analytics_runner.rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-06-17 15:17:57,472 - ui.analytics_runner.rule_selector_panel - INFO - Loaded 11 rules from rule manager
+2025-06-17 15:17:57,508 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-06-17 15:17:57,578 - __main__ - INFO - Application state restored - defaulted to Simple Mode
+2025-06-17 15:17:57,578 - __main__ - INFO - Backend systems initialized
+2025-06-17 15:17:57,579 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-06-17 15:18:00,124 - __main__ - INFO - Data source changed: audit_data.xlsx
+2025-06-17 15:18:00,128 - __main__ - INFO - Data source validation: File appears valid
+2025-06-17 15:18:00,128 - ui.common.workflow_state_simple - INFO - Workflow state: initial -> data_loaded
+2025-06-17 15:18:00,128 - ui.common.workflow_state - INFO - State transition: INITIAL -> DATA_LOADED
+2025-06-17 15:18:00,128 - __main__ - INFO - Data loaded successfully
+2025-06-17 15:18:00,246 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-06-17 15:18:00,247 - __main__ - INFO - Data preview loaded: 5 rows, 3 columns
+2025-06-17 15:18:00,256 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-17 15:18:00,260 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> responsible_party_selected
+2025-06-17 15:18:00,260 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-17 15:18:00,260 - __main__ - INFO - Responsible party column set: AuditLeader
+2025-06-17 15:18:00,260 - __main__ - INFO - Responsible party column defaulted to: AuditLeader
+2025-06-17 15:18:00,260 - ui.common.workflow_state - INFO - State transition: COLUMN_SELECTED -> DATA_LOADED
+2025-06-17 15:18:00,260 - __main__ - INFO - Data source changed. Previous selections cleared.
+2025-06-17 15:18:00,260 - __main__ - INFO - Responsible party column changed. Rule selection cleared.
+2025-06-17 15:18:00,266 - __main__ - INFO - Updated rule editor with 3 columns
+2025-06-17 15:18:00,276 - ui.analytics_runner.data_source_panel - INFO - Preview loaded: 5 rows, 3 columns
+2025-06-17 15:18:00,288 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation passed - will auto-collapse
+2025-06-17 15:18:00,288 - ui.analytics_runner.data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-06-17 15:18:00,289 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-06-17 15:18:00,289 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> data_loaded
+2025-06-17 15:18:00,294 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-06-17 15:18:08,988 - data_integration.io.importer - INFO - Processing date columns for file: C:/Users/luria/PycharmProjects/QAStudiov3/lookup_test_data/hr_reference.xlsx
+2025-06-17 15:18:08,996 - core.lookup.smart_lookup_manager - INFO - Loaded hr_reference (0.0MB, 5 rows)
+2025-06-17 15:18:08,998 - ui.analytics_runner.data_source_panel - INFO - File loaded: hr_reference.xlsx (5 rows, 3 columns) - available for LOOKUP operations
+2025-06-17 15:18:08,998 - ui.analytics_runner.data_source_panel - INFO - Successfully loaded hr_reference.xlsx for lookup
+2025-06-17 15:18:12,329 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> rules_selected
+2025-06-17 15:18:12,337 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:18:12,346 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:18:12,355 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:18:12,364 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:18:12,375 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:18:12,385 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:18:12,396 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:18:12,408 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:18:12,421 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:18:12,435 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:18:14,135 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-17 15:18:14,144 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> responsible_party_selected
+2025-06-17 15:18:14,144 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-17 15:18:14,144 - __main__ - INFO - Responsible party column set: AuditLeader
+2025-06-17 15:18:16,279 - __main__ - INFO - Starting validation with 11 tests
+2025-06-17 15:18:16,280 - __main__ - INFO - Using Excel sheet: Sheet1
+2025-06-17 15:18:16,285 - __main__ - INFO - Analytic ID: Analytics_Validation_20250617_151816
+2025-06-17 15:18:16,285 - __main__ - INFO - Execution Mode: Serial
+2025-06-17 15:18:16,285 - __main__ - INFO - Responsible Party Column: AuditLeader
+2025-06-17 15:18:16,285 - __main__ - INFO - Report generation enabled: True
+2025-06-17 15:18:16,285 - __main__ - INFO - Report formats requested: ['iag_excel', 'json']
+2025-06-17 15:18:16,285 - __main__ - INFO - Output directory: ./output
+2025-06-17 15:18:16,285 - __main__ - INFO - Individual Leader Reports will be generated
+2025-06-17 15:18:16,285 - __main__ - INFO - Passing lookup manager with 1 loaded files to validation
+2025-06-17 15:18:16,287 - ui.analytics_runner.cancellable_validation_worker - INFO - Session ad01d140: Created output directory: ./output
+2025-06-17 15:18:16,288 - services.validation_service - INFO - Initializing report generator with default configuration
+2025-06-17 15:18:16,288 - ui.analytics_runner.cancellable_validation_worker - INFO - Session ad01d140: Starting validation
+2025-06-17 15:18:16,291 - __main__ - INFO - Validation session started: ad01d140
+2025-06-17 15:18:16,292 - __main__ - INFO - Validation started
+2025-06-17 15:18:16,296 - data_integration.io.importer - INFO - Processing date columns for file: C:\Users\luria\PycharmProjects\QAStudiov3\lookup_test_data\audit_data.xlsx
+2025-06-17 15:18:16,296 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> execution_active
+2025-06-17 15:18:16,301 - services.validation_service - INFO - Found 11 rules to apply
+2025-06-17 15:18:16,311 - services.validation_service - INFO - Rule IDs: ['09373c45-072e-47f3-a4f1-827e8e6cb08f', '1a57a653-28da-421a-8782-1fc19843538c', 'QA-ID-1', 'QA-ID-2', 'QA-ID-3']...
+2025-06-17 15:18:16,312 - ExcelFormulaProcessor - INFO - [Session 2486a315] Starting Excel application
+2025-06-17 15:18:16,714 - ExcelFormulaProcessor - INFO - [Session 2486a315] Excel application startup complete
+2025-06-17 15:18:16,714 - ExcelFormulaProcessor - INFO - LOOKUP functions detected - using row-by-row processing for accurate results
+2025-06-17 15:18:16,736 - ExcelFormulaProcessor - INFO - [Session 2486a315] Cleaning up Excel resources
+2025-06-17 15:18:16,836 - ExcelFormulaProcessor - INFO - [Session b16757a2] Starting Excel application
+2025-06-17 15:18:17,231 - ExcelFormulaProcessor - INFO - [Session b16757a2] Excel application startup complete
+2025-06-17 15:18:17,232 - ExcelFormulaProcessor - INFO - LOOKUP functions detected - using row-by-row processing for accurate results
+2025-06-17 15:18:17,259 - ExcelFormulaProcessor - INFO - [Session b16757a2] Cleaning up Excel resources
+2025-06-17 15:18:17,367 - services.validation_service - ERROR - Error evaluating rule QA-ID-1: Rule validation failed: Formula references non-existent columns: DateActivityOccurred
+2025-06-17 15:18:17,367 - services.validation_service - ERROR - Error evaluating rule QA-ID-2: Rule validation failed: Formula references non-existent columns: Attendees
+2025-06-17 15:18:17,367 - services.validation_service - ERROR - Error evaluating rule QA-ID-3: Rule validation failed: Formula references non-existent columns: SummaryOfResults
+2025-06-17 15:18:17,367 - services.validation_service - ERROR - Error evaluating rule QA-ID-4: Rule validation failed: Formula references non-existent columns: WasADataDrivenAuditingProcedureUtilized
+2025-06-17 15:18:17,367 - services.validation_service - ERROR - Error evaluating rule QA-ID-5: Rule validation failed: Formula references non-existent columns: WasADataDrivenAuditingProcedureUtilized, DDAPTypeUtilized
+2025-06-17 15:18:17,367 - services.validation_service - ERROR - Error evaluating rule QA-ID-6: Rule validation failed: Formula references non-existent columns: ImpactOccurred, ImpactDescription
+2025-06-17 15:18:17,367 - services.validation_service - ERROR - Error evaluating rule QA-ID-7: Rule validation failed: Formula references non-existent columns: ImpactOccurred, CaseSource, BusinessMonitoringCase, ResponsibleForAction, ActionItemDescription
+2025-06-17 15:18:17,367 - ExcelFormulaProcessor - INFO - [Session fb8d4b23] Starting Excel application
+2025-06-17 15:18:17,767 - ExcelFormulaProcessor - INFO - [Session fb8d4b23] Excel application startup complete
+2025-06-17 15:18:17,767 - ExcelFormulaProcessor - INFO - LOOKUP functions detected - using row-by-row processing for accurate results
+2025-06-17 15:18:17,787 - ExcelFormulaProcessor - INFO - [Session fb8d4b23] Cleaning up Excel resources
+2025-06-17 15:18:17,878 - ExcelFormulaProcessor - INFO - [Session 23311786] Starting Excel application
+2025-06-17 15:18:18,263 - ExcelFormulaProcessor - INFO - [Session 23311786] Excel application startup complete
+2025-06-17 15:18:18,263 - ExcelFormulaProcessor - INFO - LOOKUP functions detected - using row-by-row processing for accurate results
+2025-06-17 15:18:18,300 - ExcelFormulaProcessor - INFO - [Session 23311786] Cleaning up Excel resources
+2025-06-17 15:18:18,391 - ui.analytics_runner.cancellable_validation_worker - INFO - Session ad01d140: Processing validation results
+2025-06-17 15:18:18,393 - __main__ - INFO - Validation completed successfully
+2025-06-17 15:18:18,395 - ui.analytics_runner.cancellable_validation_worker - INFO - Session ad01d140: Saved validation results to ./output\Analytics_Validation_20250617_151816_20250617_151818_results.json
+2025-06-17 15:18:18,399 - __main__ - INFO - Updating reports tab with 1 files
+2025-06-17 15:18:18,404 - services.validation_service - INFO - Starting _generate_section1_iag_overall with 4 rules
+2025-06-17 15:18:18,404 - services.validation_service - INFO - rule_results_by_leader has 5 leaders
+2025-06-17 15:18:18,410 - __main__ - INFO - Report generation started
+2025-06-17 15:18:18,451 - services.validation_service - INFO - Excel report generated: ./output\Analytics_Validation_20250617_151816_20250617_151818_report.xlsx
+2025-06-17 15:18:18,451 - ui.analytics_runner.cancellable_validation_worker - INFO - Session ad01d140: Generating individual leader reports
+2025-06-17 15:18:18,451 - services.validation_service - INFO - Loading master report from ./output\Analytics_Validation_20250617_151816_20250617_151818_report.xlsx
+2025-06-17 15:18:18,462 - services.validation_service - INFO - Found 5 audit leaders: ['Alice Smith', 'Bob Jones', 'Carol White', 'David Brown', 'Eve Green']
+2025-06-17 15:18:18,462 - services.validation_service - INFO - Creating report for Alice Smith
+2025-06-17 15:18:18,581 - services.validation_service - INFO - Saved report for Alice Smith to ./output\leader_reports_20250617_151818\QA_Results_Alice_Smith_20250617_151818.xlsx
+2025-06-17 15:18:18,581 - services.validation_service - INFO - Creating report for Bob Jones
+2025-06-17 15:18:18,704 - services.validation_service - INFO - Saved report for Bob Jones to ./output\leader_reports_20250617_151818\QA_Results_Bob_Jones_20250617_151818.xlsx
+2025-06-17 15:18:18,704 - services.validation_service - INFO - Creating report for Carol White
+2025-06-17 15:18:18,829 - services.validation_service - INFO - Saved report for Carol White to ./output\leader_reports_20250617_151818\QA_Results_Carol_White_20250617_151818.xlsx
+2025-06-17 15:18:18,829 - services.validation_service - INFO - Creating report for David Brown
+2025-06-17 15:18:18,948 - services.validation_service - INFO - Saved report for David Brown to ./output\leader_reports_20250617_151818\QA_Results_David_Brown_20250617_151818.xlsx
+2025-06-17 15:18:18,948 - services.validation_service - INFO - Creating report for Eve Green
+2025-06-17 15:18:19,070 - services.validation_service - INFO - Saved report for Eve Green to ./output\leader_reports_20250617_151818\QA_Results_Eve_Green_20250617_151818.xlsx
+2025-06-17 15:18:19,070 - ui.analytics_runner.cancellable_validation_worker - INFO - Session ad01d140: Reports generated: ['./output\\Analytics_Validation_20250617_151816_20250617_151818_results.json', './output\\Analytics_Validation_20250617_151816_20250617_151818_report.xlsx']
+2025-06-17 15:18:19,070 - __main__ - INFO - Successfully generated 5 Audit Leader-Specific Workbooks
+2025-06-17 15:18:19,070 - ui.analytics_runner.cancellable_validation_worker - INFO - Session ad01d140: Validation completed successfully
+2025-06-17 15:18:19,071 - __main__ - INFO - Updating reports tab with 1 files
+2025-06-17 15:18:19,071 - ui.analytics_runner.cancellable_validation_worker - INFO - Session ad01d140: Cleanup completed
+2025-06-17 15:18:19,074 - __main__ - INFO - Reports generated successfully
+2025-06-17 15:18:19,075 - __main__ - INFO - Updating reports tab with 2 files
+2025-06-17 15:18:19,079 - ui.common.workflow_state_simple - INFO - Workflow state: execution_active -> execution_completed
+2025-06-17 15:30:19,570 - __main__ - INFO - Application closing
+2025-06-17 15:30:19,572 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-06-17 15:30:19,576 - __main__ - INFO - Application state saved
+2025-06-17 15:32:06,212 - ui.common.error_handler - INFO - Error handler initialized
+2025-06-17 15:32:06,213 - ui.common.session_manager - INFO - Configuration loaded successfully from data\sessions\session.json
+2025-06-17 15:32:06,213 - ui.common.session_manager - INFO - Session manager initialized with config: data\sessions\session.json
+2025-06-17 15:32:06,214 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-17 15:32:06,214 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-17 15:32:06,224 - ui.analytics_runner.data_source_registry - INFO - Loaded 0 data sources from registry
+2025-06-17 15:32:06,224 - ui.analytics_runner.data_source_registry - INFO - Data source registry initialized with 0 sources
+2025-06-17 15:32:06,224 - core.lookup.smart_lookup_manager - INFO - SmartLookupManager initialized with lazy threshold: 50MB
+2025-06-17 15:32:06,675 - ui.analytics_runner.rule_editor_panel - INFO - RuleEditorPanel initialized with real backend integration
+2025-06-17 15:32:06,696 - ui.analytics_runner.rule_selector_panel - INFO - Loaded 11 rules from rule manager
+2025-06-17 15:32:06,732 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel initialized with integrated editor
+2025-06-17 15:32:06,807 - __main__ - INFO - Application state restored - defaulted to Simple Mode
+2025-06-17 15:32:06,807 - __main__ - INFO - Backend systems initialized
+2025-06-17 15:32:06,807 - __main__ - INFO - Analytics Runner application initialized successfully
+2025-06-17 15:32:08,536 - __main__ - INFO - Data source changed: audit_data.xlsx
+2025-06-17 15:32:08,540 - __main__ - INFO - Data source validation: File appears valid
+2025-06-17 15:32:08,540 - ui.common.workflow_state_simple - INFO - Workflow state: initial -> data_loaded
+2025-06-17 15:32:08,540 - ui.common.workflow_state - INFO - State transition: INITIAL -> DATA_LOADED
+2025-06-17 15:32:08,540 - __main__ - INFO - Data loaded successfully
+2025-06-17 15:32:08,661 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-06-17 15:32:08,661 - __main__ - INFO - Data preview loaded: 5 rows, 3 columns
+2025-06-17 15:32:08,671 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-17 15:32:08,676 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> responsible_party_selected
+2025-06-17 15:32:08,676 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-17 15:32:08,676 - __main__ - INFO - Responsible party column set: AuditLeader
+2025-06-17 15:32:08,676 - __main__ - INFO - Responsible party column defaulted to: AuditLeader
+2025-06-17 15:32:08,676 - ui.common.workflow_state - INFO - State transition: COLUMN_SELECTED -> DATA_LOADED
+2025-06-17 15:32:08,676 - __main__ - INFO - Data source changed. Previous selections cleared.
+2025-06-17 15:32:08,676 - __main__ - INFO - Responsible party column changed. Rule selection cleared.
+2025-06-17 15:32:08,681 - __main__ - INFO - Updated rule editor with 3 columns
+2025-06-17 15:32:08,693 - ui.analytics_runner.data_source_panel - INFO - Preview loaded: 5 rows, 3 columns
+2025-06-17 15:32:08,705 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation passed - will auto-collapse
+2025-06-17 15:32:08,705 - ui.analytics_runner.data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-06-17 15:32:08,705 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-06-17 15:32:08,705 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> data_loaded
+2025-06-17 15:32:08,711 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-06-17 15:32:17,185 - data_integration.io.importer - INFO - Processing date columns for file: C:/Users/luria/PycharmProjects/QAStudiov3/lookup_test_data/hr_reference.xlsx
+2025-06-17 15:32:17,196 - core.lookup.smart_lookup_manager - INFO - Loaded hr_reference (0.0MB, 5 rows)
+2025-06-17 15:32:17,198 - ui.analytics_runner.data_source_panel - INFO - File loaded: hr_reference.xlsx (5 rows, 3 columns) - available for LOOKUP operations
+2025-06-17 15:32:17,198 - ui.analytics_runner.data_source_panel - INFO - Successfully loaded hr_reference.xlsx for lookup
+2025-06-17 15:32:19,974 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> rules_selected
+2025-06-17 15:32:19,982 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:32:19,990 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:32:19,999 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:32:20,008 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:32:20,018 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:32:20,029 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:32:20,040 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:32:20,052 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:32:20,065 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:32:20,077 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:32:24,183 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-17 15:32:24,194 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> responsible_party_selected
+2025-06-17 15:32:24,194 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-17 15:32:24,194 - __main__ - INFO - Responsible party column set: AuditLeader
+2025-06-17 15:32:26,109 - __main__ - INFO - Starting validation with 11 tests
+2025-06-17 15:32:26,109 - __main__ - INFO - Using Excel sheet: Sheet1
+2025-06-17 15:32:26,116 - __main__ - INFO - Analytic ID: Analytics_Validation_20250617_153226
+2025-06-17 15:32:26,117 - __main__ - INFO - Execution Mode: Serial
+2025-06-17 15:32:26,117 - __main__ - INFO - Responsible Party Column: AuditLeader
+2025-06-17 15:32:26,117 - __main__ - INFO - Report generation enabled: True
+2025-06-17 15:32:26,117 - __main__ - INFO - Report formats requested: ['iag_excel', 'json']
+2025-06-17 15:32:26,117 - __main__ - INFO - Output directory: ./output
+2025-06-17 15:32:26,117 - __main__ - INFO - Individual Leader Reports will be generated
+2025-06-17 15:32:26,117 - __main__ - INFO - Passing lookup manager with 1 loaded files to validation
+2025-06-17 15:32:26,121 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 4ef4b79e: Created output directory: ./output
+2025-06-17 15:32:26,122 - services.validation_service - INFO - Initializing report generator with default configuration
+2025-06-17 15:32:26,122 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 4ef4b79e: Starting validation
+2025-06-17 15:32:26,127 - data_integration.io.importer - INFO - Processing date columns for file: C:\Users\luria\PycharmProjects\QAStudiov3\lookup_test_data\audit_data.xlsx
+2025-06-17 15:32:26,132 - services.validation_service - INFO - Found 11 rules to apply
+2025-06-17 15:32:26,132 - __main__ - INFO - Validation session started: 4ef4b79e
+2025-06-17 15:32:26,132 - services.validation_service - INFO - Rule IDs: ['09373c45-072e-47f3-a4f1-827e8e6cb08f', '1a57a653-28da-421a-8782-1fc19843538c', 'QA-ID-1', 'QA-ID-2', 'QA-ID-3']...
+2025-06-17 15:32:26,132 - __main__ - INFO - Validation started
+2025-06-17 15:32:26,132 - ExcelFormulaProcessor - INFO - [Session 6ac70f77] Starting Excel application
+2025-06-17 15:32:26,135 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> execution_active
+2025-06-17 15:32:26,703 - ExcelFormulaProcessor - INFO - [Session 6ac70f77] Excel application startup complete
+2025-06-17 15:32:26,703 - ExcelFormulaProcessor - INFO - LOOKUP functions detected - using row-by-row processing for accurate results
+2025-06-17 15:32:26,732 - ExcelFormulaProcessor - INFO - [Session 6ac70f77] Cleaning up Excel resources
+2025-06-17 15:32:26,867 - ExcelFormulaProcessor - INFO - [Session 9d495ed4] Starting Excel application
+2025-06-17 15:32:27,262 - ExcelFormulaProcessor - INFO - [Session 9d495ed4] Excel application startup complete
+2025-06-17 15:32:27,262 - ExcelFormulaProcessor - INFO - LOOKUP functions detected - using row-by-row processing for accurate results
+2025-06-17 15:32:27,284 - ExcelFormulaProcessor - INFO - [Session 9d495ed4] Cleaning up Excel resources
+2025-06-17 15:32:27,376 - services.validation_service - ERROR - Error evaluating rule QA-ID-1: Rule validation failed: Formula references non-existent columns: DateActivityOccurred
+2025-06-17 15:32:27,376 - services.validation_service - ERROR - Error evaluating rule QA-ID-2: Rule validation failed: Formula references non-existent columns: Attendees
+2025-06-17 15:32:27,376 - services.validation_service - ERROR - Error evaluating rule QA-ID-3: Rule validation failed: Formula references non-existent columns: SummaryOfResults
+2025-06-17 15:32:27,376 - services.validation_service - ERROR - Error evaluating rule QA-ID-4: Rule validation failed: Formula references non-existent columns: WasADataDrivenAuditingProcedureUtilized
+2025-06-17 15:32:27,376 - services.validation_service - ERROR - Error evaluating rule QA-ID-5: Rule validation failed: Formula references non-existent columns: WasADataDrivenAuditingProcedureUtilized, DDAPTypeUtilized
+2025-06-17 15:32:27,376 - services.validation_service - ERROR - Error evaluating rule QA-ID-6: Rule validation failed: Formula references non-existent columns: ImpactOccurred, ImpactDescription
+2025-06-17 15:32:27,376 - services.validation_service - ERROR - Error evaluating rule QA-ID-7: Rule validation failed: Formula references non-existent columns: ImpactOccurred, CaseSource, BusinessMonitoringCase, ResponsibleForAction, ActionItemDescription
+2025-06-17 15:32:27,376 - ExcelFormulaProcessor - INFO - [Session fc85beac] Starting Excel application
+2025-06-17 15:32:27,741 - ExcelFormulaProcessor - INFO - [Session fc85beac] Excel application startup complete
+2025-06-17 15:32:27,742 - ExcelFormulaProcessor - INFO - LOOKUP functions detected - using row-by-row processing for accurate results
+2025-06-17 15:32:27,759 - ExcelFormulaProcessor - INFO - [Session fc85beac] Cleaning up Excel resources
+2025-06-17 15:32:27,842 - ExcelFormulaProcessor - INFO - [Session c81e691a] Starting Excel application
+2025-06-17 15:32:28,208 - ExcelFormulaProcessor - INFO - [Session c81e691a] Excel application startup complete
+2025-06-17 15:32:28,208 - ExcelFormulaProcessor - INFO - LOOKUP functions detected - using row-by-row processing for accurate results
+2025-06-17 15:32:28,243 - ExcelFormulaProcessor - INFO - [Session c81e691a] Cleaning up Excel resources
+2025-06-17 15:32:28,330 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 4ef4b79e: Processing validation results
+2025-06-17 15:32:28,332 - __main__ - INFO - Validation completed successfully
+2025-06-17 15:32:28,334 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 4ef4b79e: Saved validation results to ./output\Analytics_Validation_20250617_153226_20250617_153228_results.json
+2025-06-17 15:32:28,337 - __main__ - INFO - Updating reports tab with 1 files
+2025-06-17 15:32:28,344 - __main__ - INFO - Report generation started
+2025-06-17 15:32:28,349 - services.validation_service - INFO - Starting _generate_section1_iag_overall with 4 rules
+2025-06-17 15:32:28,349 - services.validation_service - INFO - rule_results_by_leader has 5 leaders
+2025-06-17 15:32:28,392 - services.validation_service - INFO - Excel report generated: ./output\Analytics_Validation_20250617_153226_20250617_153228_report.xlsx
+2025-06-17 15:32:28,392 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 4ef4b79e: Generating individual leader reports
+2025-06-17 15:32:28,392 - services.validation_service - INFO - Loading master report from ./output\Analytics_Validation_20250617_153226_20250617_153228_report.xlsx
+2025-06-17 15:32:28,403 - services.validation_service - INFO - Found 5 audit leaders: ['Alice Smith', 'Bob Jones', 'Carol White', 'David Brown', 'Eve Green']
+2025-06-17 15:32:28,403 - services.validation_service - INFO - Creating report for Alice Smith
+2025-06-17 15:32:28,527 - services.validation_service - INFO - Saved report for Alice Smith to ./output\leader_reports_20250617_153228\QA_Results_Alice_Smith_20250617_153228.xlsx
+2025-06-17 15:32:28,527 - services.validation_service - INFO - Creating report for Bob Jones
+2025-06-17 15:32:28,656 - services.validation_service - INFO - Saved report for Bob Jones to ./output\leader_reports_20250617_153228\QA_Results_Bob_Jones_20250617_153228.xlsx
+2025-06-17 15:32:28,656 - services.validation_service - INFO - Creating report for Carol White
+2025-06-17 15:32:28,784 - services.validation_service - INFO - Saved report for Carol White to ./output\leader_reports_20250617_153228\QA_Results_Carol_White_20250617_153228.xlsx
+2025-06-17 15:32:28,784 - services.validation_service - INFO - Creating report for David Brown
+2025-06-17 15:32:28,910 - services.validation_service - INFO - Saved report for David Brown to ./output\leader_reports_20250617_153228\QA_Results_David_Brown_20250617_153228.xlsx
+2025-06-17 15:32:28,910 - services.validation_service - INFO - Creating report for Eve Green
+2025-06-17 15:32:29,034 - services.validation_service - INFO - Saved report for Eve Green to ./output\leader_reports_20250617_153228\QA_Results_Eve_Green_20250617_153228.xlsx
+2025-06-17 15:32:29,034 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 4ef4b79e: Reports generated: ['./output\\Analytics_Validation_20250617_153226_20250617_153228_results.json', './output\\Analytics_Validation_20250617_153226_20250617_153228_report.xlsx']
+2025-06-17 15:32:29,034 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 4ef4b79e: Validation completed successfully
+2025-06-17 15:32:29,034 - __main__ - INFO - Successfully generated 5 Audit Leader-Specific Workbooks
+2025-06-17 15:32:29,034 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 4ef4b79e: Cleanup completed
+2025-06-17 15:32:29,035 - __main__ - INFO - Updating reports tab with 1 files
+2025-06-17 15:32:29,038 - __main__ - INFO - Reports generated successfully
+2025-06-17 15:32:29,039 - __main__ - INFO - Updating reports tab with 2 files
+2025-06-17 15:32:29,043 - ui.common.workflow_state_simple - INFO - Workflow state: execution_active -> execution_completed
+2025-06-17 15:33:07,906 - core.lookup.smart_lookup_manager - INFO - Unloaded file: audit_data.xlsx
+2025-06-17 15:33:07,906 - ui.analytics_runner.data_source_panel - INFO - Unloaded audit_data.xlsx from lookup manager
+2025-06-17 15:33:16,453 - __main__ - INFO - Data source changed: business_monitoring_dummy_data.xlsx
+2025-06-17 15:33:16,462 - __main__ - INFO - Data source validation: File appears valid
+2025-06-17 15:33:16,462 - ui.common.workflow_state_simple - INFO - Workflow state: execution_completed -> data_loaded
+2025-06-17 15:33:16,462 - ui.common.workflow_state - INFO - State transition: COLUMN_SELECTED -> DATA_LOADED
+2025-06-17 15:33:16,462 - __main__ - INFO - Data source changed. Previous selections cleared.
+2025-06-17 15:33:16,462 - __main__ - INFO - Responsible party column changed. Rule selection cleared.
+2025-06-17 15:33:16,511 - ui.common.widgets.pre_validation_widget - INFO - Started pre-validation for generic data
+2025-06-17 15:33:16,511 - __main__ - INFO - Data preview loaded: 30 rows, 13 columns
+2025-06-17 15:33:16,533 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-17 15:33:16,546 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> responsible_party_selected
+2025-06-17 15:33:16,546 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-17 15:33:16,546 - __main__ - INFO - Responsible party column set: AuditLeader
+2025-06-17 15:33:16,546 - __main__ - INFO - Responsible party column defaulted to: AuditLeader
+2025-06-17 15:33:16,546 - ui.common.workflow_state - INFO - State transition: COLUMN_SELECTED -> DATA_LOADED
+2025-06-17 15:33:16,546 - __main__ - INFO - Data source changed. Previous selections cleared.
+2025-06-17 15:33:16,546 - __main__ - INFO - Responsible party column changed. Rule selection cleared.
+2025-06-17 15:33:16,551 - __main__ - INFO - Updated rule editor with 13 columns
+2025-06-17 15:33:16,564 - ui.analytics_runner.data_source_panel - INFO - Preview loaded: 30 rows, 13 columns
+2025-06-17 15:33:16,577 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation passed - will auto-collapse
+2025-06-17 15:33:16,577 - ui.analytics_runner.data_source_panel - INFO - Pre-validation status: Valid - All validation checks passed
+2025-06-17 15:33:16,578 - __main__ - INFO - Data source validation: Pre-validation: All validation checks passed
+2025-06-17 15:33:16,578 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> data_loaded
+2025-06-17 15:33:16,585 - ui.common.widgets.pre_validation_widget - INFO - Pre-validation complete: passed - 2/2 rules passed
+2025-06-17 15:33:26,575 - data_integration.io.importer - INFO - Processing date columns for file: C:/Users/luria/OneDrive/Desktop/hr_titles.xlsx
+2025-06-17 15:33:26,585 - core.lookup.smart_lookup_manager - INFO - Loaded hr_titles (0.0MB, 18 rows)
+2025-06-17 15:33:26,585 - ui.analytics_runner.data_source_panel - INFO - File loaded: hr_titles.xlsx (18 rows, 2 columns) - available for LOOKUP operations
+2025-06-17 15:33:26,585 - ui.analytics_runner.data_source_panel - INFO - Successfully loaded hr_titles.xlsx for lookup
+2025-06-17 15:33:30,719 - ui.common.workflow_state_simple - INFO - Workflow state: data_loaded -> rules_selected
+2025-06-17 15:33:30,727 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:33:30,736 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:33:30,746 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:33:30,755 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:33:30,766 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:33:30,776 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:33:30,788 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:33:30,800 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:33:30,812 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:33:30,826 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> rules_selected
+2025-06-17 15:33:32,783 - __main__ - INFO - Responsible party column: AuditLeader
+2025-06-17 15:33:32,794 - ui.common.workflow_state_simple - INFO - Workflow state: rules_selected -> responsible_party_selected
+2025-06-17 15:33:32,794 - ui.common.workflow_state - INFO - State transition: DATA_LOADED -> COLUMN_SELECTED
+2025-06-17 15:33:32,794 - __main__ - INFO - Responsible party column set: AuditLeader
+2025-06-17 15:33:34,658 - __main__ - INFO - Starting validation with 11 tests
+2025-06-17 15:33:34,658 - __main__ - INFO - Using Excel sheet: Sheet1
+2025-06-17 15:33:34,659 - __main__ - INFO - Analytic ID: Analytics_Validation_20250617_153334
+2025-06-17 15:33:34,659 - __main__ - INFO - Execution Mode: Serial
+2025-06-17 15:33:34,659 - __main__ - INFO - Responsible Party Column: AuditLeader
+2025-06-17 15:33:34,659 - __main__ - INFO - Report generation enabled: True
+2025-06-17 15:33:34,659 - __main__ - INFO - Report formats requested: ['iag_excel', 'json']
+2025-06-17 15:33:34,659 - __main__ - INFO - Output directory: ./output
+2025-06-17 15:33:34,659 - __main__ - INFO - Individual Leader Reports will be generated
+2025-06-17 15:33:34,659 - __main__ - INFO - Passing lookup manager with 2 loaded files to validation
+2025-06-17 15:33:34,661 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 5e568e01: Created output directory: ./output
+2025-06-17 15:33:34,661 - services.validation_service - INFO - Initializing report generator with default configuration
+2025-06-17 15:33:34,661 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 5e568e01: Starting validation
+2025-06-17 15:33:34,661 - __main__ - INFO - Validation session started: 5e568e01
+2025-06-17 15:33:34,662 - __main__ - INFO - Validation started
+2025-06-17 15:33:34,665 - ui.common.workflow_state_simple - INFO - Workflow state: responsible_party_selected -> execution_active
+2025-06-17 15:33:34,683 - data_integration.io.importer - INFO - Processing date columns for file: C:/Users/luria/PycharmProjects/QAStudiov3/tests/business_monitoring_dummy_data.xlsx
+2025-06-17 15:33:34,764 - services.validation_service - INFO - Found 11 rules to apply
+2025-06-17 15:33:34,764 - services.validation_service - INFO - Rule IDs: ['09373c45-072e-47f3-a4f1-827e8e6cb08f', '1a57a653-28da-421a-8782-1fc19843538c', 'QA-ID-1', 'QA-ID-2', 'QA-ID-3']...
+2025-06-17 15:33:34,764 - ExcelFormulaProcessor - INFO - [Session 5a23e9e3] Starting Excel application
+2025-06-17 15:33:35,149 - ExcelFormulaProcessor - INFO - [Session 5a23e9e3] Excel application startup complete
+2025-06-17 15:33:35,149 - ExcelFormulaProcessor - INFO - LOOKUP functions detected - using row-by-row processing for accurate results
+2025-06-17 15:33:35,196 - ExcelFormulaProcessor - ERROR - [Session 5a23e9e3] Error processing formulas: Cannot convert tz-naive Timestamp, use tz_localize to localize
+2025-06-17 15:33:35,196 - ExcelFormulaProcessor - INFO - [Session 5a23e9e3] Cleaning up Excel resources
+2025-06-17 15:33:35,251 - services.validation_service - ERROR - Error evaluating rule 09373c45-072e-47f3-a4f1-827e8e6cb08f: Cannot convert tz-naive Timestamp, use tz_localize to localize
+2025-06-17 15:33:35,285 - ExcelFormulaProcessor - INFO - [Session 8d6ee12f] Starting Excel application
+2025-06-17 15:33:35,653 - ExcelFormulaProcessor - INFO - [Session 8d6ee12f] Excel application startup complete
+2025-06-17 15:33:35,653 - ExcelFormulaProcessor - INFO - LOOKUP functions detected - using row-by-row processing for accurate results
+2025-06-17 15:33:35,686 - ExcelFormulaProcessor - ERROR - [Session 8d6ee12f] Error processing formulas: Cannot convert tz-naive Timestamp, use tz_localize to localize
+2025-06-17 15:33:35,686 - ExcelFormulaProcessor - INFO - [Session 8d6ee12f] Cleaning up Excel resources
+2025-06-17 15:33:35,737 - services.validation_service - ERROR - Error evaluating rule 1a57a653-28da-421a-8782-1fc19843538c: Cannot convert tz-naive Timestamp, use tz_localize to localize
+2025-06-17 15:33:35,773 - ExcelFormulaProcessor - INFO - [Session 6e5a2618] Starting Excel application
+2025-06-17 15:33:36,133 - ExcelFormulaProcessor - INFO - [Session 6e5a2618] Excel application startup complete
+2025-06-17 15:33:36,209 - ExcelFormulaProcessor - INFO - [Session 6e5a2618] Cleaning up Excel resources
+2025-06-17 15:33:36,302 - ExcelFormulaProcessor - INFO - [Session c8fabc83] Starting Excel application
+2025-06-17 15:33:36,711 - ExcelFormulaProcessor - INFO - [Session c8fabc83] Excel application startup complete
+2025-06-17 15:33:36,778 - ExcelFormulaProcessor - INFO - [Session c8fabc83] Cleaning up Excel resources
+2025-06-17 15:33:36,863 - ExcelFormulaProcessor - INFO - [Session 0b64ce8d] Starting Excel application
+2025-06-17 15:33:37,243 - ExcelFormulaProcessor - INFO - [Session 0b64ce8d] Excel application startup complete
+2025-06-17 15:33:37,307 - ExcelFormulaProcessor - INFO - [Session 0b64ce8d] Cleaning up Excel resources
+2025-06-17 15:33:37,389 - ExcelFormulaProcessor - INFO - [Session 7e8e9120] Starting Excel application
+2025-06-17 15:33:37,806 - ExcelFormulaProcessor - INFO - [Session 7e8e9120] Excel application startup complete
+2025-06-17 15:33:37,876 - ExcelFormulaProcessor - INFO - [Session 7e8e9120] Cleaning up Excel resources
+2025-06-17 15:33:37,959 - ExcelFormulaProcessor - INFO - [Session d23fe99a] Starting Excel application
+2025-06-17 15:33:38,345 - ExcelFormulaProcessor - INFO - [Session d23fe99a] Excel application startup complete
+2025-06-17 15:33:38,416 - ExcelFormulaProcessor - INFO - [Session d23fe99a] Cleaning up Excel resources
+2025-06-17 15:33:38,500 - ExcelFormulaProcessor - INFO - [Session c10d5064] Starting Excel application
+2025-06-17 15:33:38,979 - ExcelFormulaProcessor - INFO - [Session c10d5064] Excel application startup complete
+2025-06-17 15:33:39,051 - ExcelFormulaProcessor - INFO - [Session c10d5064] Cleaning up Excel resources
+2025-06-17 15:33:39,137 - ExcelFormulaProcessor - INFO - [Session 29588099] Starting Excel application
+2025-06-17 15:33:39,528 - ExcelFormulaProcessor - INFO - [Session 29588099] Excel application startup complete
+2025-06-17 15:33:39,595 - ExcelFormulaProcessor - INFO - [Session 29588099] Cleaning up Excel resources
+2025-06-17 15:33:39,679 - ExcelFormulaProcessor - INFO - [Session 661b8e1f] Starting Excel application
+2025-06-17 15:33:40,062 - ExcelFormulaProcessor - INFO - [Session 661b8e1f] Excel application startup complete
+2025-06-17 15:33:40,062 - ExcelFormulaProcessor - INFO - LOOKUP functions detected - using row-by-row processing for accurate results
+2025-06-17 15:33:40,095 - ExcelFormulaProcessor - ERROR - [Session 661b8e1f] Error processing formulas: Cannot convert tz-naive Timestamp, use tz_localize to localize
+2025-06-17 15:33:40,095 - ExcelFormulaProcessor - INFO - [Session 661b8e1f] Cleaning up Excel resources
+2025-06-17 15:33:40,149 - services.validation_service - ERROR - Error evaluating rule test_lookup_001: Cannot convert tz-naive Timestamp, use tz_localize to localize
+2025-06-17 15:33:40,185 - ExcelFormulaProcessor - INFO - [Session e33d127b] Starting Excel application
+2025-06-17 15:33:40,592 - ExcelFormulaProcessor - INFO - [Session e33d127b] Excel application startup complete
+2025-06-17 15:33:40,592 - ExcelFormulaProcessor - INFO - LOOKUP functions detected - using row-by-row processing for accurate results
+2025-06-17 15:33:40,625 - ExcelFormulaProcessor - ERROR - [Session e33d127b] Error processing formulas: Cannot convert tz-naive Timestamp, use tz_localize to localize
+2025-06-17 15:33:40,625 - ExcelFormulaProcessor - INFO - [Session e33d127b] Cleaning up Excel resources
+2025-06-17 15:33:40,674 - services.validation_service - ERROR - Error evaluating rule test_lookup_rule: Cannot convert tz-naive Timestamp, use tz_localize to localize
+2025-06-17 15:33:40,718 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 5e568e01: Processing validation results
+2025-06-17 15:33:40,720 - __main__ - INFO - Validation completed successfully
+2025-06-17 15:33:40,728 - ui.common.error_handler - CRITICAL - RuntimeError: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-17 15:33:40,728 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 5e568e01: Saved validation results to ./output\Analytics_Validation_20250617_153334_20250617_153340_results.json
+2025-06-17 15:33:40,739 - services.validation_service - INFO - Starting _generate_section1_iag_overall with 7 rules
+2025-06-17 15:33:40,739 - services.validation_service - INFO - rule_results_by_leader has 5 leaders
+2025-06-17 15:33:40,790 - __main__ - INFO - Report generation started
+2025-06-17 15:33:40,854 - services.validation_service - INFO - Excel report generated: ./output\Analytics_Validation_20250617_153334_20250617_153340_report.xlsx
+2025-06-17 15:33:40,854 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 5e568e01: Generating individual leader reports
+2025-06-17 15:33:40,855 - services.validation_service - INFO - Loading master report from ./output\Analytics_Validation_20250617_153334_20250617_153340_report.xlsx
+2025-06-17 15:33:40,872 - services.validation_service - INFO - Found 5 audit leaders: ['Angela Wilson', 'Jonathan Johnson', 'Kevin Nicholson', 'Kristen Walker', 'Michelle Ware']
+2025-06-17 15:33:40,872 - services.validation_service - INFO - Creating report for Angela Wilson
+2025-06-17 15:33:41,052 - services.validation_service - INFO - Saved report for Angela Wilson to ./output\leader_reports_20250617_153340\QA_Results_Angela_Wilson_20250617_153340.xlsx
+2025-06-17 15:33:41,053 - services.validation_service - INFO - Creating report for Jonathan Johnson
+2025-06-17 15:33:41,229 - services.validation_service - INFO - Saved report for Jonathan Johnson to ./output\leader_reports_20250617_153340\QA_Results_Jonathan_Johnson_20250617_153340.xlsx
+2025-06-17 15:33:41,229 - services.validation_service - INFO - Creating report for Kevin Nicholson
+2025-06-17 15:33:41,410 - services.validation_service - INFO - Saved report for Kevin Nicholson to ./output\leader_reports_20250617_153340\QA_Results_Kevin_Nicholson_20250617_153340.xlsx
+2025-06-17 15:33:41,410 - services.validation_service - INFO - Creating report for Kristen Walker
+2025-06-17 15:33:41,596 - services.validation_service - INFO - Saved report for Kristen Walker to ./output\leader_reports_20250617_153340\QA_Results_Kristen_Walker_20250617_153340.xlsx
+2025-06-17 15:33:41,597 - services.validation_service - INFO - Creating report for Michelle Ware
+2025-06-17 15:33:41,779 - services.validation_service - INFO - Saved report for Michelle Ware to ./output\leader_reports_20250617_153340\QA_Results_Michelle_Ware_20250617_153340.xlsx
+2025-06-17 15:33:41,779 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 5e568e01: Reports generated: ['./output\\Analytics_Validation_20250617_153334_20250617_153340_results.json', './output\\Analytics_Validation_20250617_153334_20250617_153340_report.xlsx']
+2025-06-17 15:33:41,779 - __main__ - INFO - Successfully generated 5 Audit Leader-Specific Workbooks
+2025-06-17 15:33:41,779 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 5e568e01: Validation completed successfully
+2025-06-17 15:33:41,779 - __main__ - INFO - Updating reports tab with 1 files
+2025-06-17 15:33:41,779 - ui.analytics_runner.cancellable_validation_worker - INFO - Session 5e568e01: Cleanup completed
+2025-06-17 15:33:41,783 - __main__ - INFO - Reports generated successfully
+2025-06-17 15:33:41,784 - __main__ - INFO - Updating reports tab with 2 files
+2025-06-17 15:33:41,788 - ui.common.workflow_state_simple - INFO - Workflow state: execution_active -> execution_completed
+2025-06-17 15:33:43,664 - __main__ - ERROR - ERROR: Internal C++ object (PySide6.QtWidgets.QLabel) already deleted.
+2025-06-17 15:34:05,191 - __main__ - INFO - Application closing
+2025-06-17 15:34:05,193 - ui.analytics_runner.rule_selector_panel - INFO - RuleSelectorPanel cleaned up
+2025-06-17 15:34:05,197 - __main__ - INFO - Application state saved

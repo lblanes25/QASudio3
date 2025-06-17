@@ -3499,6 +3499,13 @@ class AnalyticsRunnerApp(QMainWindow):
                 # Ignore errors if signals were already disconnected
                 pass
         
+        # Get lookup manager from data source panel if available
+        lookup_manager = None
+        if hasattr(self.data_source_panel, 'get_lookup_manager'):
+            lookup_manager = self.data_source_panel.get_lookup_manager()
+            if lookup_manager:
+                logger.info(f"Passing lookup manager with {len(lookup_manager.loaded_files)} loaded files to validation")
+        
         # Create and start cancellable validation worker
         self.validation_worker = CancellableValidationWorker(
             pipeline=None,  # Will be created in worker
@@ -3511,7 +3518,8 @@ class AnalyticsRunnerApp(QMainWindow):
             output_dir=output_dir,
             use_parallel=use_parallel,
             responsible_party_column=responsible_party_column,
-            generate_leader_packs=generate_individual_reports  # Keep parameter name for compatibility
+            generate_leader_packs=generate_individual_reports,  # Keep parameter name for compatibility
+            lookup_manager=lookup_manager
         )
 
         # Connect worker signals

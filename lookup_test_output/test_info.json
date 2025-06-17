@@ -1,0 +1,28 @@
+{
+  "test_description": "LOOKUP function validation test",
+  "primary_data_file": "lookup_test_data/audit_data.xlsx",
+  "secondary_data_file": "lookup_test_data/hr_reference.xlsx",
+  "test_formula": "=LOOKUP([AuditLeader], \"EmployeeName\", \"JobTitle\") = \"Audit Manager\"",
+  "expected_results": {
+    "Alice Smith": {
+      "lookup_result": "Audit Manager",
+      "rule_result": true
+    },
+    "Bob Jones": {
+      "lookup_result": "Senior Auditor",
+      "rule_result": false
+    },
+    "Carol White": {
+      "lookup_result": "Audit Manager",
+      "rule_result": true
+    },
+    "David Brown": {
+      "lookup_result": "Audit Manager",
+      "rule_result": true
+    },
+    "Eve Green": {
+      "lookup_result": "Junior Auditor",
+      "rule_result": false
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "status": "FAILED",
+  "timestamp": "2025-06-16T16:31:50.137272",
+  "summary": {
+    "total_rules": 0,
+    "passed_rules": 0,
+    "failed_rules": 0,
+    "skipped_rules": 0,
+    "compliance_counts": {},
+    "compliance_rate": 0.0
+  },
+  "rule_results": {},
+  "execution_time": 0.015202,
+  "data_source": "Unknown",
+  "responsible_party_column": "AuditLeader",
+  "output_files": [],
+  "errors": [
+    {
+      "type": "ValidationError",
+      "message": "'DataImporter' object has no attribute 'import_data'"
+    }
+  ],
+  "valid": false,
+  "analytic_id": "Analytics_Validation_20250616_163150",
+  "data_metrics": {
+    "row_count": 0,
+    "column_count": 0,
+    "columns": [],
+    "total_unique_entities": 0
+  },
+  "schema_validation": {
+    "valid": true,
+    "errors": []
+  }
+}

@@ -63,7 +63,7 @@ class ExcelFormulaProcessor:
         -2146777998: "COM automation error"
     }
 
-    def __init__(self, template_path=None, visible=False, track_errors=True):
+    def __init__(self, template_path=None, visible=False, track_errors=True, lookup_manager=None):
         """Initialize the Excel Formula Processor."""
         self.excel = None
         self.workbook = None
@@ -74,6 +74,7 @@ class ExcelFormulaProcessor:
         self.session_id = str(uuid.uuid4())[:8]
         self.track_errors = track_errors
         self._is_com_initialized = False
+        self.lookup_manager = lookup_manager  # SmartLookupManager instance
 
         # For tracking process count in debug mode
         if logging.getLogger().isEnabledFor(logging.DEBUG):
@@ -645,7 +646,12 @@ class ExcelFormulaProcessor:
 
         # Use the faster bulk method by default
         if use_bulk_method:
-            return self.process_formulas_bulk(data, formulas, input_range)
+            # Check if any formula contains LOOKUP - if so, we need row-by-row processing
+            if self.lookup_manager and any('LOOKUP(' in formula for formula in formulas.values()):
+                logger.info("LOOKUP functions detected - using row-by-row processing for accurate results")
+                use_bulk_method = False
+            else:
+                return self.process_formulas_bulk(data, formulas, input_range)
 
         # Fall back to row-by-row evaluation if bulk method is not requested
         if not self.excel or not self.workbook:
@@ -715,8 +721,11 @@ class ExcelFormulaProcessor:
                     # Excel rows are 1-based and we need to account for the header row
                     excel_row = start_row + row_idx
 
+                    # Parse LOOKUP calls first (if lookup_manager is available)
+                    parsed_formula = self._parse_formula(formula, result_df.iloc[row_idx]) if self.lookup_manager else formula
+                    
                     # Replace placeholders in formula
-                    applied_formula = self._apply_row_context(formula, excel_row, headers)
+                    applied_formula = self._apply_row_context(parsed_formula, excel_row, headers)
 
                     # Get the result from Excel
                     try:
@@ -740,6 +749,168 @@ class ExcelFormulaProcessor:
         except Exception as e:
             logger.error(f"[Session {self.session_id}] Error processing formulas: {str(e)}")
             raise
+
+    def _parse_formula(self, formula: str, row_data: pd.Series) -> str:
+        """
+        Parse formula and replace column references and LOOKUP calls.
+        
+        Args:
+            formula: The Excel formula to parse
+            row_data: The current row data for context
+            
+        Returns:
+            Parsed formula with LOOKUP calls resolved
+        """
+        parsed_formula = formula
+        
+        # Handle LOOKUP function calls FIRST (before column replacement)
+        if 'LOOKUP(' in parsed_formula and self.lookup_manager:
+            parsed_formula = self._parse_lookup_calls(parsed_formula, row_data)
+        
+        # Then return for column replacement to happen in _apply_row_context
+        return parsed_formula
+    
+    def _parse_lookup_calls(self, formula: str, row_data: pd.Series) -> str:
+        """
+        Parse and resolve LOOKUP function calls in the formula.
+        
+        Supports syntax variants:
+        - LOOKUP([ReviewerID], 'EmployeeID', 'Level')     # Find in any file
+        - LOOKUP([ReviewerID], 'Level')                   # Smart column match
+        - LOOKUP([ReviewerID], 'hr_master', 'Level')      # File hint
+        - LOOKUP([ReviewerID], 'hr_master.xlsx', 'Level') # Full path
+        
+        Args:
+            formula: Formula containing LOOKUP calls
+            row_data: Current row data for resolving column references
+            
+        Returns:
+            Formula with LOOKUP calls replaced by their values
+        """
+        if not self.lookup_manager:
+            logger.warning("LOOKUP function used but no lookup_manager provided")
+            return formula
+        
+        # Set the current row index for tracking if available
+        if hasattr(row_data, 'name') and row_data.name is not None:
+            self.lookup_manager.set_current_row(row_data.name)
+        
+        # Import re if not already imported
+        import re
+        
+        # Pattern to match LOOKUP calls with various syntax forms
+        # Captures: lookup_value, optional arg1, optional arg2
+        pattern = r'LOOKUP\s*\(\s*([^,)]+)(?:\s*,\s*[\'"]([^"\']+)[\'"])?(?:\s*,\s*[\'"]([^"\']+)[\'"])?\s*\)'
+        
+        def replace_lookup(match):
+            groups = match.groups()
+            lookup_value_expr = groups[0].strip()
+            arg1 = groups[1] if groups[1] else None
+            arg2 = groups[2] if groups[2] else None
+            
+            # Resolve the lookup value from column reference if needed
+            if lookup_value_expr.startswith('[') and lookup_value_expr.endswith(']'):
+                column_name = lookup_value_expr[1:-1]
+                if column_name in row_data:
+                    lookup_value = row_data[column_name]
+                else:
+                    logger.warning(f"Column {column_name} not found in row data")
+                    return "None"
+            else:
+                # It's a literal value, remove quotes if present
+                lookup_value = lookup_value_expr.strip('"\'')
+            
+            # Determine the lookup parameters based on number of arguments
+            result = None
+            try:
+                if arg2:
+                    # Three arguments: could be (value, search_col, return_col) or (value, file_hint, return_col)
+                    # Check if arg1 looks like a file hint (contains . or matches known aliases)
+                    if '.' in arg1 or arg1 in self.lookup_manager.file_aliases:
+                        # It's a file hint
+                        result = self.lookup_manager.smart_lookup(
+                            lookup_value=lookup_value,
+                            return_column=arg2,
+                            source_hint=arg1
+                        )
+                    else:
+                        # It's search_column, return_column
+                        result = self.lookup_manager.smart_lookup(
+                            lookup_value=lookup_value,
+                            search_column=arg1,
+                            return_column=arg2
+                        )
+                elif arg1:
+                    # Two arguments: (value, return_col)
+                    result = self.lookup_manager.smart_lookup(
+                        lookup_value=lookup_value,
+                        return_column=arg1
+                    )
+                else:
+                    logger.warning(f"LOOKUP function requires at least 2 arguments, got 1")
+                    return "None"
+                    
+            except Exception as e:
+                logger.error(f"Error in LOOKUP function: {e}")
+                return "None"
+            
+            # Handle the result
+            if result is None:
+                # Return empty string for None values - this will make comparisons fail properly
+                return '""'
+            elif isinstance(result, str):
+                # Escape quotes in string results for Excel
+                return f'"{result.replace('"', '""')}"'
+            else:
+                return str(result)
+        
+        # Replace all LOOKUP calls in the formula
+        parsed_formula = re.sub(pattern, replace_lookup, formula)
+        
+        # Normalize quotes in the formula - convert all single quotes to double quotes
+        # This handles cases like: ="Manager" = 'Manager'
+        # We need to be careful not to change quotes inside already quoted strings
+        if "'" in parsed_formula:
+            # Simple approach: if we have both quote types, standardize to double quotes
+            parsed_formula = self._normalize_formula_quotes(parsed_formula)
+        
+        return parsed_formula
+    
+    def _normalize_formula_quotes(self, formula: str) -> str:
+        """
+        Normalize quotes in Excel formulas to use double quotes consistently.
+        Converts single quotes around string literals to double quotes.
+        """
+        # Pattern to match single-quoted strings that are not inside double-quoted strings
+        import re
+        
+        # This pattern matches 'string' but not when it's inside "...'string'..."
+        # We'll do a simple replacement of ' with " for string literals
+        parts = []
+        in_double_quotes = False
+        i = 0
+        
+        while i < len(formula):
+            if formula[i] == '"' and (i == 0 or formula[i-1] != '\\'):
+                in_double_quotes = not in_double_quotes
+                parts.append(formula[i])
+            elif formula[i] == "'" and not in_double_quotes:
+                # Look ahead to find the closing single quote
+                j = i + 1
+                while j < len(formula) and formula[j] != "'":
+                    j += 1
+                if j < len(formula):
+                    # Found a single-quoted string, convert to double quotes
+                    content = formula[i+1:j]
+                    parts.append('"' + content.replace('"', '""') + '"')
+                    i = j  # Skip past the closing quote
+                else:
+                    parts.append(formula[i])
+            else:
+                parts.append(formula[i])
+            i += 1
+        
+        return ''.join(parts)
 
     def _apply_row_context(self, formula: str, row: int, headers: List[str]) -> str:
         """

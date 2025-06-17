@@ -1,0 +1,17 @@
+{
+  "rule_id": "1a57a653-28da-421a-8782-1fc19843538c",
+  "name": "HRDataTest",
+  "formula": "=LOOKUP([AuditLeader], 'hr_data', 'Title') = 'Audit Manager'",
+  "description": "Checks that person is audit manager",
+  "threshold": 1.0,
+  "metadata": {
+    "severity": "medium",
+    "category": "compliance",
+    "tags": [
+      "bm"
+    ],
+    "title": "HRDataTest",
+    "created_at": "2025-06-17T13:50:36.897156",
+    "responsible_party_column": "AuditLeader"
+  }
+}

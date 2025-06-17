@@ -1,0 +1,227 @@
+{
+  "valid": false,
+  "analytic_id": "test_lookup",
+  "timestamp": "2025-06-17T14:52:24.218651",
+  "data_source": "test_data/primary_data.xlsx",
+  "rule_results": {
+    "test_lookup_rule": {
+      "rule_id": "test_lookup_rule",
+      "rule_name": "Audit Manager Check",
+      "compliance_status": "DNC",
+      "compliance_rate": 0.6666666666666667,
+      "total_items": 3,
+      "gc_count": 2,
+      "pc_count": 0,
+      "dnc_count": 1,
+      "error_count": 0,
+      "party_results": {
+        "Bob Johnson": {
+          "status": "GC",
+          "metrics": {
+            "gc_rate": 1.0,
+            "pc_rate": 0.0,
+            "dnc_rate": 0.0,
+            "na_rate": 0.0,
+            "gc_count": 1,
+            "pc_count": 0,
+            "dnc_count": 0,
+            "na_count": 0,
+            "error_count": 0,
+            "total_count": 1,
+            "applicable_count": 1
+          }
+        },
+        "Jane Doe": {
+          "status": "DNC",
+          "metrics": {
+            "gc_rate": 0.0,
+            "pc_rate": 0.0,
+            "dnc_rate": 1.0,
+            "na_rate": 0.0,
+            "gc_count": 0,
+            "pc_count": 0,
+            "dnc_count": 1,
+            "na_count": 0,
+            "error_count": 0,
+            "total_count": 1,
+            "applicable_count": 1
+          }
+        },
+        "John Smith": {
+          "status": "GC",
+          "metrics": {
+            "gc_rate": 1.0,
+            "pc_rate": 0.0,
+            "dnc_rate": 0.0,
+            "na_rate": 0.0,
+            "gc_count": 1,
+            "pc_count": 0,
+            "dnc_count": 0,
+            "na_count": 0,
+            "error_count": 0,
+            "total_count": 1,
+            "applicable_count": 1
+          }
+        }
+      },
+      "_result_details": [
+        {
+          "AuditEntityID": "A001",
+          "AuditLeader": "John Smith",
+          "Status": "Complete",
+          "Result_Audit Manager Check": true,
+          "Result_Audit Manager Check_Error": ""
+        },
+        {
+          "AuditEntityID": "A002",
+          "AuditLeader": "Jane Doe",
+          "Status": "In Progress",
+          "Result_Audit Manager Check": false,
+          "Result_Audit Manager Check_Error": ""
+        },
+        {
+          "AuditEntityID": "A003",
+          "AuditLeader": "Bob Johnson",
+          "Status": "Complete",
+          "Result_Audit Manager Check": true,
+          "Result_Audit Manager Check_Error": ""
+        }
+      ],
+      "_result_column": "Result_Audit Manager Check",
+      "lookup_operations": [
+        {
+          "row_index": 0,
+          "lookup_value": "John Smith",
+          "search_column": "Employee_Name",
+          "return_column": "Title",
+          "source_file": "test_data/hr_data.xlsx",
+          "source_alias": "hr_data",
+          "result": "Audit Manager",
+          "success": true,
+          "from_cache": false,
+          "error": null,
+          "timestamp": "2025-06-17 14:52:24.970914"
+        },
+        {
+          "row_index": 1,
+          "lookup_value": "Jane Doe",
+          "search_column": "Employee_Name",
+          "return_column": "Title",
+          "source_file": "test_data/hr_data.xlsx",
+          "source_alias": "hr_data",
+          "result": "Senior Auditor",
+          "success": true,
+          "from_cache": false,
+          "error": null,
+          "timestamp": "2025-06-17 14:52:24.973913"
+        },
+        {
+          "row_index": 2,
+          "lookup_value": "Bob Johnson",
+          "search_column": "Employee_Name",
+          "return_column": "Title",
+          "source_file": "test_data/hr_data.xlsx",
+          "source_alias": "hr_data",
+          "result": "Audit Manager",
+          "success": true,
+          "from_cache": false,
+          "error": null,
+          "timestamp": "2025-06-17 14:52:24.973913"
+        }
+      ]
+    }
+  },
+  "summary": {
+    "total_rules": 1,
+    "compliance_counts": {
+      "GC": 0,
+      "PC": 0,
+      "DNC": 1,
+      "NA": 0
+    },
+    "compliance_rate": 0.0,
+    "rule_stats": {
+      "by_category": {
+        "data_quality": {
+          "count": 1,
+          "GC": 0,
+          "PC": 0,
+          "DNC": 1,
+          "NA": 0
+        }
+      },
+      "by_severity": {
+        "high": {
+          "count": 1,
+          "GC": 0,
+          "PC": 0,
+          "DNC": 1,
+          "NA": 0
+        }
+      }
+    }
+  },
+  "output_files": [],
+  "data_metrics": {
+    "row_count": 3,
+    "column_count": 3,
+    "columns": [
+      "AuditEntityID",
+      "AuditLeader",
+      "Status"
+    ],
+    "total_unique_entities": 3,
+    "entities_per_leader": {
+      "Bob Johnson": 1,
+      "Jane Doe": 1,
+      "John Smith": 1
+    }
+  },
+  "rules_applied": [
+    "test_lookup_rule"
+  ],
+  "grouped_summary": {
+    "Bob Johnson": {
+      "total_rules": 1,
+      "GC": 1,
+      "PC": 0,
+      "DNC": 0,
+      "NA": 0,
+      "compliance_rate": 1.0,
+      "entity_count": 1
+    },
+    "Jane Doe": {
+      "total_rules": 1,
+      "GC": 0,
+      "PC": 0,
+      "DNC": 1,
+      "NA": 0,
+      "compliance_rate": 0.0,
+      "entity_count": 1
+    },
+    "John Smith": {
+      "total_rules": 1,
+      "GC": 1,
+      "PC": 0,
+      "DNC": 0,
+      "NA": 0,
+      "compliance_rate": 1.0,
+      "entity_count": 1
+    }
+  },
+  "status": "NON_COMPLIANT",
+  "population_summary": {
+    "total_entities": 3,
+    "entities_per_leader": {
+      "Bob Johnson": 1,
+      "Jane Doe": 1,
+      "John Smith": 1
+    },
+    "data_source": "test_data/primary_data.xlsx",
+    "filters_applied": [],
+    "sampling_method": "100% population",
+    "validation_date": "2025-06-17T14:52:24.218651",
+    "total_rows": 3,
+    "total_columns": 3
+  }
+}
