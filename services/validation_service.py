@@ -2244,7 +2244,7 @@ class ValidationPipeline:
         
         # Detail section headers
         detail_headers = ["Item ID", "Audit Leader"] + formula_fields + lookup_columns + \
-                        ["Status", "Failure Reason", "Internal Notes", "Audit Leader Response"]
+                        ["Test Result", "Failure Reason", "Internal Notes", "Audit Leader Response"]
         
         header_row = detail_start_row + 1
         for col, header in enumerate(detail_headers, 1):
@@ -2263,9 +2263,22 @@ class ValidationPipeline:
             result_column = rule_result.get('_result_column', f"Result_{rule.name}")
             
             # Sort by status: DNC first, then PC, then GC
-            status_order = {'DNC': 0, 'PC': 1, 'GC': 2, 'NA': 3}
+            # First convert boolean results to status codes for sorting
             if result_column in result_df.columns:
-                result_df['_sort_order'] = result_df[result_column].map(status_order).fillna(4)
+                def convert_to_status(value):
+                    if isinstance(value, bool) or str(value).upper() in ['TRUE', 'FALSE']:
+                        return 'GC' if (str(value).upper() == 'TRUE' or value is True) else 'DNC'
+                    elif value in ['GC', 'PC', 'DNC', 'NA']:
+                        return value
+                    else:
+                        return 'NA'
+                
+                # Create a status column for sorting
+                result_df['_status_for_sort'] = result_df[result_column].apply(convert_to_status)
+                
+                # Map to sort order
+                status_order = {'DNC': 0, 'PC': 1, 'GC': 2, 'NA': 3}
+                result_df['_sort_order'] = result_df['_status_for_sort'].map(status_order).fillna(4)
                 result_df = result_df.sort_values('_sort_order')
                 
                 # Write each row
@@ -2333,9 +2346,11 @@ class ValidationPipeline:
                     
                     detail_row += 1
                     
-                # Clean up sort column
+                # Clean up sort columns
                 if '_sort_order' in result_df.columns:
                     result_df.drop('_sort_order', axis=1, inplace=True)
+                if '_status_for_sort' in result_df.columns:
+                    result_df.drop('_status_for_sort', axis=1, inplace=True)
         else:
             # No detailed results available yet
             ws[f'A{detail_row}'] = "Note: Detailed item-level results will be available when result_df is stored during validation"
