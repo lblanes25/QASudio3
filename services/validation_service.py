@@ -2639,7 +2639,16 @@ class ValidationPipeline:
             self._copy_test_tabs_for_leader(master_wb, leader_wb, leader)
             
             # Save the leader's file
-            safe_leader_name = leader.replace(' ', '_').replace('/', '_')
+            # Sanitize leader name for filename - remove/replace invalid characters
+            safe_leader_name = leader.replace(' ', '_').replace('/', '_').replace('\\', '_')
+            safe_leader_name = safe_leader_name.replace('\n', '_').replace('\r', '').replace('\t', '_')
+            safe_leader_name = safe_leader_name.replace(':', '').replace('*', '').replace('?', '')
+            safe_leader_name = safe_leader_name.replace('"', '').replace('<', '').replace('>', '')
+            safe_leader_name = safe_leader_name.replace('|', '').replace(',', '_')
+            # Remove any remaining non-ASCII characters
+            safe_leader_name = ''.join(c if ord(c) < 128 else '_' for c in safe_leader_name)
+            # Limit length to avoid path issues
+            safe_leader_name = safe_leader_name[:100]
             filename = f"QA_Results_{safe_leader_name}_{timestamp}.xlsx"
             filepath = os.path.join(output_dir, filename)
             
