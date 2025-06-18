@@ -422,7 +422,38 @@ class AnalyticsRunnerApp(QMainWindow):
         # Excel report checkbox
         self.excel_report_checkbox = QCheckBox("Generate Excel Report")
         self.excel_report_checkbox.setChecked(True)
-        self.excel_report_checkbox.setStyleSheet("background-color: transparent;")
+        self.excel_report_checkbox.setStyleSheet(f"""
+            QCheckBox {{
+                color: {AnalyticsRunnerStylesheet.DARK_TEXT};
+                font-size: 14px;
+                background-color: transparent;
+                spacing: 8px;
+            }}
+            QCheckBox::indicator {{
+                width: 18px;
+                height: 18px;
+                border: 2px solid #808080;
+                border-radius: 3px;
+                background-color: white;
+            }}
+            QCheckBox::indicator:unchecked {{
+                border: 2px solid #606060;
+                background-color: white;
+            }}
+            QCheckBox::indicator:unchecked:hover {{
+                border-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                background-color: #f0f0f0;
+            }}
+            QCheckBox::indicator:checked {{
+                background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                border-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEwIDNMNC41IDguNUwyIDYiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPg==);
+            }}
+            QCheckBox::indicator:checked:hover {{
+                background-color: {AnalyticsRunnerStylesheet.HOVER_COLOR};
+                border-color: {AnalyticsRunnerStylesheet.HOVER_COLOR};
+            }}
+        """)
         self.excel_report_checkbox.setToolTip("Generate comprehensive IAG Summary Report with all validation results")
         self.excel_report_checkbox.toggled.connect(self._on_report_option_changed)
         checkbox_layout.addWidget(self.excel_report_checkbox)
@@ -430,7 +461,38 @@ class AnalyticsRunnerApp(QMainWindow):
         # Individual Leader Reports checkbox (replaces leader packs)
         self.individual_reports_checkbox = QCheckBox("Generate Individual Leader Reports")
         self.individual_reports_checkbox.setChecked(True)  # Default checked
-        self.individual_reports_checkbox.setStyleSheet("background-color: transparent;")
+        self.individual_reports_checkbox.setStyleSheet(f"""
+            QCheckBox {{
+                color: {AnalyticsRunnerStylesheet.DARK_TEXT};
+                font-size: 14px;
+                background-color: transparent;
+                spacing: 8px;
+            }}
+            QCheckBox::indicator {{
+                width: 18px;
+                height: 18px;
+                border: 2px solid #808080;
+                border-radius: 3px;
+                background-color: white;
+            }}
+            QCheckBox::indicator:unchecked {{
+                border: 2px solid #606060;
+                background-color: white;
+            }}
+            QCheckBox::indicator:unchecked:hover {{
+                border-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                background-color: #f0f0f0;
+            }}
+            QCheckBox::indicator:checked {{
+                background-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                border-color: {AnalyticsRunnerStylesheet.PRIMARY_COLOR};
+                image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEwIDNMNC41IDguNUwyIDYiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPg==);
+            }}
+            QCheckBox::indicator:checked:hover {{
+                background-color: {AnalyticsRunnerStylesheet.HOVER_COLOR};
+                border-color: {AnalyticsRunnerStylesheet.HOVER_COLOR};
+            }}
+        """)
         self.individual_reports_checkbox.setToolTip("Split the master report into individual Excel files for each responsible party")
         self.individual_reports_checkbox.toggled.connect(self._on_individual_reports_changed)
         checkbox_layout.addWidget(self.individual_reports_checkbox)
